@@ -97,20 +97,17 @@ public final class CertificateHelper
 		return keyStore;
 	}
 
-	public static KeyStore toDefaultKeyStore(PrivateKey privateKey, Certificate[] certificate, String certificateAlias,
+	public static KeyStore toJksKeyStore(PrivateKey privateKey, Certificate[] certificate, String certificateAlias,
 			String password) throws KeyStoreException, IOException, NoSuchAlgorithmException, CertificateException
 	{
-		return toKeyStore(privateKey, certificate, certificateAlias, password, KeyStore.getDefaultType());
+		return toKeyStore(privateKey, certificate, certificateAlias, password, "jks");
 	}
 
-	// public static KeyStore toPkcs12KeyStore(PrivateKey privateKey,
-	// Certificate[] certificate, String certificateAlias,
-	// String password) throws KeyStoreException, IOException,
-	// NoSuchAlgorithmException, CertificateException
-	// {
-	// return toKeyStore(privateKey, certificate, certificateAlias, password,
-	// "pkcs12");
-	// }
+	public static KeyStore toPkcs12KeyStore(PrivateKey privateKey, Certificate[] certificate, String certificateAlias,
+			String password) throws KeyStoreException, IOException, NoSuchAlgorithmException, CertificateException
+	{
+		return toKeyStore(privateKey, certificate, certificateAlias, password, "pkcs12");
+	}
 
 	public static KeyStore toKeyStore(PrivateKey privateKey, Certificate[] certificate, String certificateAlias,
 			String password, String keyStoreType) throws KeyStoreException, IOException, NoSuchAlgorithmException,
