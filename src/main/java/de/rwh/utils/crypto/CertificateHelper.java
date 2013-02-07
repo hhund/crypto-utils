@@ -10,7 +10,6 @@ import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
-import java.security.Provider;
 import java.security.PublicKey;
 import java.security.Security;
 import java.security.cert.Certificate;
@@ -32,19 +31,26 @@ public final class CertificateHelper
 {
 	private static final String DEFAULT_SIGNATURE_ALGORITHM = "SHA1WithRSAEncryption";
 	private static final String DEFAULT_KEY_ALGORITHM = "RSA";
+	private static final int DEFAULT_KEY_SIZE = 2048;
 
 	private CertificateHelper()
 	{
 	}
 
-	public static KeyPair createRsaKeyPair() throws NoSuchAlgorithmException
+	public static void registerBouncyCastleProvider()
 	{
-		return createKeyPair(DEFAULT_KEY_ALGORITHM);
+		Security.addProvider(new BouncyCastleProvider());
 	}
 
-	public static KeyPair createKeyPair(String algorithm) throws NoSuchAlgorithmException
+	public static KeyPair createRsaKeyPair2048Bit() throws NoSuchAlgorithmException
+	{
+		return createKeyPair(DEFAULT_KEY_ALGORITHM, DEFAULT_KEY_SIZE);
+	}
+
+	public static KeyPair createKeyPair(String algorithm, int keySize) throws NoSuchAlgorithmException
 	{
 		KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance(algorithm);
+		keyPairGenerator.initialize(keySize);
 		KeyPair keyPair = keyPairGenerator.generateKeyPair();
 		return keyPair;
 	}
@@ -60,7 +66,7 @@ public final class CertificateHelper
 	 * @throws OperatorCreationException
 	 * @throws IllegalStateException
 	 *             if the {@link BouncyCastleProvider} is not found
-	 * @see Security#addProvider(Provider)
+	 * @see CertificateHelper#registerBouncyCastleProvider()
 	 */
 	public static ContentSigner getContentSigner(PrivateKey privateKey) throws OperatorCreationException,
 			IllegalStateException
@@ -75,7 +81,7 @@ public final class CertificateHelper
 	 * @throws OperatorCreationException
 	 * @throws IllegalStateException
 	 *             if the {@link BouncyCastleProvider} is not found
-	 * @see Security#addProvider(Provider)
+	 * @see CertificateHelper#registerBouncyCastleProvider()
 	 */
 	public static ContentSigner getContentSigner(String signatureAlgorithm, PrivateKey privateKey)
 			throws OperatorCreationException, IllegalStateException

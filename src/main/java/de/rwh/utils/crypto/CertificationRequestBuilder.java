@@ -8,9 +8,9 @@ import static de.rwh.utils.crypto.CertificateHelper.getContentSigner;
 import java.io.IOException;
 import java.security.KeyPair;
 import java.security.NoSuchAlgorithmException;
-import java.security.Provider;
-import java.security.Security;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 
 import org.bouncycastle.asn1.x500.X500Name;
@@ -31,13 +31,18 @@ import org.bouncycastle.pkcs.jcajce.JcaPKCS10CertificationRequestBuilder;
  */
 public class CertificationRequestBuilder
 {
-	public static KeyPair createRsaKeyPair() throws NoSuchAlgorithmException
+	public static void registerBouncyCastleProvider()
 	{
-		return CertificateHelper.createRsaKeyPair();
+		CertificateHelper.registerBouncyCastleProvider();
+	}
+
+	public static KeyPair createRsaKeyPair2048Bit() throws NoSuchAlgorithmException
+	{
+		return CertificateHelper.createRsaKeyPair2048Bit();
 	}
 
 	public static X500Name createSubject(String countryCode, String state, String locality, String organization,
-			String organizationalUnitName, String commonName)
+			String organizationalUnit, String commonName)
 	{
 		X500NameBuilder subjectBuilder = new X500NameBuilder(BCStyle.INSTANCE);
 
@@ -49,8 +54,8 @@ public class CertificationRequestBuilder
 			subjectBuilder.addRDN(BCStyle.L, locality);
 		if (organization != null && !organization.isEmpty())
 			subjectBuilder.addRDN(BCStyle.O, organization);
-		if (organizationalUnitName != null && !organizationalUnitName.isEmpty())
-			subjectBuilder.addRDN(BCStyle.OU, organizationalUnitName);
+		if (organizationalUnit != null && !organizationalUnit.isEmpty())
+			subjectBuilder.addRDN(BCStyle.OU, organizationalUnit);
 		if (commonName != null && !commonName.isEmpty())
 			subjectBuilder.addRDN(BCStyle.CN, commonName);
 
@@ -66,7 +71,7 @@ public class CertificationRequestBuilder
 	 * @throws OperatorCreationException
 	 * @throws IllegalStateException
 	 *             if the {@link BouncyCastleProvider} is not found
-	 * @see Security#addProvider(Provider)
+	 * @see CertificationRequestBuilder#registerBouncyCastleProvider()
 	 */
 	public static JcaPKCS10CertificationRequest createCertificationRequest(X500Name subject, KeyPair rsaKeyPair)
 			throws NoSuchAlgorithmException, IOException, OperatorCreationException, IllegalStateException
@@ -85,16 +90,36 @@ public class CertificationRequestBuilder
 	 * @throws OperatorCreationException
 	 * @throws IllegalStateException
 	 *             if the {@link BouncyCastleProvider} is not found
-	 * @see Security#addProvider(Provider)
+	 * @see CertificationRequestBuilder#registerBouncyCastleProvider()
 	 */
 	public static JcaPKCS10CertificationRequest createCertificationRequest(X500Name subject, KeyPair rsaKeyPair,
 			String email, String... dnsNames) throws NoSuchAlgorithmException, IOException, OperatorCreationException,
 			IllegalStateException
 	{
+		return createCertificationRequest(subject, rsaKeyPair, email, Arrays.asList(dnsNames));
+	}
+
+	/**
+	 * @param subject
+	 * @param rsaKeyPair
+	 * @param email
+	 * @param dnsNames
+	 * @return
+	 * @throws NoSuchAlgorithmException
+	 * @throws IOException
+	 * @throws OperatorCreationException
+	 * @throws IllegalStateException
+	 *             if the {@link BouncyCastleProvider} is not found
+	 * @see CertificationRequestBuilder#registerBouncyCastleProvider()
+	 */
+	public static JcaPKCS10CertificationRequest createCertificationRequest(X500Name subject, KeyPair rsaKeyPair,
+			String email, Collection<String> dnsNames) throws NoSuchAlgorithmException, IOException,
+			OperatorCreationException, IllegalStateException
+	{
 		JcaPKCS10CertificationRequestBuilder requestBuilder = new JcaPKCS10CertificationRequestBuilder(subject,
 				rsaKeyPair.getPublic());
 
-		List<GeneralName> subAltNames = new ArrayList<>(dnsNames.length + 1);
+		List<GeneralName> subAltNames = new ArrayList<>(dnsNames.size() + 1);
 		if (email != null && !email.isEmpty())
 			subAltNames.add(new GeneralName(GeneralName.rfc822Name, email));
 		for (String dnsName : dnsNames)

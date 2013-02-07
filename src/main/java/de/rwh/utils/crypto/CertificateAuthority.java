@@ -11,9 +11,7 @@ import java.security.InvalidKeyException;
 import java.security.KeyPair;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
-import java.security.Provider;
 import java.security.PublicKey;
-import java.security.Security;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.security.spec.InvalidKeySpecException;
@@ -46,15 +44,30 @@ import org.bouncycastle.pkcs.jcajce.JcaPKCS10CertificationRequest;
  * @author hhund
  * 
  */
-public class CertificationAuthority
+public class CertificateAuthority
 {
 	public static final long ONE_YEAR_IN_MIILIS = 1000l * 60l * 60l * 24l * 365l;
 	public static final long TEN_YEAR_IN_MIILIS = ONE_YEAR_IN_MIILIS * 10l;
 
-	private final X500Name name;
+	private X500Name name = null;
 
 	private X509Certificate caCertificate;
 	private KeyPair caKeyPair;
+
+	public static void registerBouncyCastleProvider()
+	{
+		CertificateHelper.registerBouncyCastleProvider();
+	}
+
+	/**
+	 * @param caCertificate
+	 * @param caKeyPair
+	 */
+	public CertificateAuthority(X509Certificate caCertificate, KeyPair caKeyPair)
+	{
+		this.caCertificate = caCertificate;
+		this.caKeyPair = caKeyPair;
+	}
 
 	/**
 	 * @param countryCode
@@ -64,7 +77,7 @@ public class CertificationAuthority
 	 * @param organizationalUnit
 	 * @param commonName
 	 */
-	public CertificationAuthority(String countryCode, String state, String locality, String organization,
+	public CertificateAuthority(String countryCode, String state, String locality, String organization,
 			String organizationalUnit, String commonName)
 	{
 		X500NameBuilder issuerBuilder = new X500NameBuilder(BCStyle.INSTANCE);
@@ -86,28 +99,31 @@ public class CertificationAuthority
 	}
 
 	/**
-	 * Initializes the {@link CertificationAuthority} with a ca certificate
-	 * valid from now for 10 Years
+	 * Initializes the {@link CertificateAuthority} with a ca certificate valid
+	 * from now for 10 Years, creates a 2048 Bit RSA key pair
 	 * 
 	 * @throws NoSuchAlgorithmException
 	 * @throws InvalidKeyException
 	 * @throws KeyStoreException
 	 * @throws CertificateException
 	 * @throws OperatorCreationException
-	 * @throws IOException
+	 * @throws CertIOException
 	 * @throws IllegalStateException
 	 *             if the {@link BouncyCastleProvider} is not found
-	 * @see Security#addProvider(Provider)
+	 * @throws IllegalStateException
+	 *             if this {@link CertificateAuthority} is already initialized
+	 * @see CertificateAuthority#registerBouncyCastleProvider()
+	 * @see CertificateAuthority#isInitialied()
 	 */
 	public void initialize() throws NoSuchAlgorithmException, InvalidKeyException, KeyStoreException,
-			CertificateException, OperatorCreationException, IOException, IllegalStateException
+			CertificateException, OperatorCreationException, CertIOException, IllegalStateException
 	{
 		initialize(new Date(), new Date(System.currentTimeMillis() + TEN_YEAR_IN_MIILIS));
 	}
 
 	/**
-	 * Initializes the {@link CertificationAuthority} with a ca certificate
-	 * valid from notBefore to notAfter
+	 * Initializes the {@link CertificateAuthority} with a ca certificate valid
+	 * from notBefore to notAfter, creates a 2048 Bit RSA key pair
 	 * 
 	 * @param notBefore
 	 * @param notAfter
@@ -116,24 +132,32 @@ public class CertificationAuthority
 	 * @throws KeyStoreException
 	 * @throws CertificateException
 	 * @throws OperatorCreationException
-	 * @throws IOException
+	 * @throws CertIOException
 	 * @throws IllegalStateException
 	 *             if the {@link BouncyCastleProvider} is not found
-	 * @throw IllegalArgumentException if the given {@link Date}s are not valid
-	 * @see Security#addProvider(Provider)
+	 * @throws IllegalStateException
+	 *             if this {@link CertificateAuthority} is already initialized
+	 * @throws IllegalArgumentException
+	 *             if the given {@link Date}s are not valid
+	 * @see CertificateAuthority#registerBouncyCastleProvider()
+	 * @see CertificateAuthority#isInitialied()
+	 * @see CertificateHelper#createRsaKeyPair2048Bit()
 	 */
 	public void initialize(Date notBefore, Date notAfter) throws NoSuchAlgorithmException, InvalidKeyException,
-			KeyStoreException, CertificateException, OperatorCreationException, IOException, IllegalStateException
+			KeyStoreException, CertificateException, OperatorCreationException, CertIOException, IllegalStateException
 	{
 		if (notBefore == null || notAfter == null || notAfter.before(notBefore))
 			throw new IllegalArgumentException("Dates not valid");
 
-		caKeyPair = createRsaKeyPair();
+		if (isInitialied())
+			throw new IllegalStateException("already initialized");
+
+		caKeyPair = createRsaKeyPair2048Bit();
 		caCertificate = createCaCertificate(notBefore, notAfter);
 	}
 
 	private X509Certificate createCaCertificate(Date notBefore, Date notAfter) throws NoSuchAlgorithmException,
-			KeyStoreException, CertificateException, IOException, InvalidKeyException, OperatorCreationException,
+			KeyStoreException, CertificateException, CertIOException, InvalidKeyException, OperatorCreationException,
 			IllegalStateException
 	{
 		BigInteger serial = BigInteger.valueOf(System.currentTimeMillis());
@@ -160,7 +184,7 @@ public class CertificationAuthority
 	/**
 	 * @return
 	 * @throws IllegalStateException
-	 *             if the {@link CertificationAuthority} has not bin initialized
+	 *             if the {@link CertificateAuthority} has not bin initialized
 	 */
 	public X509Certificate getCertificate() throws IllegalStateException
 	{
@@ -168,6 +192,29 @@ public class CertificationAuthority
 			throw new IllegalStateException("not initialized");
 
 		return caCertificate;
+	}
+
+	/**
+	 * @return
+	 * @throws IllegalStateException
+	 *             if the {@link CertificateAuthority} has not bin initialized
+	 */
+	public KeyPair getCaKeyPair()
+	{
+		if (!isInitialied())
+			throw new IllegalStateException("not initialized");
+
+		return caKeyPair;
+	}
+
+	/**
+	 * @return <code>null</code> if this {@link CertificateAuthority} is created
+	 *         via
+	 *         {@link CertificateAuthority#CertificateAuthority(X509Certificate, KeyPair)}
+	 */
+	public X500Name getName()
+	{
+		return name;
 	}
 
 	public X509Certificate signWebClientCertificate(JcaPKCS10CertificationRequest request)
@@ -245,7 +292,12 @@ public class CertificationAuthority
 		return certificate;
 	}
 
-	private static ASN1Encodable getSubjectAlternativeNames(JcaPKCS10CertificationRequest request)
+	/**
+	 * @param request
+	 *            not <code>null</code>
+	 * @return might be <code>null</code>
+	 */
+	public static ASN1Encodable getSubjectAlternativeNames(JcaPKCS10CertificationRequest request)
 	{
 		Attribute[] attributes = request.getAttributes(Extension.subjectAlternativeName);
 		if (attributes.length == 0)

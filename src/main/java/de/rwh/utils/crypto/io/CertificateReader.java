@@ -20,7 +20,8 @@ import java.security.cert.CertificateFactory;
  */
 public final class CertificateReader
 {
-	public static KeyStore fromPkcs12(Path file, String password)
+	public static KeyStore fromPkcs12(Path file, String password) throws KeyStoreException, CertificateException,
+			IOException, NoSuchAlgorithmException
 	{
 		try (InputStream stream = Files.newInputStream(file))
 		{
@@ -29,13 +30,10 @@ public final class CertificateReader
 
 			return keyStore;
 		}
-		catch (IOException | NoSuchAlgorithmException | CertificateException | KeyStoreException e)
-		{
-			throw new RuntimeException(e);
-		}
 	}
 
-	public static KeyStore fromCer(Path file, String alias)
+	public static KeyStore fromCer(Path file, String alias) throws NoSuchAlgorithmException, CertificateException,
+			IOException, KeyStoreException
 	{
 		try (InputStream stream = Files.newInputStream(file))
 		{
@@ -47,10 +45,6 @@ public final class CertificateReader
 			keyStore.setCertificateEntry(alias, certificate);
 
 			return keyStore;
-		}
-		catch (IOException | KeyStoreException | NoSuchAlgorithmException | CertificateException e)
-		{
-			throw new RuntimeException(e);
 		}
 	}
 

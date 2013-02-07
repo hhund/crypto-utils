@@ -62,14 +62,14 @@ public class IoTest
 	{
 		Security.addProvider(new BouncyCastleProvider());
 
-		CertificationAuthority ca = new CertificationAuthority("DE", "Baden-Wuerttemberg", "Heilbronn",
+		CertificateAuthority ca = new CertificateAuthority("DE", "Baden-Wuerttemberg", "Heilbronn",
 				"Hochschule Heilbronn", "Medizinische Informatik", CA_ALIAS);
 		ca.initialize();
 
 		X509Certificate psCaCertificate = ca.getCertificate();
 		trustStore = CertificateHelper.toCertificateStore(CA_ALIAS, psCaCertificate);
 
-		KeyPair serverKeyPair = CertificationRequestBuilder.createRsaKeyPair();
+		KeyPair serverKeyPair = CertificationRequestBuilder.createRsaKeyPair2048Bit();
 		X500Name serverSubject = CertificationRequestBuilder.createSubject("DE", "Baden Wuerttemberg", "Heilbronn",
 				"Hochschule Heilbronn", "Medizinische Informatik", "localhost");
 		JcaPKCS10CertificationRequest serverCR = CertificationRequestBuilder.createCertificationRequest(serverSubject,
@@ -81,7 +81,7 @@ public class IoTest
 
 		X500Name clientSubject = CertificationRequestBuilder.createSubject("DE", "Baden Wuerttemberg", "Heilbronn",
 				"Hochschule Heilbronn", "Medizinische Informatik", "User");
-		KeyPair clientKeyPair = CertificationRequestBuilder.createRsaKeyPair();
+		KeyPair clientKeyPair = CertificationRequestBuilder.createRsaKeyPair2048Bit();
 		JcaPKCS10CertificationRequest clientCR = CertificationRequestBuilder.createCertificationRequest(clientSubject,
 				clientKeyPair, "hauke.hund@hs-heilbronn.de");
 		X509Certificate clientCertificate = ca.signWebClientCertificate(clientCR);
@@ -126,7 +126,8 @@ public class IoTest
 	}
 
 	private void testPkcs12ReadWrite(Path keyStoreFile, KeyStore keyStore, String certificatePassword,
-			String certificateAlias) throws KeyStoreException, NoSuchAlgorithmException, UnrecoverableKeyException
+			String certificateAlias) throws KeyStoreException, NoSuchAlgorithmException, UnrecoverableKeyException,
+			CertificateException, IOException
 	{
 		CertificateWriter.toPkcs12(keyStoreFile, keyStore, certificatePassword);
 
