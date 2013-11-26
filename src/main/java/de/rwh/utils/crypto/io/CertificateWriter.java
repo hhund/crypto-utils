@@ -3,6 +3,7 @@
  */
 package de.rwh.utils.crypto.io;
 
+import java.io.BufferedOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.file.Files;
@@ -60,6 +61,18 @@ public final class CertificateWriter
 		byte[] encoded = certificate.getEncoded();
 
 		Files.write(file, encoded);
+	}
+
+	public static void toCer(Path file, Certificate[] certificates) throws IOException, CertificateEncodingException
+	{
+		try (BufferedOutputStream out = new BufferedOutputStream(Files.newOutputStream(file)))
+		{
+			for (Certificate c : certificates)
+			{
+				byte[] encoded = c.getEncoded();
+				out.write(encoded);
+			}
+		}
 	}
 
 	private CertificateWriter()

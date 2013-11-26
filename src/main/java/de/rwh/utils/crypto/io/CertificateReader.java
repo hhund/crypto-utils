@@ -13,6 +13,8 @@ import java.security.NoSuchAlgorithmException;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
+import java.security.cert.X509Certificate;
+import java.util.Collection;
 
 /**
  * @author hhund
@@ -43,6 +45,24 @@ public final class CertificateReader
 			KeyStore keyStore = KeyStore.getInstance("jks");
 			keyStore.load(null, null);
 			keyStore.setCertificateEntry(alias, certificate);
+
+			return keyStore;
+		}
+	}
+
+	public static KeyStore allFromCer(Path file) throws NoSuchAlgorithmException, CertificateException, IOException,
+			KeyStoreException
+	{
+		try (InputStream stream = Files.newInputStream(file))
+		{
+			CertificateFactory certificateFactory = CertificateFactory.getInstance("X509");
+			Collection<? extends Certificate> certificates = certificateFactory.generateCertificates(stream);
+
+			KeyStore keyStore = KeyStore.getInstance("jks");
+			keyStore.load(null, null);
+
+			for (Certificate c : certificates)
+				keyStore.setCertificateEntry(((X509Certificate) c).getSubjectDN().getName(), c);
 
 			return keyStore;
 		}
