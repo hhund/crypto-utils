@@ -66,8 +66,7 @@ public final class CertificateHelper
 
 	/**
 	 * @param privateKey
-	 * @return a {@value #DEFAULT_SIGNATURE_ALGORITHM} content signer for the
-	 *         given private key
+	 * @return a SHA512WithRSA content signer for the given private key
 	 * @throws OperatorCreationException
 	 * @throws IllegalStateException
 	 *             if the {@link BouncyCastleProvider} is not found

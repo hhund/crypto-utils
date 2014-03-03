@@ -113,7 +113,7 @@ public class CertificationRequestBuilder
 	 * @param email
 	 * @param dnsNames
 	 *            not <code>null</code>
-	 * @return
+	 * @return a PKCS 10 certification request
 	 * @throws NoSuchAlgorithmException
 	 * @throws IOException
 	 * @throws OperatorCreationException
