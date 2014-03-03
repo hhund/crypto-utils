@@ -36,9 +36,9 @@ public class CertificationRequestBuilder
 		CertificateHelper.registerBouncyCastleProvider();
 	}
 
-	public static KeyPair createRsaKeyPair2048Bit() throws NoSuchAlgorithmException
+	public static KeyPair createRsaKeyPair4096Bit() throws NoSuchAlgorithmException
 	{
-		return CertificateHelper.createRsaKeyPair2048Bit();
+		return CertificateHelper.createRsaKeyPair4096Bit();
 	}
 
 	public static X500Name createSubject(String countryCode, String state, String locality, String organization,

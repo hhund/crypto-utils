@@ -31,6 +31,8 @@ import org.bouncycastle.pkcs.jcajce.JcaPKCS10CertificationRequest;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import de.rwh.utils.crypto.io.CertificateReader;
 import de.rwh.utils.crypto.io.CertificateWriter;
@@ -41,7 +43,9 @@ import de.rwh.utils.crypto.io.CertificateWriter;
  */
 public class IoTest
 {
-	private static final String CA_ALIAS = "PS-CA";
+	private static final Logger logger = LoggerFactory.getLogger(IoTest.class);
+
+	private static final String CA_ALIAS = "CA";
 
 	private static final String SERVER_CERTIFICATE_PASSWORD = "ServerPassword";
 	private static final String SERVER_CERTIFICATE_ALIAS = "ServerAlias";
@@ -66,28 +70,31 @@ public class IoTest
 				"Hochschule Heilbronn", "Medizinische Informatik", CA_ALIAS);
 		ca.initialize();
 
-		X509Certificate psCaCertificate = ca.getCertificate();
-		trustStore = CertificateHelper.toCertificateStore(CA_ALIAS, psCaCertificate);
+		X509Certificate caCertificate = ca.getCertificate();
+		logger.debug("CA Certificate: " + caCertificate.toString());
+		trustStore = CertificateHelper.toCertificateStore(CA_ALIAS, caCertificate);
 
-		KeyPair serverKeyPair = CertificationRequestBuilder.createRsaKeyPair2048Bit();
+		KeyPair serverKeyPair = CertificationRequestBuilder.createRsaKeyPair4096Bit();
 		X500Name serverSubject = CertificationRequestBuilder.createSubject("DE", "Baden Wuerttemberg", "Heilbronn",
 				"Hochschule Heilbronn", "Medizinische Informatik", "localhost");
 		JcaPKCS10CertificationRequest serverCR = CertificationRequestBuilder.createCertificationRequest(serverSubject,
 				serverKeyPair, "server@localhost");
 		X509Certificate serverCertificate = ca.signWebServerCertificate(serverCR);
+		logger.debug("Server Certificate: " + caCertificate.toString());
 
 		serverKeyStore = CertificateHelper.toPkcs12KeyStore(serverKeyPair.getPrivate(), new Certificate[] {
-				serverCertificate, psCaCertificate }, SERVER_CERTIFICATE_ALIAS, SERVER_CERTIFICATE_PASSWORD);
+				serverCertificate, caCertificate }, SERVER_CERTIFICATE_ALIAS, SERVER_CERTIFICATE_PASSWORD);
 
 		X500Name clientSubject = CertificationRequestBuilder.createSubject("DE", "Baden Wuerttemberg", "Heilbronn",
 				"Hochschule Heilbronn", "Medizinische Informatik", "User");
-		KeyPair clientKeyPair = CertificationRequestBuilder.createRsaKeyPair2048Bit();
+		KeyPair clientKeyPair = CertificationRequestBuilder.createRsaKeyPair4096Bit();
 		JcaPKCS10CertificationRequest clientCR = CertificationRequestBuilder.createCertificationRequest(clientSubject,
 				clientKeyPair, "hauke.hund@hs-heilbronn.de");
 		X509Certificate clientCertificate = ca.signWebClientCertificate(clientCR);
+		logger.debug("Client Certificate: " + caCertificate.toString());
 
 		clientKeyStore = CertificateHelper.toPkcs12KeyStore(clientKeyPair.getPrivate(), new Certificate[] {
-				clientCertificate, psCaCertificate }, CLIENT_CERTIFICATE_ALIAS, CLIENT_CERTIFICATE_PASSWORD);
+				clientCertificate, caCertificate }, CLIENT_CERTIFICATE_ALIAS, CLIENT_CERTIFICATE_PASSWORD);
 
 		Files.createDirectory(testRoot);
 	}

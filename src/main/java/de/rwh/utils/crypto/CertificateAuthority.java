@@ -100,7 +100,7 @@ public class CertificateAuthority
 
 	/**
 	 * Initializes the {@link CertificateAuthority} with a ca certificate valid
-	 * from now for 10 Years, creates a 2048 Bit RSA key pair
+	 * from now for 10 Years, creates a 4096 Bit RSA key pair
 	 * 
 	 * @throws NoSuchAlgorithmException
 	 * @throws InvalidKeyException
@@ -123,7 +123,7 @@ public class CertificateAuthority
 
 	/**
 	 * Initializes the {@link CertificateAuthority} with a ca certificate valid
-	 * from notBefore to notAfter, creates a 2048 Bit RSA key pair
+	 * from notBefore to notAfter, creates a 4096 Bit RSA key pair
 	 * 
 	 * @param notBefore
 	 * @param notAfter
@@ -141,7 +141,7 @@ public class CertificateAuthority
 	 *             if the given {@link Date}s are not valid
 	 * @see CertificateAuthority#registerBouncyCastleProvider()
 	 * @see CertificateAuthority#isInitialied()
-	 * @see CertificateHelper#createRsaKeyPair2048Bit()
+	 * @see CertificateHelper#createRsaKeyPair4096Bit()
 	 */
 	public void initialize(Date notBefore, Date notAfter) throws NoSuchAlgorithmException, InvalidKeyException,
 			KeyStoreException, CertificateException, OperatorCreationException, CertIOException, IllegalStateException
@@ -152,7 +152,7 @@ public class CertificateAuthority
 		if (isInitialied())
 			throw new IllegalStateException("already initialized");
 
-		caKeyPair = createRsaKeyPair2048Bit();
+		caKeyPair = createRsaKeyPair4096Bit();
 		caCertificate = createCaCertificate(notBefore, notAfter);
 	}
 

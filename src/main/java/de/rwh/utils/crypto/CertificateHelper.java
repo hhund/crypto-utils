@@ -33,9 +33,9 @@ import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
  */
 public final class CertificateHelper
 {
-	private static final String DEFAULT_SIGNATURE_ALGORITHM = "SHA1WithRSAEncryption";
+	private static final String DEFAULT_SIGNATURE_ALGORITHM = "SHA512WithRSA";
 	private static final String DEFAULT_KEY_ALGORITHM = "RSA";
-	private static final int DEFAULT_KEY_SIZE = 2048;
+	private static final int DEFAULT_KEY_SIZE = 4096;
 
 	private CertificateHelper()
 	{
@@ -46,7 +46,7 @@ public final class CertificateHelper
 		Security.addProvider(new BouncyCastleProvider());
 	}
 
-	public static KeyPair createRsaKeyPair2048Bit() throws NoSuchAlgorithmException
+	public static KeyPair createRsaKeyPair4096Bit() throws NoSuchAlgorithmException
 	{
 		return createKeyPair(DEFAULT_KEY_ALGORITHM, DEFAULT_KEY_SIZE);
 	}
