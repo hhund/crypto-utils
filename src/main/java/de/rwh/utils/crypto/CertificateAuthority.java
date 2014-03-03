@@ -16,6 +16,7 @@ import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.security.spec.InvalidKeySpecException;
 import java.util.Date;
+import java.util.Objects;
 
 import javax.security.auth.x500.X500Principal;
 
@@ -46,8 +47,8 @@ import org.bouncycastle.pkcs.jcajce.JcaPKCS10CertificationRequest;
  */
 public class CertificateAuthority
 {
-	public static final long ONE_YEAR_IN_MIILIS = 1000l * 60l * 60l * 24l * 365l;
-	public static final long TEN_YEAR_IN_MIILIS = ONE_YEAR_IN_MIILIS * 10l;
+	public static final long TWO_YEARS_IN_MIILIS = 2000l * 60l * 60l * 24l * 365l;
+	public static final long TEN_YEAR_IN_MIILIS = TWO_YEARS_IN_MIILIS * 5l;
 
 	private X500Name name = null;
 
@@ -113,7 +114,7 @@ public class CertificateAuthority
 	 * @throws IllegalStateException
 	 *             if this {@link CertificateAuthority} is already initialized
 	 * @see CertificateAuthority#registerBouncyCastleProvider()
-	 * @see CertificateAuthority#isInitialied()
+	 * @see CertificateAuthority#isInitialized()
 	 */
 	public void initialize() throws NoSuchAlgorithmException, InvalidKeyException, KeyStoreException,
 			CertificateException, OperatorCreationException, CertIOException, IllegalStateException
@@ -140,7 +141,7 @@ public class CertificateAuthority
 	 * @throws IllegalArgumentException
 	 *             if the given {@link Date}s are not valid
 	 * @see CertificateAuthority#registerBouncyCastleProvider()
-	 * @see CertificateAuthority#isInitialied()
+	 * @see CertificateAuthority#isInitialized()
 	 * @see CertificateHelper#createRsaKeyPair4096Bit()
 	 */
 	public void initialize(Date notBefore, Date notAfter) throws NoSuchAlgorithmException, InvalidKeyException,
@@ -149,7 +150,7 @@ public class CertificateAuthority
 		if (notBefore == null || notAfter == null || notAfter.before(notBefore))
 			throw new IllegalArgumentException("Dates not valid");
 
-		if (isInitialied())
+		if (isInitialized())
 			throw new IllegalStateException("already initialized");
 
 		caKeyPair = createRsaKeyPair4096Bit();
@@ -176,7 +177,7 @@ public class CertificateAuthority
 		return toCertificate(certificateHolder);
 	}
 
-	private boolean isInitialied()
+	private boolean isInitialized()
 	{
 		return caCertificate != null && caKeyPair != null;
 	}
@@ -188,7 +189,7 @@ public class CertificateAuthority
 	 */
 	public X509Certificate getCertificate() throws IllegalStateException
 	{
-		if (!isInitialied())
+		if (!isInitialized())
 			throw new IllegalStateException("not initialized");
 
 		return caCertificate;
@@ -201,7 +202,7 @@ public class CertificateAuthority
 	 */
 	public KeyPair getCaKeyPair()
 	{
-		if (!isInitialied())
+		if (!isInitialized())
 			throw new IllegalStateException("not initialized");
 
 		return caKeyPair;
@@ -217,11 +218,26 @@ public class CertificateAuthority
 		return name;
 	}
 
+	/**
+	 * Signs the given request, client certificate is valid for two years
+	 * 
+	 * @param request
+	 *            not <code>null</code>
+	 * @return signed client certificate
+	 * @throws NoSuchAlgorithmException
+	 * @throws IOException
+	 * @throws InvalidKeySpecException
+	 * @throws OperatorCreationException
+	 * @throws CertificateException
+	 * @throws InvalidKeyException
+	 * @throws IllegalStateException
+	 * @see CertificateAuthority#isInitialized()
+	 */
 	public X509Certificate signWebClientCertificate(JcaPKCS10CertificationRequest request)
 			throws NoSuchAlgorithmException, IOException, InvalidKeySpecException, OperatorCreationException,
 			CertificateException, InvalidKeyException, IllegalStateException
 	{
-		if (!isInitialied())
+		if (!isInitialized())
 			throw new IllegalStateException("not initialized");
 
 		KeyUsage keyUsage = new KeyUsage(KeyUsage.nonRepudiation | KeyUsage.digitalSignature | KeyUsage.keyEncipherment);
@@ -230,11 +246,26 @@ public class CertificateAuthority
 		return sign(request, keyUsage, extendedKeyUsage);
 	}
 
+	/**
+	 * Signs the given request, server certificate is valid for two years
+	 * 
+	 * @param request
+	 *            not <code>null</code>
+	 * @return signed server certificate
+	 * @throws NoSuchAlgorithmException
+	 * @throws IOException
+	 * @throws InvalidKeySpecException
+	 * @throws OperatorCreationException
+	 * @throws CertificateException
+	 * @throws InvalidKeyException
+	 * @throws IllegalStateException
+	 * @see CertificateAuthority#isInitialized()
+	 */
 	public X509Certificate signWebServerCertificate(JcaPKCS10CertificationRequest request)
 			throws NoSuchAlgorithmException, IOException, InvalidKeySpecException, OperatorCreationException,
 			CertificateException, InvalidKeyException, IllegalStateException
 	{
-		if (!isInitialied())
+		if (!isInitialized())
 			throw new IllegalStateException("not initialized");
 
 		KeyUsage keyUsage = new KeyUsage(KeyUsage.digitalSignature | KeyUsage.nonRepudiation | KeyUsage.keyEncipherment
@@ -249,9 +280,11 @@ public class CertificateAuthority
 			CertIOException, OperatorCreationException, CertificateException, InvalidKeyException,
 			IllegalStateException
 	{
+		Objects.requireNonNull(request, "request");
+
 		BigInteger serial = BigInteger.valueOf(System.currentTimeMillis());
 		Date notBefore = new Date();
-		Date notAfter = new Date(notBefore.getTime() + ONE_YEAR_IN_MIILIS);
+		Date notAfter = new Date(notBefore.getTime() + TWO_YEARS_IN_MIILIS);
 
 		PublicKey reqPublicKey = request.getPublicKey();
 		X500Principal reqSubject = new X500Principal(request.getSubject().getEncoded());
