@@ -22,7 +22,6 @@
 			<url>https://repository.it.hs-heilbronn.de/libs-release-mi</url>
 		</repository>
 		<repository>
-			<snapshots />
 			<id>repo-it-snapshot</id>
 			<name>libs-snapshot-mi</name>
 			<url>https://repository.it.hs-heilbronn.de/libs-snapshot-mi</url>
@@ -38,7 +37,6 @@
 			<url>https://repository.it.hs-heilbronn.de/plugins-release</url>
 		</pluginRepository>
 		<pluginRepository>
-			<snapshots />
 			<id>repo-it-snapshot</id>
 			<name>plugins-snapshot</name>
 			<url>https://repository.it.hs-heilbronn.de/plugins-snapshot</url>
