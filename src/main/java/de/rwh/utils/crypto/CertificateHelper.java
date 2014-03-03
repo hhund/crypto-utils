@@ -66,7 +66,8 @@ public final class CertificateHelper
 
 	/**
 	 * @param privateKey
-	 * @return
+	 * @return a {@value #DEFAULT_SIGNATURE_ALGORITHM} content signer for the
+	 *         given private key
 	 * @throws OperatorCreationException
 	 * @throws IllegalStateException
 	 *             if the {@link BouncyCastleProvider} is not found
@@ -81,7 +82,8 @@ public final class CertificateHelper
 	/**
 	 * @param signatureAlgorithm
 	 * @param privateKey
-	 * @return
+	 * @return a content signer for the given private key with the given
+	 *         signature algorithm
 	 * @throws OperatorCreationException
 	 * @throws IllegalStateException
 	 *             if the {@link BouncyCastleProvider} is not found

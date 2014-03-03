@@ -182,7 +182,7 @@ public class CertificateAuthority
 	}
 
 	/**
-	 * @return
+	 * @return the ca certificate
 	 * @throws IllegalStateException
 	 *             if the {@link CertificateAuthority} has not bin initialized
 	 */
@@ -195,7 +195,7 @@ public class CertificateAuthority
 	}
 
 	/**
-	 * @return
+	 * @return the ca key pair
 	 * @throws IllegalStateException
 	 *             if the {@link CertificateAuthority} has not bin initialized
 	 */

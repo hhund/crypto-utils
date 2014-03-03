@@ -12,6 +12,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 
 import org.bouncycastle.asn1.x500.X500Name;
 import org.bouncycastle.asn1.x500.X500NameBuilder;
@@ -64,8 +65,10 @@ public class CertificationRequestBuilder
 
 	/**
 	 * @param subject
+	 *            not <code>null</code>
 	 * @param rsaKeyPair
-	 * @return
+	 *            not <code>null</code>
+	 * @return a PKCS 10 certification request
 	 * @throws NoSuchAlgorithmException
 	 * @throws IOException
 	 * @throws OperatorCreationException
@@ -81,10 +84,13 @@ public class CertificationRequestBuilder
 
 	/**
 	 * @param subject
+	 *            not <code>null</code>
 	 * @param rsaKeyPair
+	 *            not <code>null</code>
 	 * @param email
 	 * @param dnsNames
-	 * @return
+	 *            not <code>null</code>
+	 * @return a PKCS 10 certification request
 	 * @throws NoSuchAlgorithmException
 	 * @throws IOException
 	 * @throws OperatorCreationException
@@ -101,9 +107,12 @@ public class CertificationRequestBuilder
 
 	/**
 	 * @param subject
+	 *            not <code>null</code>
 	 * @param rsaKeyPair
+	 *            not <code>null</code>
 	 * @param email
 	 * @param dnsNames
+	 *            not <code>null</code>
 	 * @return
 	 * @throws NoSuchAlgorithmException
 	 * @throws IOException
@@ -116,6 +125,10 @@ public class CertificationRequestBuilder
 			String email, Collection<String> dnsNames) throws NoSuchAlgorithmException, IOException,
 			OperatorCreationException, IllegalStateException
 	{
+		Objects.requireNonNull(subject, "subject");
+		Objects.requireNonNull(rsaKeyPair, "rsaKeyPair");
+		Objects.requireNonNull(dnsNames, "dnsNames");
+
 		JcaPKCS10CertificationRequestBuilder requestBuilder = new JcaPKCS10CertificationRequestBuilder(subject,
 				rsaKeyPair.getPublic());
 
