@@ -14,28 +14,36 @@
 
 	<repositories>
 		<repository>
-			<id>repository.releases</id>
-			<name>Central Maven Repository</name>
-			<url>http://repo1.maven.org/maven2</url>
-			<releases>
-				<enabled>true</enabled>
-			</releases>
 			<snapshots>
 				<enabled>false</enabled>
 			</snapshots>
+			<id>repo-it-release</id>
+			<name>libs-release-mi</name>
+			<url>https://repository.it.hs-heilbronn.de/libs-release-mi</url>
 		</repository>
 		<repository>
-			<id>build.master</id>
-			<name>MI HSHN maven2 repository</name>
-			<url>http://build-master.mi.hs-heilbronn.de/maven2</url>
-			<releases>
-				<enabled>true</enabled>
-			</releases>
-			<snapshots>
-				<enabled>true</enabled>
-			</snapshots>
+			<snapshots />
+			<id>repo-it-snapshot</id>
+			<name>libs-snapshot-mi</name>
+			<url>https://repository.it.hs-heilbronn.de/libs-snapshot-mi</url>
 		</repository>
 	</repositories>
+	<pluginRepositories>
+		<pluginRepository>
+			<snapshots>
+				<enabled>false</enabled>
+			</snapshots>
+			<id>repo-it-release</id>
+			<name>plugins-release</name>
+			<url>https://repository.it.hs-heilbronn.de/plugins-release</url>
+		</pluginRepository>
+		<pluginRepository>
+			<snapshots />
+			<id>repo-it-snapshot</id>
+			<name>plugins-snapshot</name>
+			<url>https://repository.it.hs-heilbronn.de/plugins-snapshot</url>
+		</pluginRepository>
+	</pluginRepositories>
 
 	<dependencies>
 		<!-- crypto dependencies -->
@@ -57,7 +65,7 @@
 			<version>4.10</version>
 			<scope>test</scope>
 		</dependency>
-		
+
 		<!-- Logging -->
 		<dependency>
 			<groupId>org.slf4j</groupId>
