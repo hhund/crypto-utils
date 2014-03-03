@@ -80,7 +80,7 @@ public class IoTest
 		JcaPKCS10CertificationRequest serverCR = CertificationRequestBuilder.createCertificationRequest(serverSubject,
 				serverKeyPair, "server@localhost");
 		X509Certificate serverCertificate = ca.signWebServerCertificate(serverCR);
-		logger.debug("Server Certificate: " + caCertificate.toString());
+		logger.debug("Server Certificate: " + serverCertificate.toString());
 
 		serverKeyStore = CertificateHelper.toPkcs12KeyStore(serverKeyPair.getPrivate(), new Certificate[] {
 				serverCertificate, caCertificate }, SERVER_CERTIFICATE_ALIAS, SERVER_CERTIFICATE_PASSWORD);
@@ -91,7 +91,7 @@ public class IoTest
 		JcaPKCS10CertificationRequest clientCR = CertificationRequestBuilder.createCertificationRequest(clientSubject,
 				clientKeyPair, "hauke.hund@hs-heilbronn.de");
 		X509Certificate clientCertificate = ca.signWebClientCertificate(clientCR);
-		logger.debug("Client Certificate: " + caCertificate.toString());
+		logger.debug("Client Certificate: " + clientCertificate.toString());
 
 		clientKeyStore = CertificateHelper.toPkcs12KeyStore(clientKeyPair.getPrivate(), new Certificate[] {
 				clientCertificate, caCertificate }, CLIENT_CERTIFICATE_ALIAS, CLIENT_CERTIFICATE_PASSWORD);
