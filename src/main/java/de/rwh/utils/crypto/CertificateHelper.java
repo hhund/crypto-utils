@@ -33,9 +33,9 @@ import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
  */
 public final class CertificateHelper
 {
-	private static final String DEFAULT_SIGNATURE_ALGORITHM = "SHA512WithRSA";
-	private static final String DEFAULT_KEY_ALGORITHM = "RSA";
-	private static final int DEFAULT_KEY_SIZE = 4096;
+	public static final String DEFAULT_SIGNATURE_ALGORITHM = "SHA512WithRSA";
+	public static final String DEFAULT_KEY_ALGORITHM = "RSA";
+	public static final int DEFAULT_KEY_SIZE = 4096;
 
 	private CertificateHelper()
 	{

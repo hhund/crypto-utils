@@ -14,12 +14,18 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 
+import org.bouncycastle.asn1.ASN1Encodable;
+import org.bouncycastle.asn1.DEROctetString;
+import org.bouncycastle.asn1.DERSequence;
+import org.bouncycastle.asn1.pkcs.PKCSObjectIdentifiers;
 import org.bouncycastle.asn1.x500.X500Name;
 import org.bouncycastle.asn1.x500.X500NameBuilder;
 import org.bouncycastle.asn1.x500.style.BCStyle;
+import org.bouncycastle.asn1.x509.BasicConstraints;
 import org.bouncycastle.asn1.x509.Extension;
 import org.bouncycastle.asn1.x509.GeneralName;
 import org.bouncycastle.asn1.x509.GeneralNames;
+import org.bouncycastle.asn1.x509.KeyUsage;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.operator.ContentSigner;
 import org.bouncycastle.operator.OperatorCreationException;
@@ -64,6 +70,9 @@ public class CertificationRequestBuilder
 	}
 
 	/**
+	 * @param serverNotClient
+	 *            <code>true</code> for server certificate request, false for a
+	 *            client certificate request
 	 * @param subject
 	 *            not <code>null</code>
 	 * @param rsaKeyPair
@@ -76,36 +85,17 @@ public class CertificationRequestBuilder
 	 *             if the {@link BouncyCastleProvider} is not found
 	 * @see CertificationRequestBuilder#registerBouncyCastleProvider()
 	 */
-	public static JcaPKCS10CertificationRequest createCertificationRequest(X500Name subject, KeyPair rsaKeyPair)
-			throws NoSuchAlgorithmException, IOException, OperatorCreationException, IllegalStateException
-	{
-		return createCertificationRequest(subject, rsaKeyPair, null);
-	}
-
-	/**
-	 * @param subject
-	 *            not <code>null</code>
-	 * @param rsaKeyPair
-	 *            not <code>null</code>
-	 * @param email
-	 * @param dnsNames
-	 *            not <code>null</code>
-	 * @return a PKCS 10 certification request
-	 * @throws NoSuchAlgorithmException
-	 * @throws IOException
-	 * @throws OperatorCreationException
-	 * @throws IllegalStateException
-	 *             if the {@link BouncyCastleProvider} is not found
-	 * @see CertificationRequestBuilder#registerBouncyCastleProvider()
-	 */
-	public static JcaPKCS10CertificationRequest createCertificationRequest(X500Name subject, KeyPair rsaKeyPair,
-			String email, String... dnsNames) throws NoSuchAlgorithmException, IOException, OperatorCreationException,
+	public static JcaPKCS10CertificationRequest createCertificationRequest(boolean serverNotClient, X500Name subject,
+			KeyPair rsaKeyPair) throws NoSuchAlgorithmException, IOException, OperatorCreationException,
 			IllegalStateException
 	{
-		return createCertificationRequest(subject, rsaKeyPair, email, Arrays.asList(dnsNames));
+		return createCertificationRequest(serverNotClient, subject, rsaKeyPair, null);
 	}
 
 	/**
+	 * @param serverNotClient
+	 *            <code>true</code> for server certificate request, false for a
+	 *            client certificate request
 	 * @param subject
 	 *            not <code>null</code>
 	 * @param rsaKeyPair
@@ -121,13 +111,45 @@ public class CertificationRequestBuilder
 	 *             if the {@link BouncyCastleProvider} is not found
 	 * @see CertificationRequestBuilder#registerBouncyCastleProvider()
 	 */
-	public static JcaPKCS10CertificationRequest createCertificationRequest(X500Name subject, KeyPair rsaKeyPair,
-			String email, Collection<String> dnsNames) throws NoSuchAlgorithmException, IOException,
+	public static JcaPKCS10CertificationRequest createCertificationRequest(boolean serverNotClient, X500Name subject,
+			KeyPair rsaKeyPair, String email, String... dnsNames) throws NoSuchAlgorithmException, IOException,
 			OperatorCreationException, IllegalStateException
+	{
+		return createCertificationRequest(serverNotClient, subject, rsaKeyPair, email, Arrays.asList(dnsNames));
+	}
+
+	/**
+	 * @param serverNotClient
+	 *            <code>true</code> for server certificate request, false for a
+	 *            client certificate request
+	 * @param subject
+	 *            not <code>null</code>
+	 * @param rsaKeyPair
+	 *            not <code>null</code>
+	 * @param email
+	 * @param dnsNames
+	 *            not <code>null</code>
+	 * @return a PKCS 10 certification request
+	 * @throws NoSuchAlgorithmException
+	 * @throws IOException
+	 * @throws OperatorCreationException
+	 * @throws IllegalStateException
+	 *             if the {@link BouncyCastleProvider} is not found
+	 * @throws IllegalArgumentException
+	 *             if param <code>serverNotClient</code> is <code>false</code>
+	 *             (client) and param <code>dnsNames</code> is not empty
+	 * @see CertificationRequestBuilder#registerBouncyCastleProvider()
+	 */
+	public static JcaPKCS10CertificationRequest createCertificationRequest(boolean serverNotClient, X500Name subject,
+			KeyPair rsaKeyPair, String email, Collection<String> dnsNames) throws NoSuchAlgorithmException,
+			IOException, OperatorCreationException, IllegalStateException
 	{
 		Objects.requireNonNull(subject, "subject");
 		Objects.requireNonNull(rsaKeyPair, "rsaKeyPair");
 		Objects.requireNonNull(dnsNames, "dnsNames");
+
+		if (!serverNotClient && !dnsNames.isEmpty())
+			throw new IllegalArgumentException("DNS Names not supported for client certificate requests");
 
 		JcaPKCS10CertificationRequestBuilder requestBuilder = new JcaPKCS10CertificationRequestBuilder(subject,
 				rsaKeyPair.getPublic());
@@ -139,9 +161,33 @@ public class CertificationRequestBuilder
 			if (dnsName != null && !dnsName.isEmpty())
 				subAltNames.add(new GeneralName(GeneralName.dNSName, dnsName));
 
+		KeyUsage keyUsage;
+		if (serverNotClient)
+			keyUsage = new KeyUsage(KeyUsage.nonRepudiation | KeyUsage.digitalSignature | KeyUsage.keyEncipherment
+					| KeyUsage.dataEncipherment);
+		else
+			keyUsage = new KeyUsage(KeyUsage.nonRepudiation | KeyUsage.digitalSignature | KeyUsage.keyEncipherment);
+
+		DERSequence basicConstraintsExtension = new DERSequence(new ASN1Encodable[] { Extension.basicConstraints,
+				new DEROctetString(new BasicConstraints(false)) });
+		DERSequence keyUsageExtension = new DERSequence(new ASN1Encodable[] { Extension.keyUsage,
+				new DEROctetString(keyUsage) });
+
 		if (subAltNames.size() > 0)
-			requestBuilder.addAttribute(Extension.subjectAlternativeName,
-					new GeneralNames(subAltNames.toArray(new GeneralName[subAltNames.size()])));
+		{
+			ASN1Encodable[] subjectAlternativeNames = new ASN1Encodable[] { Extension.subjectAlternativeName,
+					new DEROctetString(new GeneralNames(subAltNames.toArray(new GeneralName[subAltNames.size()]))) };
+			DERSequence subjectAlternativeNamesExtension = new DERSequence(subjectAlternativeNames);
+
+			ASN1Encodable[] extensions = new ASN1Encodable[] { basicConstraintsExtension, keyUsageExtension,
+					subjectAlternativeNamesExtension };
+			requestBuilder.addAttribute(PKCSObjectIdentifiers.pkcs_9_at_extensionRequest, new DERSequence(extensions));
+		}
+		else
+		{
+			ASN1Encodable[] extensions = new ASN1Encodable[] { basicConstraintsExtension, keyUsageExtension };
+			requestBuilder.addAttribute(PKCSObjectIdentifiers.pkcs_9_at_extensionRequest, new DERSequence(extensions));
+		}
 
 		ContentSigner contentSigner = getContentSigner(rsaKeyPair.getPrivate());
 
