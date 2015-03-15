@@ -77,7 +77,7 @@ public class IoTest
 		KeyPair serverKeyPair = CertificationRequestBuilder.createRsaKeyPair4096Bit();
 		X500Name serverSubject = CertificationRequestBuilder.createSubject("DE", "Baden Wuerttemberg", "Heilbronn",
 				"Hochschule Heilbronn", "Medizinische Informatik", "localhost");
-		JcaPKCS10CertificationRequest serverCR = CertificationRequestBuilder.createCertificationRequest(true,
+		JcaPKCS10CertificationRequest serverCR = CertificationRequestBuilder.createServerCertificationRequest(
 				serverSubject, serverKeyPair, "server@localhost");
 		X509Certificate serverCertificate = ca.signWebServerCertificate(serverCR);
 		logger.debug("Server Certificate: " + serverCertificate.toString());
@@ -88,7 +88,7 @@ public class IoTest
 		X500Name clientSubject = CertificationRequestBuilder.createSubject("DE", "Baden Wuerttemberg", "Heilbronn",
 				"Hochschule Heilbronn", "Medizinische Informatik", "User");
 		KeyPair clientKeyPair = CertificationRequestBuilder.createRsaKeyPair4096Bit();
-		JcaPKCS10CertificationRequest clientCR = CertificationRequestBuilder.createCertificationRequest(false,
+		JcaPKCS10CertificationRequest clientCR = CertificationRequestBuilder.createClientCertificationRequest(
 				clientSubject, clientKeyPair, "hauke.hund@hs-heilbronn.de");
 		X509Certificate clientCertificate = ca.signWebClientCertificate(clientCR);
 		logger.debug("Client Certificate: " + clientCertificate.toString());

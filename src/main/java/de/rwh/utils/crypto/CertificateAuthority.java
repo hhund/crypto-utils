@@ -316,11 +316,40 @@ public class CertificateAuthority
 	 * @throws CertificateException
 	 * @throws InvalidKeyException
 	 * @throws IllegalStateException
+	 * @throws NullPointerException
+	 * @throws IllegalArgumentException
 	 * @see CertificateAuthority#isInitialized()
 	 */
 	public X509Certificate signWebClientCertificate(JcaPKCS10CertificationRequest request)
 			throws NoSuchAlgorithmException, IOException, InvalidKeySpecException, OperatorCreationException,
 			CertificateException, InvalidKeyException, IllegalStateException
+	{
+		return signWebClientCertificate(request, TWO_YEARS_IN_MIILIS);
+	}
+
+	/**
+	 * Signs the given request, client certificate is valid for the given amount
+	 * of time in milliseconds
+	 * 
+	 * @param request
+	 *            not <code>null</code>
+	 * @param validityPeriodInMilliseconds
+	 *            > 0
+	 * @return signed client certificate
+	 * @throws NoSuchAlgorithmException
+	 * @throws IOException
+	 * @throws InvalidKeySpecException
+	 * @throws OperatorCreationException
+	 * @throws CertificateException
+	 * @throws InvalidKeyException
+	 * @throws IllegalStateException
+	 * @throws NullPointerException
+	 * @throws IllegalArgumentException
+	 * @see CertificateAuthority#isInitialized()
+	 */
+	public X509Certificate signWebClientCertificate(JcaPKCS10CertificationRequest request,
+			long validityPeriodInMilliseconds) throws NoSuchAlgorithmException, IOException, InvalidKeySpecException,
+			OperatorCreationException, CertificateException, InvalidKeyException, IllegalStateException
 	{
 		if (!isInitialized())
 			throw new IllegalStateException("not initialized");
@@ -328,7 +357,7 @@ public class CertificateAuthority
 		KeyUsage keyUsage = new KeyUsage(KeyUsage.nonRepudiation | KeyUsage.digitalSignature | KeyUsage.keyEncipherment);
 		ExtendedKeyUsage extendedKeyUsage = new ExtendedKeyUsage(KeyPurposeId.id_kp_clientAuth);
 
-		return sign(request, keyUsage, extendedKeyUsage);
+		return sign(request, keyUsage, extendedKeyUsage, validityPeriodInMilliseconds);
 	}
 
 	/**
@@ -344,11 +373,40 @@ public class CertificateAuthority
 	 * @throws CertificateException
 	 * @throws InvalidKeyException
 	 * @throws IllegalStateException
+	 * @throws NullPointerException
+	 * @throws IllegalArgumentException
 	 * @see CertificateAuthority#isInitialized()
 	 */
 	public X509Certificate signWebServerCertificate(JcaPKCS10CertificationRequest request)
 			throws NoSuchAlgorithmException, IOException, InvalidKeySpecException, OperatorCreationException,
 			CertificateException, InvalidKeyException, IllegalStateException
+	{
+		return signWebServerCertificate(request, TWO_YEARS_IN_MIILIS);
+	}
+
+	/**
+	 * Signs the given request, server certificate is valid for the given amount
+	 * of time in milliseconds
+	 * 
+	 * @param request
+	 *            not <code>null</code>
+	 * @param validityPeriodInMilliseconds
+	 *            > 0
+	 * @return signed server certificate
+	 * @throws NoSuchAlgorithmException
+	 * @throws IOException
+	 * @throws InvalidKeySpecException
+	 * @throws OperatorCreationException
+	 * @throws CertificateException
+	 * @throws InvalidKeyException
+	 * @throws IllegalStateException
+	 * @throws NullPointerException
+	 * @throws IllegalArgumentException
+	 * @see CertificateAuthority#isInitialized()
+	 */
+	public X509Certificate signWebServerCertificate(JcaPKCS10CertificationRequest request,
+			long validityPeriodInMilliseconds) throws NoSuchAlgorithmException, IOException, InvalidKeySpecException,
+			OperatorCreationException, CertificateException, InvalidKeyException, IllegalStateException
 	{
 		if (!isInitialized())
 			throw new IllegalStateException("not initialized");
@@ -357,19 +415,21 @@ public class CertificateAuthority
 				| KeyUsage.dataEncipherment);
 		ExtendedKeyUsage extendedKeyUsage = new ExtendedKeyUsage(KeyPurposeId.id_kp_serverAuth);
 
-		return sign(request, keyUsage, extendedKeyUsage);
+		return sign(request, keyUsage, extendedKeyUsage, validityPeriodInMilliseconds);
 	}
 
 	private X509Certificate sign(JcaPKCS10CertificationRequest request, KeyUsage keyUsage,
-			ExtendedKeyUsage extendedKeyUsage) throws IOException, NoSuchAlgorithmException, InvalidKeySpecException,
-			CertIOException, OperatorCreationException, CertificateException, InvalidKeyException,
-			IllegalStateException
+			ExtendedKeyUsage extendedKeyUsage, long validityPeriodInMilliseconds) throws IOException,
+			NoSuchAlgorithmException, InvalidKeySpecException, CertIOException, OperatorCreationException,
+			CertificateException, InvalidKeyException, IllegalStateException
 	{
 		Objects.requireNonNull(request, "request");
+		if (validityPeriodInMilliseconds <= 0)
+			throw new IllegalArgumentException("validityPeriodInMilliseconds must be > 0");
 
 		BigInteger serial = BigInteger.valueOf(System.currentTimeMillis());
 		Date notBefore = new Date();
-		Date notAfter = new Date(notBefore.getTime() + TWO_YEARS_IN_MIILIS);
+		Date notAfter = new Date(notBefore.getTime() + validityPeriodInMilliseconds);
 
 		PublicKey reqPublicKey = request.getPublicKey();
 		X500Principal reqSubject = new X500Principal(CertificationRequestBuilder.createSubject(
