@@ -1,6 +1,3 @@
-/**
- * 
- */
 package de.rwh.utils.crypto;
 
 import static org.junit.Assert.*;
@@ -37,10 +34,6 @@ import org.slf4j.LoggerFactory;
 import de.rwh.utils.crypto.io.CertificateReader;
 import de.rwh.utils.crypto.io.CertificateWriter;
 
-/**
- * @author hhund
- * 
- */
 public class IoTest
 {
 	private static final Logger logger = LoggerFactory.getLogger(IoTest.class);
@@ -74,7 +67,7 @@ public class IoTest
 		logger.debug("CA Certificate: " + caCertificate.toString());
 		trustStore = CertificateHelper.toCertificateStore(CA_ALIAS, caCertificate);
 
-		KeyPair serverKeyPair = CertificationRequestBuilder.createRsaKeyPair4096Bit();
+		KeyPair serverKeyPair = CertificateHelper.createKeyPair(CertificateHelper.DEFAULT_KEY_ALGORITHM, 2048);
 		X500Name serverSubject = CertificationRequestBuilder.createSubject("DE", "Baden Wuerttemberg", "Heilbronn",
 				"Hochschule Heilbronn", "Medizinische Informatik", "localhost");
 		JcaPKCS10CertificationRequest serverCR = CertificationRequestBuilder.createServerCertificationRequest(
@@ -87,7 +80,7 @@ public class IoTest
 
 		X500Name clientSubject = CertificationRequestBuilder.createSubject("DE", "Baden Wuerttemberg", "Heilbronn",
 				"Hochschule Heilbronn", "Medizinische Informatik", "User");
-		KeyPair clientKeyPair = CertificationRequestBuilder.createRsaKeyPair4096Bit();
+		KeyPair clientKeyPair = CertificateHelper.createKeyPair(CertificateHelper.DEFAULT_KEY_ALGORITHM, 2048);
 		JcaPKCS10CertificationRequest clientCR = CertificationRequestBuilder.createClientCertificationRequest(
 				clientSubject, clientKeyPair, "hauke.hund@hs-heilbronn.de");
 		X509Certificate clientCertificate = ca.signWebClientCertificate(clientCR);

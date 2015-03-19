@@ -1,6 +1,3 @@
-/**
- * 
- */
 package de.rwh.utils.crypto.io;
 
 import java.io.BufferedOutputStream;
@@ -18,10 +15,6 @@ import java.security.cert.CertificateException;
 
 import de.rwh.utils.crypto.CertificateHelper;
 
-/**
- * @author hhund
- * 
- */
 public final class CertificateWriter
 {
 	public static void toPkcs12(Path file, PrivateKey privateKey, String password, Certificate certificate,

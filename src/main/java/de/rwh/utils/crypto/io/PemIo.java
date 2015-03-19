@@ -1,6 +1,3 @@
-/**
- * 
- */
 package de.rwh.utils.crypto.io;
 
 import java.io.ByteArrayInputStream;
@@ -23,10 +20,6 @@ import java.security.spec.InvalidKeySpecException;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
 
-/**
- * @author hhund
- * 
- */
 public final class PemIo extends AbstractCertIo
 {
 	public static final String PEM_FILE_EXTENSION = ".pem";

@@ -1,6 +1,3 @@
-/**
- * 
- */
 package de.rwh.utils.crypto.io;
 
 import java.io.IOException;
@@ -16,10 +13,6 @@ import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 import java.util.Collection;
 
-/**
- * @author hhund
- * 
- */
 public final class CertificateReader
 {
 	public static KeyStore fromPkcs12(Path file, String password) throws KeyStoreException, CertificateException,

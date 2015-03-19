@@ -1,6 +1,3 @@
-/**
- * 
- */
 package de.rwh.utils.crypto.io;
 
 import java.io.BufferedOutputStream;
@@ -14,10 +11,6 @@ import java.util.List;
 
 import org.apache.commons.codec.binary.Base64;
 
-/**
- * @author hhund
- * 
- */
 public abstract class AbstractCertIo
 {
 	protected static void writeEncoded(byte[] encoded, Path file, String firstLine, String lastLine, Charset charset,

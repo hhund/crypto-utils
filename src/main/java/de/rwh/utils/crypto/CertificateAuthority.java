@@ -1,6 +1,3 @@
-/**
- * 
- */
 package de.rwh.utils.crypto;
 
 import static de.rwh.utils.crypto.CertificateHelper.*;
@@ -56,10 +53,6 @@ import org.bouncycastle.operator.ContentSigner;
 import org.bouncycastle.operator.OperatorCreationException;
 import org.bouncycastle.pkcs.jcajce.JcaPKCS10CertificationRequest;
 
-/**
- * @author hhund
- * 
- */
 public class CertificateAuthority
 {
 	public static final long TWO_YEARS_IN_MIILIS = 2000l * 60l * 60l * 24l * 365l;
@@ -204,7 +197,7 @@ public class CertificateAuthority
 	 * @param notAfter
 	 *            not <code>null</code>
 	 * @param keySize
-	 *            <code>> 0</code>
+	 *            &gt; 0
 	 * @param signatureAlgorithm
 	 *            not <code>null</code>
 	 * @throws NoSuchAlgorithmException
@@ -334,7 +327,7 @@ public class CertificateAuthority
 	 * @param request
 	 *            not <code>null</code>
 	 * @param validityPeriodInMilliseconds
-	 *            > 0
+	 *            &gt; 0
 	 * @return signed client certificate
 	 * @throws NoSuchAlgorithmException
 	 * @throws IOException
@@ -391,7 +384,7 @@ public class CertificateAuthority
 	 * @param request
 	 *            not <code>null</code>
 	 * @param validityPeriodInMilliseconds
-	 *            > 0
+	 *            &gt; 0
 	 * @return signed server certificate
 	 * @throws NoSuchAlgorithmException
 	 * @throws IOException
@@ -478,6 +471,7 @@ public class CertificateAuthority
 	 * @param request
 	 *            not <code>null</code>
 	 * @return might be <code>null</code>
+	 * @throws IOException
 	 */
 	public static GeneralNames getSubjectAlternativeNames(JcaPKCS10CertificationRequest request) throws IOException
 	{

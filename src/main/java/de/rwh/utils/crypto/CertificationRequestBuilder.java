@@ -1,6 +1,3 @@
-/**
- * 
- */
 package de.rwh.utils.crypto;
 
 import static de.rwh.utils.crypto.CertificateHelper.getContentSigner;
@@ -32,10 +29,6 @@ import org.bouncycastle.operator.OperatorCreationException;
 import org.bouncycastle.pkcs.jcajce.JcaPKCS10CertificationRequest;
 import org.bouncycastle.pkcs.jcajce.JcaPKCS10CertificationRequestBuilder;
 
-/**
- * @author hhund
- * 
- */
 public class CertificationRequestBuilder
 {
 	public static void registerBouncyCastleProvider()

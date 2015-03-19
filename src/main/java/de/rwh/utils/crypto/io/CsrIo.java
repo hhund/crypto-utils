@@ -1,6 +1,3 @@
-/**
- * 
- */
 package de.rwh.utils.crypto.io;
 
 import java.io.IOException;
@@ -12,10 +9,6 @@ import java.security.spec.InvalidKeySpecException;
 
 import org.bouncycastle.pkcs.jcajce.JcaPKCS10CertificationRequest;
 
-/**
- * @author hhund
- * 
- */
 public final class CsrIo extends AbstractCertIo
 {
 	public static final String CSR_FILE_EXTENSION = ".csr";

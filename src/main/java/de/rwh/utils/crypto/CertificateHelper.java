@@ -1,6 +1,3 @@
-/**
- * 
- */
 package de.rwh.utils.crypto;
 
 import java.io.IOException;
@@ -27,10 +24,6 @@ import org.bouncycastle.operator.ContentSigner;
 import org.bouncycastle.operator.OperatorCreationException;
 import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
 
-/**
- * @author hhund
- * 
- */
 public final class CertificateHelper
 {
 	public static final String DEFAULT_SIGNATURE_ALGORITHM = "SHA512WithRSA";
