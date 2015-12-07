@@ -70,24 +70,26 @@ public class IoTest
 		KeyPair serverKeyPair = CertificateHelper.createKeyPair(CertificateHelper.DEFAULT_KEY_ALGORITHM, 2048);
 		X500Name serverSubject = CertificationRequestBuilder.createSubject("DE", "Baden Wuerttemberg", "Heilbronn",
 				"Hochschule Heilbronn", "Medizinische Informatik", "localhost");
-		JcaPKCS10CertificationRequest serverCR = CertificationRequestBuilder.createServerCertificationRequest(
-				serverSubject, serverKeyPair, "server@localhost");
+		JcaPKCS10CertificationRequest serverCR = CertificationRequestBuilder
+				.createServerCertificationRequest(serverSubject, serverKeyPair, "server@localhost");
 		X509Certificate serverCertificate = ca.signWebServerCertificate(serverCR);
 		logger.debug("Server Certificate: " + serverCertificate.toString());
 
-		serverKeyStore = CertificateHelper.toPkcs12KeyStore(serverKeyPair.getPrivate(), new Certificate[] {
-				serverCertificate, caCertificate }, SERVER_CERTIFICATE_ALIAS, SERVER_CERTIFICATE_PASSWORD);
+		serverKeyStore = CertificateHelper.toPkcs12KeyStore(serverKeyPair.getPrivate(),
+				new Certificate[] { serverCertificate, caCertificate }, SERVER_CERTIFICATE_ALIAS,
+				SERVER_CERTIFICATE_PASSWORD);
 
 		X500Name clientSubject = CertificationRequestBuilder.createSubject("DE", "Baden Wuerttemberg", "Heilbronn",
 				"Hochschule Heilbronn", "Medizinische Informatik", "User");
 		KeyPair clientKeyPair = CertificateHelper.createKeyPair(CertificateHelper.DEFAULT_KEY_ALGORITHM, 2048);
-		JcaPKCS10CertificationRequest clientCR = CertificationRequestBuilder.createClientCertificationRequest(
-				clientSubject, clientKeyPair, "hauke.hund@hs-heilbronn.de");
+		JcaPKCS10CertificationRequest clientCR = CertificationRequestBuilder
+				.createClientCertificationRequest(clientSubject, clientKeyPair, "hauke.hund@hs-heilbronn.de");
 		X509Certificate clientCertificate = ca.signWebClientCertificate(clientCR);
 		logger.debug("Client Certificate: " + clientCertificate.toString());
 
-		clientKeyStore = CertificateHelper.toPkcs12KeyStore(clientKeyPair.getPrivate(), new Certificate[] {
-				clientCertificate, caCertificate }, CLIENT_CERTIFICATE_ALIAS, CLIENT_CERTIFICATE_PASSWORD);
+		clientKeyStore = CertificateHelper.toPkcs12KeyStore(clientKeyPair.getPrivate(),
+				new Certificate[] { clientCertificate, caCertificate }, CLIENT_CERTIFICATE_ALIAS,
+				CLIENT_CERTIFICATE_PASSWORD);
 
 		Files.createDirectory(testRoot);
 	}
@@ -127,7 +129,7 @@ public class IoTest
 
 	private void testPkcs12ReadWrite(Path keyStoreFile, KeyStore keyStore, String certificatePassword,
 			String certificateAlias) throws KeyStoreException, NoSuchAlgorithmException, UnrecoverableKeyException,
-			CertificateException, IOException
+					CertificateException, IOException
 	{
 		CertificateWriter.toPkcs12(keyStoreFile, keyStore, certificatePassword);
 
@@ -141,5 +143,27 @@ public class IoTest
 		assertEquals(2, keyStore.getCertificateChain(certificateAlias).length);
 		assertEquals(keyStore.getCertificateChain(certificateAlias)[0], readServerCertificateChain[0]);
 		assertEquals(keyStore.getCertificateChain(certificateAlias)[1], readServerCertificateChain[1]);
+	}
+
+	@Test
+	public void testCertificateHelperListCertificateSubjectNames() throws Exception
+	{
+		List<String> trustStoreList = CertificateHelper.listCertificateSubjectNames(trustStore);
+		List<String> clientKeyStoreList = CertificateHelper.listCertificateSubjectNames(clientKeyStore);
+		List<String> serverKeyStoreList = CertificateHelper.listCertificateSubjectNames(serverKeyStore);
+
+		assertEquals(1, trustStoreList.size());
+		assertEquals(1, clientKeyStoreList.size());
+		assertEquals(1, serverKeyStoreList.size());
+
+		assertEquals(
+				"CN=CA, OU=Medizinische Informatik, O=Hochschule Heilbronn, L=Heilbronn, ST=Baden-Wuerttemberg, C=DE",
+				trustStoreList.get(0));
+		assertEquals(
+				"CN=User, OU=Medizinische Informatik, O=Hochschule Heilbronn, L=Heilbronn, ST=Baden Wuerttemberg, C=DE",
+				clientKeyStoreList.get(0));
+		assertEquals(
+				"CN=localhost, OU=Medizinische Informatik, O=Hochschule Heilbronn, L=Heilbronn, ST=Baden Wuerttemberg, C=DE",
+				serverKeyStoreList.get(0));
 	}
 }

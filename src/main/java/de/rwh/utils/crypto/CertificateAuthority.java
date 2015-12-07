@@ -1,6 +1,11 @@
 package de.rwh.utils.crypto;
 
-import static de.rwh.utils.crypto.CertificateHelper.*;
+import static de.rwh.utils.crypto.CertificateHelper.DEFAULT_KEY_ALGORITHM;
+import static de.rwh.utils.crypto.CertificateHelper.DEFAULT_KEY_SIZE;
+import static de.rwh.utils.crypto.CertificateHelper.DEFAULT_SIGNATURE_ALGORITHM;
+import static de.rwh.utils.crypto.CertificateHelper.createKeyPair;
+import static de.rwh.utils.crypto.CertificateHelper.getContentSigner;
+import static de.rwh.utils.crypto.CertificateHelper.toSubjectKeyIdentifier;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -43,10 +48,10 @@ import org.bouncycastle.asn1.x509.GeneralName;
 import org.bouncycastle.asn1.x509.GeneralNames;
 import org.bouncycastle.asn1.x509.KeyPurposeId;
 import org.bouncycastle.asn1.x509.KeyUsage;
-import org.bouncycastle.asn1.x509.SubjectPublicKeyInfo;
 import org.bouncycastle.cert.CertIOException;
 import org.bouncycastle.cert.X509CertificateHolder;
 import org.bouncycastle.cert.jcajce.JcaX509CertificateConverter;
+import org.bouncycastle.cert.jcajce.JcaX509ExtensionUtils;
 import org.bouncycastle.cert.jcajce.JcaX509v3CertificateBuilder;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.operator.ContentSigner;
@@ -235,9 +240,9 @@ public class CertificateAuthority
 		caCertificate = createCaCertificate(notBefore, notAfter);
 	}
 
-	private X509Certificate createCaCertificate(Date notBefore, Date notAfter) throws NoSuchAlgorithmException,
-			KeyStoreException, CertificateException, CertIOException, InvalidKeyException, OperatorCreationException,
-			IllegalStateException
+	private X509Certificate createCaCertificate(Date notBefore, Date notAfter)
+			throws NoSuchAlgorithmException, KeyStoreException, CertificateException, CertIOException,
+			InvalidKeyException, OperatorCreationException, IllegalStateException
 	{
 		BigInteger serial = BigInteger.valueOf(System.currentTimeMillis());
 		PublicKey publicKey = caKeyPair.getPublic();
@@ -247,8 +252,8 @@ public class CertificateAuthority
 
 		certificateBuilder.addExtension(Extension.subjectKeyIdentifier, false, toSubjectKeyIdentifier(publicKey));
 		certificateBuilder.addExtension(Extension.basicConstraints, true, new BasicConstraints(1));
-		certificateBuilder
-				.addExtension(Extension.keyUsage, true, new KeyUsage(KeyUsage.keyCertSign | KeyUsage.cRLSign));
+		certificateBuilder.addExtension(Extension.keyUsage, true,
+				new KeyUsage(KeyUsage.keyCertSign | KeyUsage.cRLSign));
 
 		X509CertificateHolder certificateHolder = certificateBuilder.build(getCaContentSigner());
 
@@ -342,12 +347,13 @@ public class CertificateAuthority
 	 */
 	public X509Certificate signWebClientCertificate(JcaPKCS10CertificationRequest request,
 			long validityPeriodInMilliseconds) throws NoSuchAlgorithmException, IOException, InvalidKeySpecException,
-			OperatorCreationException, CertificateException, InvalidKeyException, IllegalStateException
+					OperatorCreationException, CertificateException, InvalidKeyException, IllegalStateException
 	{
 		if (!isInitialized())
 			throw new IllegalStateException("not initialized");
 
-		KeyUsage keyUsage = new KeyUsage(KeyUsage.nonRepudiation | KeyUsage.digitalSignature | KeyUsage.keyEncipherment);
+		KeyUsage keyUsage = new KeyUsage(
+				KeyUsage.nonRepudiation | KeyUsage.digitalSignature | KeyUsage.keyEncipherment);
 		ExtendedKeyUsage extendedKeyUsage = new ExtendedKeyUsage(KeyPurposeId.id_kp_clientAuth);
 
 		return sign(request, keyUsage, extendedKeyUsage, validityPeriodInMilliseconds);
@@ -399,7 +405,7 @@ public class CertificateAuthority
 	 */
 	public X509Certificate signWebServerCertificate(JcaPKCS10CertificationRequest request,
 			long validityPeriodInMilliseconds) throws NoSuchAlgorithmException, IOException, InvalidKeySpecException,
-			OperatorCreationException, CertificateException, InvalidKeyException, IllegalStateException
+					OperatorCreationException, CertificateException, InvalidKeyException, IllegalStateException
 	{
 		if (!isInitialized())
 			throw new IllegalStateException("not initialized");
@@ -412,9 +418,9 @@ public class CertificateAuthority
 	}
 
 	private X509Certificate sign(JcaPKCS10CertificationRequest request, KeyUsage keyUsage,
-			ExtendedKeyUsage extendedKeyUsage, long validityPeriodInMilliseconds) throws IOException,
-			NoSuchAlgorithmException, InvalidKeySpecException, CertIOException, OperatorCreationException,
-			CertificateException, InvalidKeyException, IllegalStateException
+			ExtendedKeyUsage extendedKeyUsage, long validityPeriodInMilliseconds)
+					throws IOException, NoSuchAlgorithmException, InvalidKeySpecException, CertIOException,
+					OperatorCreationException, CertificateException, InvalidKeyException, IllegalStateException
 	{
 		Objects.requireNonNull(request, "request");
 		if (validityPeriodInMilliseconds <= 0)
@@ -425,11 +431,11 @@ public class CertificateAuthority
 		Date notAfter = new Date(notBefore.getTime() + validityPeriodInMilliseconds);
 
 		PublicKey reqPublicKey = request.getPublicKey();
-		X500Principal reqSubject = new X500Principal(CertificationRequestBuilder.createSubject(
-				getDnElement(request.getSubject(), BCStyle.C), getDnElement(request.getSubject(), BCStyle.ST),
-				getDnElement(request.getSubject(), BCStyle.L), getDnElement(request.getSubject(), BCStyle.O),
-				getDnElement(request.getSubject(), BCStyle.OU), getDnElement(request.getSubject(), BCStyle.CN))
-				.getEncoded());
+		X500Principal reqSubject = new X500Principal(
+				CertificationRequestBuilder.createSubject(getDnElement(request.getSubject(), BCStyle.C),
+						getDnElement(request.getSubject(), BCStyle.ST), getDnElement(request.getSubject(), BCStyle.L),
+						getDnElement(request.getSubject(), BCStyle.O), getDnElement(request.getSubject(), BCStyle.OU),
+						getDnElement(request.getSubject(), BCStyle.CN)).getEncoded());
 
 		JcaX509v3CertificateBuilder certificateBuilder = new JcaX509v3CertificateBuilder(caCertificate, serial,
 				notBefore, notAfter, reqSubject, reqPublicKey);
@@ -454,9 +460,9 @@ public class CertificateAuthority
 		return getContentSigner(signatureAlgorithm, caKeyPair.getPrivate());
 	}
 
-	private AuthorityKeyIdentifier getCaAuthorityKeyIdentifier()
+	private AuthorityKeyIdentifier getCaAuthorityKeyIdentifier() throws NoSuchAlgorithmException
 	{
-		return new AuthorityKeyIdentifier(SubjectPublicKeyInfo.getInstance(caKeyPair.getPublic().getEncoded()));
+		return new JcaX509ExtensionUtils().createAuthorityKeyIdentifier(caKeyPair.getPublic());
 	}
 
 	private static X509Certificate toCertificate(X509CertificateHolder certificateHolder) throws CertificateException

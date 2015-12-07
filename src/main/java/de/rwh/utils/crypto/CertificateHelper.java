@@ -16,6 +16,9 @@ import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.List;
 import java.util.UUID;
+import java.util.function.Consumer;
+
+import javax.security.auth.x500.X500Principal;
 
 import org.bouncycastle.asn1.x509.SubjectKeyIdentifier;
 import org.bouncycastle.cert.jcajce.JcaX509ExtensionUtils;
@@ -65,8 +68,8 @@ public final class CertificateHelper
 	 *             if the {@link BouncyCastleProvider} is not found
 	 * @see CertificateHelper#registerBouncyCastleProvider()
 	 */
-	public static ContentSigner getContentSigner(PrivateKey privateKey) throws OperatorCreationException,
-			IllegalStateException
+	public static ContentSigner getContentSigner(PrivateKey privateKey)
+			throws OperatorCreationException, IllegalStateException
 	{
 		return getContentSigner(DEFAULT_SIGNATURE_ALGORITHM, privateKey);
 	}
@@ -88,8 +91,8 @@ public final class CertificateHelper
 			throw new IllegalStateException(String.format("Security provider %s with name %s not found.",
 					BouncyCastleProvider.class.getName(), BouncyCastleProvider.PROVIDER_NAME));
 
-		return new JcaContentSignerBuilder(signatureAlgorithm).setProvider(BouncyCastleProvider.PROVIDER_NAME).build(
-				privateKey);
+		return new JcaContentSignerBuilder(signatureAlgorithm).setProvider(BouncyCastleProvider.PROVIDER_NAME)
+				.build(privateKey);
 	}
 
 	public static KeyStore toCertificateStore(String alias, X509Certificate certificate)
@@ -114,8 +117,8 @@ public final class CertificateHelper
 	}
 
 	public static KeyStore toKeyStore(PrivateKey privateKey, Certificate[] certificate, String certificateAlias,
-			String password, String keyStoreType) throws KeyStoreException, IOException, NoSuchAlgorithmException,
-			CertificateException
+			String password, String keyStoreType)
+					throws KeyStoreException, IOException, NoSuchAlgorithmException, CertificateException
 	{
 		KeyStore keyStore = KeyStore.getInstance(keyStoreType);
 		keyStore.load(null, null);
@@ -123,8 +126,8 @@ public final class CertificateHelper
 		return keyStore;
 	}
 
-	public static KeyStore extractTrust(KeyStore keyStoreIn) throws KeyStoreException, NoSuchAlgorithmException,
-			CertificateException, IOException
+	public static KeyStore extractTrust(KeyStore keyStoreIn)
+			throws KeyStoreException, NoSuchAlgorithmException, CertificateException, IOException
 	{
 		KeyStore keyStore = KeyStore.getInstance("jks");
 		keyStore.load(null, null);
@@ -132,6 +135,45 @@ public final class CertificateHelper
 			keyStore.setCertificateEntry(UUID.randomUUID().toString(), caCert);
 
 		return keyStore;
+	}
+
+	/**
+	 * Subject names will be formated by {@link X500Principal#RFC1779}
+	 * 
+	 * @param keyStore
+	 * @param subjectName
+	 * @throws KeyStoreException
+	 *             if the keyStore has not been initialized (loaded).
+	 */
+	public static void listCertificateSubjectNames(KeyStore keyStore, Consumer<String> subjectName)
+			throws KeyStoreException
+	{
+		for (Enumeration<String> e = keyStore.aliases(); e.hasMoreElements();)
+		{
+			String alias = e.nextElement();
+			Certificate certificate = keyStore.getCertificate(alias);
+			if (certificate instanceof X509Certificate)
+			{
+				X509Certificate x = (X509Certificate) certificate;
+				subjectName.accept(x.getSubjectX500Principal().getName(X500Principal.RFC1779));
+			}
+		}
+	}
+
+	/**
+	 * Subject names will be formated by {@link X500Principal#RFC1779}
+	 * 
+	 * @param keyStore
+	 * @return list of subject names
+	 * @throws KeyStoreException
+	 *             if the keyStore has not been initialized (loaded).
+	 * @see {@link #listCertificateSubjectNames(KeyStore, Consumer)}
+	 */
+	public static List<String> listCertificateSubjectNames(KeyStore keyStore) throws KeyStoreException
+	{
+		List<String> names = new ArrayList<>();
+		listCertificateSubjectNames(keyStore, names::add);
+		return names;
 	}
 
 	private static List<X509Certificate> getCaCertificates(KeyStore s) throws KeyStoreException
