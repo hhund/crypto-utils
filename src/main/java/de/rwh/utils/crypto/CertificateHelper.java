@@ -167,7 +167,7 @@ public final class CertificateHelper
 	 * @return list of subject names
 	 * @throws KeyStoreException
 	 *             if the keyStore has not been initialized (loaded).
-	 * @see {@link #listCertificateSubjectNames(KeyStore, Consumer)}
+	 * @see CertificateHelper#listCertificateSubjectNames(KeyStore, Consumer)
 	 */
 	public static List<String> listCertificateSubjectNames(KeyStore keyStore) throws KeyStoreException
 	{
