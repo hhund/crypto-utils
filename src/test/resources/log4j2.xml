@@ -1,21 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Configuration
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="log4j log4j2.xsd" xsi:xmlns="logj" status="debug"
-	strict="true" name="XMLConfigTest"
-	packages="org.apache.logging.log4j.test">
+<Configuration xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://logging.apache.org/log4j/2.0/config log4j2.xsd"
+	xmlns="http://logging.apache.org/log4j/2.0/config" status="debug" strict="true" monitorInterval="30" schema="log4j2.xsd" verbose="true">
 
 	<Appenders>
-		<Appender name="CONSOLE" type="Console" />
-		<Layout type="PatternLayout" pattern="%p\t%t - %C{1}.%M(%L) | %m%n" />
+		<Appender name="CONSOLE" type="Console">
+			<Layout type="PatternLayout" pattern="%p\t%t - %C{1}.%M(%L) | %m%n" />
+		</Appender>
 	</Appenders>
 
 	<Loggers>
 		<Root level="debug">
-			<AppenderRef ref="CONSOLE"></AppenderRef>
+			<AppenderRef ref="CONSOLE" />
 		</Root>
 	</Loggers>
-
-	<!-- status="debug" strict="true" name="XMLConfigTest" packages="org.apache.logging.log4j.test" -->
-
 </Configuration>
