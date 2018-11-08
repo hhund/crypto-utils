@@ -17,6 +17,29 @@
 		<bouncycastle.version>1.60</bouncycastle.version>
 	</properties>
 
+	<repositories>
+		<repository>
+			<id>libs-release-mi</id>
+			<url>https://repository.it.hs-heilbronn.de/artifactory/libs-release-mi/</url>
+			<releases>
+				<enabled>true</enabled>
+			</releases>
+			<snapshots>
+				<enabled>false</enabled>
+			</snapshots>
+		</repository>
+		<repository>
+			<id>libs-snapshot-mi</id>
+			<url>https://repository.it.hs-heilbronn.de/artifactory/libs-snapshot-mi</url>
+			<releases>
+				<enabled>false</enabled>
+			</releases>
+			<snapshots>
+				<enabled>true</enabled>
+			</snapshots>
+		</repository>
+	</repositories>
+
 	<dependencies>
 		<!-- crypto dependencies -->
 		<dependency>
@@ -52,16 +75,9 @@
 			<artifactId>jcl-over-slf4j</artifactId>
 			<scope>test</scope>
 		</dependency>
-		<!-- <dependency>
-			<groupId>org.apache.logging.log4j</groupId>
-			<artifactId>log4j-slf4j-impl</artifactId>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.apache.logging.log4j</groupId>
-			<artifactId>log4j-core</artifactId>
-			<scope>test</scope>
-		</dependency> -->
+		<!-- <dependency> <groupId>org.apache.logging.log4j</groupId> <artifactId>log4j-slf4j-impl</artifactId> 
+			<scope>test</scope> </dependency> <dependency> <groupId>org.apache.logging.log4j</groupId> 
+			<artifactId>log4j-core</artifactId> <scope>test</scope> </dependency> -->
 		<dependency>
 			<groupId>de.rwh.utils</groupId>
 			<artifactId>log4j2-utils</artifactId>
