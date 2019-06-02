@@ -40,16 +40,16 @@ public final class PemIo extends AbstractCertIo
 	{
 	}
 
-	public static void writeX509CertificateToPem(X509Certificate certificate, Path pemFile) throws IOException,
-			CertificateEncodingException
+	public static void writeX509CertificateToPem(X509Certificate certificate, Path pemFile)
+			throws IOException, CertificateEncodingException
 	{
 		byte[] encodedCertificate = certificate.getEncoded();
 
 		writeEncoded(encodedCertificate, pemFile, CERTIFICATE_BEGIN, CERTIFICATE_END, CHAR_SET, LINE_LENGTH);
 	}
 
-	public static String writeX509Certificate(X509Certificate certificate) throws IOException,
-			CertificateEncodingException
+	public static String writeX509Certificate(X509Certificate certificate)
+			throws IOException, CertificateEncodingException
 	{
 		byte[] encodedCertificate = certificate.getEncoded();
 
@@ -83,8 +83,7 @@ public final class PemIo extends AbstractCertIo
 			throw new IllegalStateException("certificate not a X509Certificate");
 	}
 
-	public static X509Certificate readX509CertificateFromPem(String content) throws IOException,
-			CertificateException
+	public static X509Certificate readX509CertificateFromPem(String content) throws IOException, CertificateException
 	{
 		byte[] encodedCertificate = readEncoded(content, CERTIFICATE_BEGIN, CERTIFICATE_END);
 
@@ -97,8 +96,8 @@ public final class PemIo extends AbstractCertIo
 			throw new IllegalStateException("certificate not a X509Certificate");
 	}
 
-	public static RSAPublicKey readPublicKeyFromPem(Path pemFile) throws IOException, NoSuchAlgorithmException,
-			InvalidKeySpecException
+	public static RSAPublicKey readPublicKeyFromPem(Path pemFile)
+			throws IOException, NoSuchAlgorithmException, InvalidKeySpecException
 	{
 		byte[] encodedPublicKey = readEncoded(pemFile, PUBLIC_KEY_BEGIN, PUBLIC_KEY_END, CHAR_SET, LINE_LENGTH);
 
@@ -112,8 +111,8 @@ public final class PemIo extends AbstractCertIo
 			throw new IllegalStateException("public key not a RSAPublicKey");
 	}
 
-	public static RSAPrivateCrtKey readPrivateKeyFromPem(Path pemFile) throws IOException, NoSuchAlgorithmException,
-			InvalidKeySpecException
+	public static RSAPrivateCrtKey readPrivateKeyFromPem(Path pemFile)
+			throws IOException, NoSuchAlgorithmException, InvalidKeySpecException
 	{
 		byte[] encodedPrivateKey = readEncoded(pemFile, PRIVATE_KEY_BEGIN, PRIVATE_KEY_END, CHAR_SET, LINE_LENGTH);
 

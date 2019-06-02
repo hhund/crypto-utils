@@ -77,8 +77,7 @@ public final class CertificateHelper
 	/**
 	 * @param signatureAlgorithm
 	 * @param privateKey
-	 * @return a content signer for the given private key with the given
-	 *         signature algorithm
+	 * @return a content signer for the given private key with the given signature algorithm
 	 * @throws OperatorCreationException
 	 * @throws IllegalStateException
 	 *             if the {@link BouncyCastleProvider} is not found
@@ -118,7 +117,7 @@ public final class CertificateHelper
 
 	public static KeyStore toKeyStore(PrivateKey privateKey, Certificate[] certificate, String certificateAlias,
 			String password, String keyStoreType)
-					throws KeyStoreException, IOException, NoSuchAlgorithmException, CertificateException
+			throws KeyStoreException, IOException, NoSuchAlgorithmException, CertificateException
 	{
 		KeyStore keyStore = KeyStore.getInstance(keyStoreType);
 		keyStore.load(null, null);

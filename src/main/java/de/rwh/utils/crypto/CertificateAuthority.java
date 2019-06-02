@@ -14,6 +14,7 @@ import java.security.InvalidKeyException;
 import java.security.KeyPair;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
+import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
@@ -60,6 +61,74 @@ import org.bouncycastle.pkcs.jcajce.JcaPKCS10CertificationRequest;
 
 public class CertificateAuthority
 {
+	public static class CertificateAuthorityBuilder
+	{
+		private final X509Certificate caCertificate;
+		private final PrivateKey caPrivateKey;
+		private final X500Name name;
+
+		private CertificateAuthorityBuilder(X500Name name, X509Certificate caCertificate, PrivateKey caPrivateKey)
+		{
+			this.name = name;
+			this.caCertificate = caCertificate;
+			this.caPrivateKey = caPrivateKey;
+		}
+
+		/**
+		 * @param caCertificate
+		 *            not <code>null</code>
+		 * @param caPrivateKey
+		 *            not <code>null</code>
+		 * @return
+		 */
+		public static CertificateAuthorityBuilder create(X509Certificate caCertificate, PrivateKey caPrivateKey)
+		{
+			return new CertificateAuthorityBuilder(null, Objects.requireNonNull(caCertificate, "caCertificate"),
+					Objects.requireNonNull(caPrivateKey, "caPrivateKey"));
+		}
+
+		public static CertificateAuthorityBuilder create(String countryCode, String state, String locality,
+				String organization, String organizationalUnit, String commonName)
+		{
+			X500NameBuilder issuerBuilder = new X500NameBuilder(BCStyle.INSTANCE);
+
+			if (countryCode != null && !countryCode.isEmpty())
+				issuerBuilder.addRDN(BCStyle.C, countryCode);
+			if (state != null && !state.isEmpty())
+				issuerBuilder.addRDN(BCStyle.ST, state);
+			if (locality != null && !locality.isEmpty())
+				issuerBuilder.addRDN(BCStyle.L, locality);
+			if (organization != null && !organization.isEmpty())
+				issuerBuilder.addRDN(BCStyle.O, organization);
+			if (organizationalUnit != null && !organizationalUnit.isEmpty())
+				issuerBuilder.addRDN(BCStyle.OU, organizationalUnit);
+			if (commonName != null && !commonName.isEmpty())
+				issuerBuilder.addRDN(BCStyle.CN, commonName);
+
+			return new CertificateAuthorityBuilder(issuerBuilder.build(), null, null);
+		}
+
+		public CertificateAuthority initialize()
+		{
+			if (caCertificate != null && caPrivateKey != null)
+				return new CertificateAuthority(caCertificate, caPrivateKey);
+			else
+			{
+				try
+				{
+					CertificateAuthority ca = new CertificateAuthority(name);
+					ca.initialize();
+					return ca;
+				}
+				catch (InvalidKeyException | NoSuchAlgorithmException | KeyStoreException | CertificateException
+						| OperatorCreationException | CertIOException | IllegalStateException e)
+				{
+					throw new RuntimeException(e);
+				}
+			}
+		}
+	}
+
 	public static final long TWO_YEARS_IN_MIILIS = 2000l * 60l * 60l * 24l * 365l;
 	public static final long TEN_YEAR_IN_MIILIS = TWO_YEARS_IN_MIILIS * 5l;
 
@@ -75,8 +144,7 @@ public class CertificateAuthority
 	}
 
 	/**
-	 * CA with default signature algorithm
-	 * {@link CertificateHelper#DEFAULT_SIGNATURE_ALGORITHM}
+	 * CA with default signature algorithm {@link CertificateHelper#DEFAULT_SIGNATURE_ALGORITHM}
 	 * 
 	 * @param caCertificate
 	 *            not <code>null</code>
@@ -86,6 +154,19 @@ public class CertificateAuthority
 	public CertificateAuthority(X509Certificate caCertificate, KeyPair caKeyPair)
 	{
 		this(caCertificate, caKeyPair, CertificateHelper.DEFAULT_SIGNATURE_ALGORITHM);
+	}
+
+	/**
+	 * CA with default signature algorithm {@link CertificateHelper#DEFAULT_SIGNATURE_ALGORITHM}
+	 * 
+	 * @param caCertificate
+	 *            not <code>null</code>
+	 * @param caPrivateKey
+	 *            not <code>null</code>
+	 */
+	public CertificateAuthority(X509Certificate caCertificate, PrivateKey caPrivateKey)
+	{
+		this(caCertificate, caPrivateKey, CertificateHelper.DEFAULT_SIGNATURE_ALGORITHM);
 	}
 
 	/**
@@ -100,6 +181,21 @@ public class CertificateAuthority
 	{
 		this.caCertificate = caCertificate;
 		this.caKeyPair = caKeyPair;
+		this.signatureAlgorithm = signatureAlgorithm;
+	}
+
+	/**
+	 * @param caCertificate
+	 *            not <code>null</code>
+	 * @param caPrivateKey
+	 *            not <code>null</code>
+	 * @param signatureAlgorithm
+	 *            not <code>null</code>
+	 */
+	public CertificateAuthority(X509Certificate caCertificate, PrivateKey caPrivateKey, String signatureAlgorithm)
+	{
+		this.caCertificate = caCertificate;
+		this.caKeyPair = new KeyPair(caCertificate.getPublicKey(), caPrivateKey);
 		this.signatureAlgorithm = signatureAlgorithm;
 	}
 
@@ -133,9 +229,16 @@ public class CertificateAuthority
 	}
 
 	/**
-	 * Initializes the {@link CertificateAuthority} with a ca certificate valid
-	 * from now for 10 Years, with default values for encryption algorithm, key
-	 * size and signature algorithm. See {@link CertificateHelper} constants.
+	 * @param name
+	 */
+	public CertificateAuthority(X500Name name)
+	{
+		this.name = name;
+	}
+
+	/**
+	 * Initializes the {@link CertificateAuthority} with a ca certificate valid from now for 10 Years, with default
+	 * values for encryption algorithm, key size and signature algorithm. See {@link CertificateHelper} constants.
 	 * 
 	 * @throws NoSuchAlgorithmException
 	 * @throws InvalidKeyException
@@ -158,10 +261,8 @@ public class CertificateAuthority
 	}
 
 	/**
-	 * Initializes the {@link CertificateAuthority} with a ca certificate valid
-	 * from notBefore to notAfter, with default values for encryption algorithm,
-	 * key size and signature algorithm. See {@link CertificateHelper}
-	 * constants.
+	 * Initializes the {@link CertificateAuthority} with a ca certificate valid from notBefore to notAfter, with default
+	 * values for encryption algorithm, key size and signature algorithm. See {@link CertificateHelper} constants.
 	 * 
 	 * @param notBefore
 	 * @param notAfter
@@ -193,9 +294,8 @@ public class CertificateAuthority
 	}
 
 	/**
-	 * Initializes the {@link CertificateAuthority} with a ca certificate valid
-	 * from notBefore to notAfter, with default value for encryption algorithm.
-	 * See {@link CertificateHelper} constants.
+	 * Initializes the {@link CertificateAuthority} with a ca certificate valid from notBefore to notAfter, with default
+	 * value for encryption algorithm. See {@link CertificateHelper} constants.
 	 * 
 	 * @param notBefore
 	 *            not <code>null</code>
@@ -292,8 +392,7 @@ public class CertificateAuthority
 	}
 
 	/**
-	 * @return <code>null</code> if this {@link CertificateAuthority} is created
-	 *         via
+	 * @return <code>null</code> if this {@link CertificateAuthority} is created via
 	 *         {@link CertificateAuthority#CertificateAuthority(X509Certificate, KeyPair)}
 	 */
 	public X500Name getName()
@@ -326,8 +425,7 @@ public class CertificateAuthority
 	}
 
 	/**
-	 * Signs the given request, client certificate is valid for the given amount
-	 * of time in milliseconds
+	 * Signs the given request, client certificate is valid for the given amount of time in milliseconds
 	 * 
 	 * @param request
 	 *            not <code>null</code>
@@ -347,7 +445,7 @@ public class CertificateAuthority
 	 */
 	public X509Certificate signWebClientCertificate(JcaPKCS10CertificationRequest request,
 			long validityPeriodInMilliseconds) throws NoSuchAlgorithmException, IOException, InvalidKeySpecException,
-					OperatorCreationException, CertificateException, InvalidKeyException, IllegalStateException
+			OperatorCreationException, CertificateException, InvalidKeyException, IllegalStateException
 	{
 		if (!isInitialized())
 			throw new IllegalStateException("not initialized");
@@ -384,8 +482,7 @@ public class CertificateAuthority
 	}
 
 	/**
-	 * Signs the given request, server certificate is valid for the given amount
-	 * of time in milliseconds
+	 * Signs the given request, server certificate is valid for the given amount of time in milliseconds
 	 * 
 	 * @param request
 	 *            not <code>null</code>
@@ -405,7 +502,7 @@ public class CertificateAuthority
 	 */
 	public X509Certificate signWebServerCertificate(JcaPKCS10CertificationRequest request,
 			long validityPeriodInMilliseconds) throws NoSuchAlgorithmException, IOException, InvalidKeySpecException,
-					OperatorCreationException, CertificateException, InvalidKeyException, IllegalStateException
+			OperatorCreationException, CertificateException, InvalidKeyException, IllegalStateException
 	{
 		if (!isInitialized())
 			throw new IllegalStateException("not initialized");
@@ -419,8 +516,8 @@ public class CertificateAuthority
 
 	private X509Certificate sign(JcaPKCS10CertificationRequest request, KeyUsage keyUsage,
 			ExtendedKeyUsage extendedKeyUsage, long validityPeriodInMilliseconds)
-					throws IOException, NoSuchAlgorithmException, InvalidKeySpecException, CertIOException,
-					OperatorCreationException, CertificateException, InvalidKeyException, IllegalStateException
+			throws IOException, NoSuchAlgorithmException, InvalidKeySpecException, CertIOException,
+			OperatorCreationException, CertificateException, InvalidKeyException, IllegalStateException
 	{
 		Objects.requireNonNull(request, "request");
 		if (validityPeriodInMilliseconds <= 0)
@@ -585,8 +682,7 @@ public class CertificateAuthority
 	 *            not <code>null</code>
 	 * @param oid
 	 *            not <code>null</code>
-	 * @return <code>null</code> if <code>subject</code> does not contain an
-	 *         element for the given <code>oid</code>
+	 * @return <code>null</code> if <code>subject</code> does not contain an element for the given <code>oid</code>
 	 * @see BCStyle
 	 */
 	public static String getDnElement(X500Name subject, ASN1ObjectIdentifier oid)

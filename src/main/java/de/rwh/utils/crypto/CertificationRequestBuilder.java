@@ -64,8 +64,7 @@ public class CertificationRequestBuilder
 
 	/**
 	 * @param serverNotClient
-	 *            <code>true</code> for server certificate request, false for a
-	 *            client certificate request
+	 *            <code>true</code> for server certificate request, false for a client certificate request
 	 * @param subject
 	 *            not <code>null</code>
 	 * @param rsaKeyPair
@@ -79,8 +78,8 @@ public class CertificationRequestBuilder
 	 * @see CertificationRequestBuilder#registerBouncyCastleProvider()
 	 */
 	private static JcaPKCS10CertificationRequest createCertificationRequest(boolean serverNotClient, X500Name subject,
-			KeyPair rsaKeyPair) throws NoSuchAlgorithmException, IOException, OperatorCreationException,
-			IllegalStateException
+			KeyPair rsaKeyPair)
+			throws NoSuchAlgorithmException, IOException, OperatorCreationException, IllegalStateException
 	{
 		return createCertificationRequest(serverNotClient, subject, rsaKeyPair, null);
 	}
@@ -125,8 +124,7 @@ public class CertificationRequestBuilder
 
 	/**
 	 * @param serverNotClient
-	 *            <code>true</code> for server certificate request, false for a
-	 *            client certificate request
+	 *            <code>true</code> for server certificate request, false for a client certificate request
 	 * @param subject
 	 *            not <code>null</code>
 	 * @param rsaKeyPair
@@ -143,8 +141,8 @@ public class CertificationRequestBuilder
 	 * @see CertificationRequestBuilder#registerBouncyCastleProvider()
 	 */
 	private static JcaPKCS10CertificationRequest createCertificationRequest(boolean serverNotClient, X500Name subject,
-			KeyPair rsaKeyPair, String email, String... dnsNames) throws NoSuchAlgorithmException, IOException,
-			OperatorCreationException, IllegalStateException
+			KeyPair rsaKeyPair, String email, String... dnsNames)
+			throws NoSuchAlgorithmException, IOException, OperatorCreationException, IllegalStateException
 	{
 		return createCertificationRequest(serverNotClient, subject, rsaKeyPair, email, Arrays.asList(dnsNames));
 	}
@@ -166,8 +164,8 @@ public class CertificationRequestBuilder
 	 * @see CertificationRequestBuilder#registerBouncyCastleProvider()
 	 */
 	public static JcaPKCS10CertificationRequest createServerCertificationRequest(X500Name subject, KeyPair rsaKeyPair,
-			String email, String... dnsNames) throws NoSuchAlgorithmException, IOException, OperatorCreationException,
-			IllegalStateException
+			String email, String... dnsNames)
+			throws NoSuchAlgorithmException, IOException, OperatorCreationException, IllegalStateException
 	{
 		return createCertificationRequest(true, subject, rsaKeyPair, email, dnsNames);
 	}
@@ -189,16 +187,15 @@ public class CertificationRequestBuilder
 	 * @see CertificationRequestBuilder#registerBouncyCastleProvider()
 	 */
 	public static JcaPKCS10CertificationRequest createClientCertificationRequest(X500Name subject, KeyPair rsaKeyPair,
-			String email, String... dnsNames) throws NoSuchAlgorithmException, IOException, OperatorCreationException,
-			IllegalStateException
+			String email, String... dnsNames)
+			throws NoSuchAlgorithmException, IOException, OperatorCreationException, IllegalStateException
 	{
 		return createCertificationRequest(false, subject, rsaKeyPair, email, dnsNames);
 	}
 
 	/**
 	 * @param serverNotClient
-	 *            <code>true</code> for server certificate request, false for a
-	 *            client certificate request
+	 *            <code>true</code> for server certificate request, false for a client certificate request
 	 * @param subject
 	 *            not <code>null</code>
 	 * @param rsaKeyPair
@@ -213,13 +210,13 @@ public class CertificationRequestBuilder
 	 * @throws IllegalStateException
 	 *             if the {@link BouncyCastleProvider} is not found
 	 * @throws IllegalArgumentException
-	 *             if param <code>serverNotClient</code> is <code>false</code>
-	 *             (client) and param <code>dnsNames</code> is not empty
+	 *             if param <code>serverNotClient</code> is <code>false</code> (client) and param <code>dnsNames</code>
+	 *             is not empty
 	 * @see CertificationRequestBuilder#registerBouncyCastleProvider()
 	 */
 	private static JcaPKCS10CertificationRequest createCertificationRequest(boolean serverNotClient, X500Name subject,
-			KeyPair rsaKeyPair, String email, Collection<String> dnsNames) throws NoSuchAlgorithmException,
-			IOException, OperatorCreationException, IllegalStateException
+			KeyPair rsaKeyPair, String email, Collection<String> dnsNames)
+			throws NoSuchAlgorithmException, IOException, OperatorCreationException, IllegalStateException
 	{
 		Objects.requireNonNull(subject, "subject");
 		Objects.requireNonNull(rsaKeyPair, "rsaKeyPair");
@@ -245,10 +242,10 @@ public class CertificationRequestBuilder
 		else
 			keyUsage = new KeyUsage(KeyUsage.nonRepudiation | KeyUsage.digitalSignature | KeyUsage.keyEncipherment);
 
-		DERSequence basicConstraintsExtension = new DERSequence(new ASN1Encodable[] { Extension.basicConstraints,
-				new DEROctetString(new BasicConstraints(false)) });
-		DERSequence keyUsageExtension = new DERSequence(new ASN1Encodable[] { Extension.keyUsage,
-				new DEROctetString(keyUsage) });
+		DERSequence basicConstraintsExtension = new DERSequence(
+				new ASN1Encodable[] { Extension.basicConstraints, new DEROctetString(new BasicConstraints(false)) });
+		DERSequence keyUsageExtension = new DERSequence(
+				new ASN1Encodable[] { Extension.keyUsage, new DEROctetString(keyUsage) });
 
 		if (subAltNames.size() > 0)
 		{
@@ -286,13 +283,13 @@ public class CertificationRequestBuilder
 	 * @throws IllegalStateException
 	 *             if the {@link BouncyCastleProvider} is not found
 	 * @throws IllegalArgumentException
-	 *             if param <code>serverNotClient</code> is <code>false</code>
-	 *             (client) and param <code>dnsNames</code> is not empty
+	 *             if param <code>serverNotClient</code> is <code>false</code> (client) and param <code>dnsNames</code>
+	 *             is not empty
 	 * @see CertificationRequestBuilder#registerBouncyCastleProvider()
 	 */
 	public static JcaPKCS10CertificationRequest createServerCertificationRequest(X500Name subject, KeyPair rsaKeyPair,
-			String email, Collection<String> dnsNames) throws NoSuchAlgorithmException, IOException,
-			OperatorCreationException, IllegalStateException
+			String email, Collection<String> dnsNames)
+			throws NoSuchAlgorithmException, IOException, OperatorCreationException, IllegalStateException
 	{
 		return createCertificationRequest(true, subject, rsaKeyPair, email, dnsNames);
 	}
@@ -312,13 +309,13 @@ public class CertificationRequestBuilder
 	 * @throws IllegalStateException
 	 *             if the {@link BouncyCastleProvider} is not found
 	 * @throws IllegalArgumentException
-	 *             if param <code>serverNotClient</code> is <code>false</code>
-	 *             (client) and param <code>dnsNames</code> is not empty
+	 *             if param <code>serverNotClient</code> is <code>false</code> (client) and param <code>dnsNames</code>
+	 *             is not empty
 	 * @see CertificationRequestBuilder#registerBouncyCastleProvider()
 	 */
 	public static JcaPKCS10CertificationRequest createClientCertificationRequest(X500Name subject, KeyPair rsaKeyPair,
-			String email, Collection<String> dnsNames) throws NoSuchAlgorithmException, IOException,
-			OperatorCreationException, IllegalStateException
+			String email, Collection<String> dnsNames)
+			throws NoSuchAlgorithmException, IOException, OperatorCreationException, IllegalStateException
 	{
 		return createCertificationRequest(false, subject, rsaKeyPair, email, dnsNames);
 	}
