@@ -4,13 +4,16 @@
 
 	<artifactId>crypto-utils</artifactId>
 	<version>2.2.0</version>
-	<packaging>jar</packaging>
 
 	<parent>
 		<groupId>de.hs-heilbronn.mi</groupId>
 		<artifactId>rwh-pom</artifactId>
 		<version>0.7.0</version>
 	</parent>
+
+	<name>crypto-utils</name>
+	<description>Utility library for reading and writing X509 certificates and keys. Also provides a simple certificate authority implementation based on the Bouncy Castle crypto library.</description>
+	<url>https://github.com/hhund/crypto-utils</url>
 
 	<properties>
 		<bouncycastle.version>1.60</bouncycastle.version>
@@ -57,7 +60,7 @@
 
 	<scm>
 		<connection>scm:git:git://github.com/hhund/crypto-utils.git</connection>
-		<developerConnection>scm:git:git@github.com/hhund/crypto-utils.git</developerConnection>
+		<developerConnection>scm:git:git@github.com:hhund/crypto-utils.git</developerConnection>
 		<url>http://github.com/hhund/crypto-utils</url>
 	</scm>
 
