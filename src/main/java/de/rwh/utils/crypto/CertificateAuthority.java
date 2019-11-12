@@ -34,6 +34,7 @@ import org.bouncycastle.asn1.DEROctetString;
 import org.bouncycastle.asn1.DERSequence;
 import org.bouncycastle.asn1.DERTaggedObject;
 import org.bouncycastle.asn1.DLSequence;
+import org.bouncycastle.asn1.DLTaggedObject;
 import org.bouncycastle.asn1.pkcs.Attribute;
 import org.bouncycastle.asn1.pkcs.PKCSObjectIdentifiers;
 import org.bouncycastle.asn1.x500.RDN;
@@ -624,6 +625,12 @@ public class CertificateAuthority
 												{
 													GeneralName name = new GeneralName(
 															((DERTaggedObject) v3).getTagNo(), v3);
+													generalNames.add(name);
+												}
+												else if (v3 instanceof DLTaggedObject)
+												{
+													GeneralName name = new GeneralName(((DLTaggedObject) v3).getTagNo(),
+															v3);
 													generalNames.add(name);
 												}
 											}
