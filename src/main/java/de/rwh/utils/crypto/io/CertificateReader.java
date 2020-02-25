@@ -15,7 +15,7 @@ import java.util.Collection;
 
 public final class CertificateReader
 {
-	public static KeyStore fromPkcs12(Path file, String password) throws KeyStoreException, CertificateException,
+	public static KeyStore fromPkcs12(Path file, char[] password) throws KeyStoreException, CertificateException,
 			IOException, NoSuchAlgorithmException
 	{
 		try (InputStream stream = Files.newInputStream(file))
@@ -24,11 +24,11 @@ public final class CertificateReader
 		}
 	}
 
-	public static KeyStore fromPkcs12(String password, InputStream stream) throws KeyStoreException, IOException,
+	public static KeyStore fromPkcs12(char[] password, InputStream stream) throws KeyStoreException, IOException,
 			NoSuchAlgorithmException, CertificateException
 	{
 		KeyStore keyStore = KeyStore.getInstance("pkcs12");
-		keyStore.load(stream, password.toCharArray());
+		keyStore.load(stream, password);
 
 		return keyStore;
 	}

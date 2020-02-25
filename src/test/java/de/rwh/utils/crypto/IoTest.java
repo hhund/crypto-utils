@@ -40,10 +40,10 @@ public class IoTest
 
 	private static final String CA_ALIAS = "CA";
 
-	private static final String SERVER_CERTIFICATE_PASSWORD = "ServerPassword";
+	private static final char[] SERVER_CERTIFICATE_PASSWORD = "ServerPassword".toCharArray();
 	private static final String SERVER_CERTIFICATE_ALIAS = "ServerAlias";
 
-	private static final String CLIENT_CERTIFICATE_PASSWORD = "ClientPassword";
+	private static final char[] CLIENT_CERTIFICATE_PASSWORD = "ClientPassword".toCharArray();
 	private static final String CLIENT_CERTIFICATE_ALIAS = "ClientAlias";
 
 	private Path testRoot = Paths.get("target/io-test");
@@ -127,14 +127,14 @@ public class IoTest
 		testPkcs12ReadWrite(clientKeyStoreFile, clientKeyStore, CLIENT_CERTIFICATE_PASSWORD, CLIENT_CERTIFICATE_ALIAS);
 	}
 
-	private void testPkcs12ReadWrite(Path keyStoreFile, KeyStore keyStore, String certificatePassword,
+	private void testPkcs12ReadWrite(Path keyStoreFile, KeyStore keyStore, char[] certificatePassword,
 			String certificateAlias) throws KeyStoreException, NoSuchAlgorithmException, UnrecoverableKeyException,
-					CertificateException, IOException
+			CertificateException, IOException
 	{
 		CertificateWriter.toPkcs12(keyStoreFile, keyStore, certificatePassword);
 
 		KeyStore readServerKeyStore = CertificateReader.fromPkcs12(keyStoreFile, certificatePassword);
-		Key readServerKey = readServerKeyStore.getKey(certificateAlias, certificatePassword.toCharArray());
+		Key readServerKey = readServerKeyStore.getKey(certificateAlias, certificatePassword);
 		Certificate[] readServerCertificateChain = readServerKeyStore.getCertificateChain(certificateAlias);
 
 		assertNotNull(readServerKey);

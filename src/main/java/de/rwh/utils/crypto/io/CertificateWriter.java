@@ -17,30 +17,30 @@ import de.rwh.utils.crypto.CertificateHelper;
 
 public final class CertificateWriter
 {
-	public static void toPkcs12(Path file, PrivateKey privateKey, String password, Certificate certificate,
-			Certificate caCertificate, String certificateAlias) throws KeyStoreException, NoSuchAlgorithmException,
-			CertificateException, IOException
+	public static void toPkcs12(Path file, PrivateKey privateKey, char[] password, Certificate certificate,
+			Certificate caCertificate, String certificateAlias)
+			throws KeyStoreException, NoSuchAlgorithmException, CertificateException, IOException
 	{
-		KeyStore keyStore = CertificateHelper.toPkcs12KeyStore(privateKey, new Certificate[] { certificate,
-				caCertificate }, certificateAlias, password);
+		KeyStore keyStore = CertificateHelper.toPkcs12KeyStore(privateKey,
+				new Certificate[] { certificate, caCertificate }, certificateAlias, password);
 
 		toPkcs12(file, keyStore, password);
 	}
 
-	public static void toPkcs12(Path file, KeyStore keyStore, String password) throws KeyStoreException,
-			NoSuchAlgorithmException, CertificateException, IOException
+	public static void toPkcs12(Path file, KeyStore keyStore, char[] password)
+			throws KeyStoreException, NoSuchAlgorithmException, CertificateException, IOException
 	{
 		if (!"pkcs12".equalsIgnoreCase(keyStore.getType()))
 			throw new IllegalArgumentException("KeyStore type must be pkcs12");
 
 		try (OutputStream stream = Files.newOutputStream(file))
 		{
-			keyStore.store(stream, password.toCharArray());
+			keyStore.store(stream, password);
 		}
 	}
 
-	public static void toCer(Path file, KeyStore keyStore, String certificateAlias) throws KeyStoreException,
-			CertificateEncodingException, IOException
+	public static void toCer(Path file, KeyStore keyStore, String certificateAlias)
+			throws KeyStoreException, CertificateEncodingException, IOException
 	{
 		Certificate certificate = keyStore.getCertificate(certificateAlias);
 		if (certificate == null)

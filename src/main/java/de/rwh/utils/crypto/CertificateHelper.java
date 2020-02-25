@@ -104,24 +104,24 @@ public final class CertificateHelper
 	}
 
 	public static KeyStore toJksKeyStore(PrivateKey privateKey, Certificate[] certificate, String certificateAlias,
-			String password) throws KeyStoreException, IOException, NoSuchAlgorithmException, CertificateException
+			char[] password) throws KeyStoreException, IOException, NoSuchAlgorithmException, CertificateException
 	{
 		return toKeyStore(privateKey, certificate, certificateAlias, password, "jks");
 	}
 
 	public static KeyStore toPkcs12KeyStore(PrivateKey privateKey, Certificate[] certificate, String certificateAlias,
-			String password) throws KeyStoreException, IOException, NoSuchAlgorithmException, CertificateException
+			char[] password) throws KeyStoreException, IOException, NoSuchAlgorithmException, CertificateException
 	{
 		return toKeyStore(privateKey, certificate, certificateAlias, password, "pkcs12");
 	}
 
 	public static KeyStore toKeyStore(PrivateKey privateKey, Certificate[] certificate, String certificateAlias,
-			String password, String keyStoreType)
+			char[] password, String keyStoreType)
 			throws KeyStoreException, IOException, NoSuchAlgorithmException, CertificateException
 	{
 		KeyStore keyStore = KeyStore.getInstance(keyStoreType);
 		keyStore.load(null, null);
-		keyStore.setKeyEntry(certificateAlias, privateKey, password.toCharArray(), certificate);
+		keyStore.setKeyEntry(certificateAlias, privateKey, password, certificate);
 		return keyStore;
 	}
 
