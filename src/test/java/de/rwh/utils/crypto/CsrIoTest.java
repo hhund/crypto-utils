@@ -18,8 +18,6 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import de.rwh.utils.crypto.CertificateHelper;
-import de.rwh.utils.crypto.CertificationRequestBuilder;
 import de.rwh.utils.crypto.io.CsrIo;
 
 public class CsrIoTest
