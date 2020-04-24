@@ -3,20 +3,20 @@
 	<modelVersion>4.0.0</modelVersion>
 
 	<artifactId>crypto-utils</artifactId>
-	<version>2.4.0</version>
+	<version>2.5.0</version>
 
 	<parent>
 		<groupId>de.hs-heilbronn.mi</groupId>
 		<artifactId>rwh-pom</artifactId>
-		<version>0.9.0</version>
+		<version>0.10.0</version>
 	</parent>
 
 	<name>crypto-utils</name>
-	<description>Utility library for reading and writing X509 certificates and keys. Also provides a simple certificate authority implementation based on the Bouncy Castle crypto library.</description>
+	<description>Utility library for reading and writing X509 certificates and keys. Also provides a simple certificate authority implementation based on the Bouncy Castle crypto library</description>
 	<url>https://github.com/hhund/crypto-utils</url>
 
 	<properties>
-		<bouncycastle.version>1.64</bouncycastle.version>
+		<bouncycastle.version>1.65</bouncycastle.version>
 	</properties>
 
 	<licenses>
@@ -28,8 +28,8 @@
 	</licenses>
 
 	<organization>
-		<name>Heilbronn University - Medical Informatics</name>
-		<url>http://www.mi.hs-heilbronn.de</url>
+		<name>Heilbronn University of Applied Sciences, Faculty of Informatics</name>
+		<url>https://www.hs-heilbronn.de/it</url>
 	</organization>
 
 	<developers>
@@ -40,8 +40,8 @@
 				<role>developer</role>
 			</roles>
 			<email>hauke.hund@hs-heilbronn.de</email>
-			<organization>University of Heilbronn - Medical Informatics</organization>
-			<organizationUrl>http://www.mi.hs-heilbronn.de</organizationUrl>
+			<organization>Heilbronn University of Applied Sciences, Faculty of Informatics</organization>
+			<organizationUrl>https://www.hs-heilbronn.de/hauke.hund</organizationUrl>
 		</developer>
 	</developers>
 
@@ -102,7 +102,7 @@
 		<dependency>
 			<groupId>de.hs-heilbronn.mi</groupId>
 			<artifactId>log4j2-utils</artifactId>
-			<version>0.5.0</version>
+			<version>0.6.0</version>
 			<scope>test</scope>
 		</dependency>
 	</dependencies>
