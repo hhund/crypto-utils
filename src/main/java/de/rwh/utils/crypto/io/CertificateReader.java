@@ -33,6 +33,24 @@ public final class CertificateReader
 		return keyStore;
 	}
 
+	public static KeyStore fromJks(Path file, char[] password) throws KeyStoreException, CertificateException,
+			IOException, NoSuchAlgorithmException
+	{
+		try (InputStream stream = Files.newInputStream(file))
+		{
+			return fromJks(password, stream);
+		}
+	}
+
+	public static KeyStore fromJks(char[] password, InputStream stream) throws KeyStoreException, IOException,
+			NoSuchAlgorithmException, CertificateException
+	{
+		KeyStore keyStore = KeyStore.getInstance("jks");
+		keyStore.load(stream, password);
+
+		return keyStore;
+	}
+
 	public static KeyStore fromCer(Path file, String alias) throws NoSuchAlgorithmException, CertificateException,
 			IOException, KeyStoreException
 	{
