@@ -19,6 +19,10 @@ import java.security.PublicKey;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.security.spec.InvalidKeySpecException;
+import java.time.LocalDateTime;
+import java.time.Period;
+import java.time.ZoneId;
+import java.time.temporal.TemporalAmount;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -130,8 +134,8 @@ public class CertificateAuthority
 		}
 	}
 
-	public static final long TWO_YEARS_IN_MIILIS = 2000l * 60l * 60l * 24l * 365l;
-	public static final long TEN_YEAR_IN_MIILIS = TWO_YEARS_IN_MIILIS * 5l;
+	public static final TemporalAmount ONE_YEAR = Period.ofYears(1);
+	public static final TemporalAmount TEN_YEARS = Period.ofYears(10);
 
 	private X500Name name = null;
 
@@ -257,8 +261,10 @@ public class CertificateAuthority
 	public void initialize() throws NoSuchAlgorithmException, InvalidKeyException, KeyStoreException,
 			CertificateException, OperatorCreationException, CertIOException, IllegalStateException
 	{
-		initialize(new Date(), new Date(System.currentTimeMillis() + TEN_YEAR_IN_MIILIS), DEFAULT_KEY_SIZE,
-				DEFAULT_SIGNATURE_ALGORITHM);
+		LocalDateTime notBefore = LocalDateTime.now();
+		LocalDateTime notAfter = notBefore.plus(TEN_YEARS);
+		
+		initialize(notBefore, notAfter, DEFAULT_KEY_SIZE, DEFAULT_SIGNATURE_ALGORITHM);
 	}
 
 	/**
@@ -282,10 +288,11 @@ public class CertificateAuthority
 	 * @see CertificateAuthority#registerBouncyCastleProvider()
 	 * @see CertificateAuthority#isInitialized()
 	 */
-	public void initialize(Date notBefore, Date notAfter) throws NoSuchAlgorithmException, InvalidKeyException,
-			KeyStoreException, CertificateException, OperatorCreationException, CertIOException, IllegalStateException
+	public void initialize(LocalDateTime notBefore, LocalDateTime notAfter)
+			throws NoSuchAlgorithmException, InvalidKeyException, KeyStoreException, CertificateException,
+			OperatorCreationException, CertIOException, IllegalStateException
 	{
-		if (notBefore == null || notAfter == null || notAfter.before(notBefore))
+		if (notBefore == null || notAfter == null || notAfter.isBefore(notBefore))
 			throw new IllegalArgumentException("Dates not valid");
 
 		if (isInitialized())
@@ -322,11 +329,11 @@ public class CertificateAuthority
 	 * @see CertificateAuthority#isInitialized()
 	 * @see CertificateHelper#createRsaKeyPair4096Bit()
 	 */
-	public void initialize(Date notBefore, Date notAfter, int keySize, String signatureAlgorithm)
+	public void initialize(LocalDateTime notBefore, LocalDateTime notAfter, int keySize, String signatureAlgorithm)
 			throws NoSuchAlgorithmException, InvalidKeyException, KeyStoreException, CertificateException,
 			CertIOException, OperatorCreationException, IllegalStateException
 	{
-		if (notBefore == null || notAfter == null || notAfter.before(notBefore))
+		if (notBefore == null || notAfter == null || notAfter.isBefore(notBefore))
 			throw new IllegalArgumentException("Dates not valid");
 
 		if (keySize <= 0)
@@ -341,15 +348,15 @@ public class CertificateAuthority
 		caCertificate = createCaCertificate(notBefore, notAfter);
 	}
 
-	private X509Certificate createCaCertificate(Date notBefore, Date notAfter)
+	private X509Certificate createCaCertificate(LocalDateTime notBefore, LocalDateTime notAfter)
 			throws NoSuchAlgorithmException, KeyStoreException, CertificateException, CertIOException,
 			InvalidKeyException, OperatorCreationException, IllegalStateException
 	{
 		BigInteger serial = BigInteger.valueOf(System.currentTimeMillis());
 		PublicKey publicKey = caKeyPair.getPublic();
 
-		JcaX509v3CertificateBuilder certificateBuilder = new JcaX509v3CertificateBuilder(name, serial, notBefore,
-				notAfter, name, publicKey);
+		JcaX509v3CertificateBuilder certificateBuilder = new JcaX509v3CertificateBuilder(name, serial,
+				toDate(notBefore), toDate(notAfter), name, publicKey);
 
 		certificateBuilder.addExtension(Extension.subjectKeyIdentifier, false, toSubjectKeyIdentifier(publicKey));
 		certificateBuilder.addExtension(Extension.basicConstraints, true, new BasicConstraints(1));
@@ -402,7 +409,7 @@ public class CertificateAuthority
 	}
 
 	/**
-	 * Signs the given request, client certificate is valid for two years
+	 * Signs the given request, client certificate is valid for one year
 	 * 
 	 * @param request
 	 *            not <code>null</code>
@@ -422,16 +429,16 @@ public class CertificateAuthority
 			throws NoSuchAlgorithmException, IOException, InvalidKeySpecException, OperatorCreationException,
 			CertificateException, InvalidKeyException, IllegalStateException
 	{
-		return signWebClientCertificate(request, TWO_YEARS_IN_MIILIS);
+		return signWebClientCertificate(request, ONE_YEAR);
 	}
 
 	/**
-	 * Signs the given request, client certificate is valid for the given amount of time in milliseconds
+	 * Signs the given request, client certificate is valid for the given amount of time
 	 * 
 	 * @param request
 	 *            not <code>null</code>
-	 * @param validityPeriodInMilliseconds
-	 *            &gt; 0
+	 * @param validityPeriod
+	 *            not <code>null</code>
 	 * @return signed client certificate
 	 * @throws NoSuchAlgorithmException
 	 * @throws IOException
@@ -445,7 +452,7 @@ public class CertificateAuthority
 	 * @see CertificateAuthority#isInitialized()
 	 */
 	public X509Certificate signWebClientCertificate(JcaPKCS10CertificationRequest request,
-			long validityPeriodInMilliseconds) throws NoSuchAlgorithmException, IOException, InvalidKeySpecException,
+			TemporalAmount validityPeriod) throws NoSuchAlgorithmException, IOException, InvalidKeySpecException,
 			OperatorCreationException, CertificateException, InvalidKeyException, IllegalStateException
 	{
 		if (!isInitialized())
@@ -455,11 +462,11 @@ public class CertificateAuthority
 				KeyUsage.nonRepudiation | KeyUsage.digitalSignature | KeyUsage.keyEncipherment);
 		ExtendedKeyUsage extendedKeyUsage = new ExtendedKeyUsage(KeyPurposeId.id_kp_clientAuth);
 
-		return sign(request, keyUsage, extendedKeyUsage, validityPeriodInMilliseconds);
+		return sign(request, keyUsage, extendedKeyUsage, validityPeriod);
 	}
 
 	/**
-	 * Signs the given request, server certificate is valid for two years
+	 * Signs the given request, server certificate is valid for one year
 	 * 
 	 * @param request
 	 *            not <code>null</code>
@@ -479,16 +486,16 @@ public class CertificateAuthority
 			throws NoSuchAlgorithmException, IOException, InvalidKeySpecException, OperatorCreationException,
 			CertificateException, InvalidKeyException, IllegalStateException
 	{
-		return signWebServerCertificate(request, TWO_YEARS_IN_MIILIS);
+		return signWebServerCertificate(request, ONE_YEAR);
 	}
 
 	/**
-	 * Signs the given request, server certificate is valid for the given amount of time in milliseconds
+	 * Signs the given request, server certificate is valid for the given amount of time
 	 * 
 	 * @param request
 	 *            not <code>null</code>
-	 * @param validityPeriodInMilliseconds
-	 *            &gt; 0
+	 * @param validityPeriod
+	 *            not <code>null</code>
 	 * @return signed server certificate
 	 * @throws NoSuchAlgorithmException
 	 * @throws IOException
@@ -502,7 +509,7 @@ public class CertificateAuthority
 	 * @see CertificateAuthority#isInitialized()
 	 */
 	public X509Certificate signWebServerCertificate(JcaPKCS10CertificationRequest request,
-			long validityPeriodInMilliseconds) throws NoSuchAlgorithmException, IOException, InvalidKeySpecException,
+			TemporalAmount validityPeriod) throws NoSuchAlgorithmException, IOException, InvalidKeySpecException,
 			OperatorCreationException, CertificateException, InvalidKeyException, IllegalStateException
 	{
 		if (!isInitialized())
@@ -512,21 +519,20 @@ public class CertificateAuthority
 				| KeyUsage.dataEncipherment);
 		ExtendedKeyUsage extendedKeyUsage = new ExtendedKeyUsage(KeyPurposeId.id_kp_serverAuth);
 
-		return sign(request, keyUsage, extendedKeyUsage, validityPeriodInMilliseconds);
+		return sign(request, keyUsage, extendedKeyUsage, validityPeriod);
 	}
 
 	private X509Certificate sign(JcaPKCS10CertificationRequest request, KeyUsage keyUsage,
-			ExtendedKeyUsage extendedKeyUsage, long validityPeriodInMilliseconds)
+			ExtendedKeyUsage extendedKeyUsage, TemporalAmount validityPeriod)
 			throws IOException, NoSuchAlgorithmException, InvalidKeySpecException, CertIOException,
 			OperatorCreationException, CertificateException, InvalidKeyException, IllegalStateException
 	{
 		Objects.requireNonNull(request, "request");
-		if (validityPeriodInMilliseconds <= 0)
-			throw new IllegalArgumentException("validityPeriodInMilliseconds must be > 0");
+		Objects.requireNonNull(validityPeriod, "validityPeriod");
 
 		BigInteger serial = BigInteger.valueOf(System.currentTimeMillis());
-		Date notBefore = new Date();
-		Date notAfter = new Date(notBefore.getTime() + validityPeriodInMilliseconds);
+		LocalDateTime notBefore = LocalDateTime.now();
+		LocalDateTime notAfter = notBefore.plus(validityPeriod);
 
 		PublicKey reqPublicKey = request.getPublicKey();
 		X500Principal reqSubject = new X500Principal(
@@ -536,7 +542,7 @@ public class CertificateAuthority
 						getDnElement(request.getSubject(), BCStyle.CN)).getEncoded());
 
 		JcaX509v3CertificateBuilder certificateBuilder = new JcaX509v3CertificateBuilder(caCertificate, serial,
-				notBefore, notAfter, reqSubject, reqPublicKey);
+				toDate(notBefore), toDate(notAfter), reqSubject, reqPublicKey);
 
 		certificateBuilder.addExtension(Extension.basicConstraints, true, new BasicConstraints(false));
 		certificateBuilder.addExtension(Extension.keyUsage, true, keyUsage);
@@ -551,6 +557,11 @@ public class CertificateAuthority
 		X509CertificateHolder certificateHolder = certificateBuilder.build(getCaContentSigner());
 
 		return toCertificate(certificateHolder);
+	}
+
+	private Date toDate(LocalDateTime dateTime)
+	{
+		return Date.from(dateTime.atZone(ZoneId.systemDefault()).toInstant());
 	}
 
 	private ContentSigner getCaContentSigner() throws OperatorCreationException, IllegalStateException
