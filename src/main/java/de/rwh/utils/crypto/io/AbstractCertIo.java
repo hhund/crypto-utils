@@ -105,7 +105,7 @@ public abstract class AbstractCertIo
 		if (!content.startsWith(firstLine))
 			throw new IOException("content must start with " + firstLine);
 		if (!content.endsWith(lastLine))
-			throw new IOException("content must end with " + firstLine);
+			throw new IOException("content must end with " + lastLine);
 		if (content.matches("\\s"))
 			throw new IOException("content contains whitespace (java regex \\s)");
 
