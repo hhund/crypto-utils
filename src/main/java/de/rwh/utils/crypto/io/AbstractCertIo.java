@@ -59,8 +59,7 @@ public abstract class AbstractCertIo
 		return Base64.decodeBase64(base64Encoded);
 	}
 
-	protected static byte[] readEncoded(String content, String firstLine, String lastLine)
-			throws IOException
+	protected static byte[] readEncoded(String content, String firstLine, String lastLine) throws IOException
 	{
 		String base64Encoded = readBase64Encoded(content, firstLine, lastLine);
 		return Base64.decodeBase64(base64Encoded);
@@ -87,10 +86,9 @@ public abstract class AbstractCertIo
 		{
 			String l = lines.get(i);
 			if (l.length() > lineLength)
-				throw new IOException(
-						String.format(
-								"Base64 encoded value lines must be not longer than %d characters (\\n exclusive), line %d: %d characters.",
-								lineLength, i + 1, l.length()));
+				throw new IOException(String.format(
+						"Base64 encoded value lines must be not longer than %d characters (\\n exclusive), line %d: %d characters.",
+						lineLength, i + 1, l.length()));
 			else
 				base64Encoded.append(l);
 		}
