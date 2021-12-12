@@ -3,12 +3,12 @@
 	<modelVersion>4.0.0</modelVersion>
 
 	<artifactId>crypto-utils</artifactId>
-	<version>3.0.0</version>
+	<version>3.1.0</version>
 
 	<parent>
 		<groupId>de.hs-heilbronn.mi</groupId>
 		<artifactId>rwh-pom</artifactId>
-		<version>0.15.0</version>
+		<version>0.17.0</version>
 	</parent>
 
 	<name>crypto-utils</name>
@@ -16,7 +16,7 @@
 	<url>https://github.com/hhund/crypto-utils</url>
 
 	<properties>
-		<bouncycastle.version>1.69</bouncycastle.version>
+		<bouncycastle.version>1.70</bouncycastle.version>
 	</properties>
 
 	<licenses>
@@ -102,7 +102,7 @@
 		<dependency>
 			<groupId>de.hs-heilbronn.mi</groupId>
 			<artifactId>log4j2-utils</artifactId>
-			<version>0.10.0</version>
+			<version>0.11.0</version>
 			<scope>test</scope>
 		</dependency>
 	</dependencies>
