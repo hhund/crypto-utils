@@ -84,7 +84,7 @@ public class CertificateCheckerImpl implements CertificateChecker
 			}
 			catch (Exception e)
 			{
-				logger.error("Crtificate ({}) '{}' not trusted: {}", validText(certificate), getSubjectDn(certificate),
+				logger.error("Certificate ({}) '{}' not trusted: {}", validText(certificate), getSubjectDn(certificate),
 						e.getMessage());
 			}
 
