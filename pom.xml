@@ -3,12 +3,12 @@
 	<modelVersion>4.0.0</modelVersion>
 
 	<artifactId>crypto-utils</artifactId>
-	<version>3.5.0</version>
+	<version>3.6.0</version>
 
 	<parent>
 		<groupId>de.hs-heilbronn.mi</groupId>
 		<artifactId>rwh-pom</artifactId>
-		<version>0.22.0</version>
+		<version>0.23.0</version>
 	</parent>
 
 	<name>crypto-utils</name>
@@ -16,7 +16,7 @@
 	<url>https://github.com/hhund/crypto-utils</url>
 
 	<properties>
-		<bouncycastle.version>1.70</bouncycastle.version>
+		<bouncycastle.version>1.74</bouncycastle.version>
 	</properties>
 
 	<licenses>
@@ -68,12 +68,12 @@
 		<!-- crypto dependencies -->
 		<dependency>
 			<groupId>org.bouncycastle</groupId>
-			<artifactId>bcprov-jdk15on</artifactId>
+			<artifactId>bcprov-jdk18on</artifactId>
 			<version>${bouncycastle.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.bouncycastle</groupId>
-			<artifactId>bcpkix-jdk15on</artifactId>
+			<artifactId>bcpkix-jdk18on</artifactId>
 			<version>${bouncycastle.version}</version>
 		</dependency>
 		<dependency>
