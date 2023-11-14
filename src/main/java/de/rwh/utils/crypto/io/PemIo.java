@@ -161,7 +161,7 @@ public final class PemIo extends AbstractCertIo
 	 *             if IO errors occur or the <b>pemFile</b> is not a private key or the given <b>pemFile</b> is
 	 *             encrypted
 	 * @throws PKCSException
-	 * @see {@link #readPrivateKeyFromPem(BouncyCastleProvider, Path, char[])}
+	 * @see #readPrivateKeyFromPem(BouncyCastleProvider, Path, char[])
 	 */
 	public static PrivateKey readPrivateKeyFromPem(BouncyCastleProvider provider, Path pemFile)
 			throws IOException, PKCSException
