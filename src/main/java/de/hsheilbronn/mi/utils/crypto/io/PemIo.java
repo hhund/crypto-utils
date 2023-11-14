@@ -1,4 +1,4 @@
-package de.rwh.utils.crypto.io;
+package de.hsheilbronn.mi.utils.crypto.io;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;

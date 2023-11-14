@@ -1,4 +1,4 @@
-package de.rwh.utils.crypto.context;
+package de.hsheilbronn.mi.utils.crypto.context;
 
 import java.security.KeyManagementException;
 import java.security.KeyStore;

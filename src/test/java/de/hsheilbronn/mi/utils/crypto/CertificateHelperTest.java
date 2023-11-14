@@ -1,4 +1,4 @@
-package de.rwh.utils.crypto;
+package de.hsheilbronn.mi.utils.crypto;
 
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;

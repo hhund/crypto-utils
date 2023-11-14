@@ -1,11 +1,11 @@
-package de.rwh.utils.crypto;
+package de.hsheilbronn.mi.utils.crypto;
 
-import static de.rwh.utils.crypto.CertificateHelper.DEFAULT_KEY_ALGORITHM;
-import static de.rwh.utils.crypto.CertificateHelper.DEFAULT_KEY_SIZE;
-import static de.rwh.utils.crypto.CertificateHelper.DEFAULT_SIGNATURE_ALGORITHM;
-import static de.rwh.utils.crypto.CertificateHelper.createKeyPair;
-import static de.rwh.utils.crypto.CertificateHelper.getContentSigner;
-import static de.rwh.utils.crypto.CertificateHelper.toSubjectKeyIdentifier;
+import static de.hsheilbronn.mi.utils.crypto.CertificateHelper.DEFAULT_KEY_ALGORITHM;
+import static de.hsheilbronn.mi.utils.crypto.CertificateHelper.DEFAULT_KEY_SIZE;
+import static de.hsheilbronn.mi.utils.crypto.CertificateHelper.DEFAULT_SIGNATURE_ALGORITHM;
+import static de.hsheilbronn.mi.utils.crypto.CertificateHelper.createKeyPair;
+import static de.hsheilbronn.mi.utils.crypto.CertificateHelper.getContentSigner;
+import static de.hsheilbronn.mi.utils.crypto.CertificateHelper.toSubjectKeyIdentifier;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;

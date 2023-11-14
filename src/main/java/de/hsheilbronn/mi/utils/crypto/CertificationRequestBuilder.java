@@ -1,6 +1,6 @@
-package de.rwh.utils.crypto;
+package de.hsheilbronn.mi.utils.crypto;
 
-import static de.rwh.utils.crypto.CertificateHelper.getContentSigner;
+import static de.hsheilbronn.mi.utils.crypto.CertificateHelper.getContentSigner;
 
 import java.io.IOException;
 import java.security.KeyPair;

@@ -1,4 +1,4 @@
-package de.rwh.utils.crypto.io;
+package de.hsheilbronn.mi.utils.crypto.io;
 
 import java.io.BufferedOutputStream;
 import java.io.IOException;
@@ -13,7 +13,7 @@ import java.security.cert.Certificate;
 import java.security.cert.CertificateEncodingException;
 import java.security.cert.CertificateException;
 
-import de.rwh.utils.crypto.CertificateHelper;
+import de.hsheilbronn.mi.utils.crypto.CertificateHelper;
 
 public final class CertificateWriter
 {

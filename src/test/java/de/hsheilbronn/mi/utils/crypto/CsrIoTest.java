@@ -1,4 +1,4 @@
-package de.rwh.utils.crypto;
+package de.hsheilbronn.mi.utils.crypto;
 
 import static org.junit.Assert.assertEquals;
 
@@ -18,7 +18,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import de.rwh.utils.crypto.io.CsrIo;
+import de.hsheilbronn.mi.utils.crypto.io.CsrIo;
 
 public class CsrIoTest
 {

@@ -1,4 +1,4 @@
-package de.rwh.utils.crypto;
+package de.hsheilbronn.mi.utils.crypto;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -40,8 +40,8 @@ import org.bouncycastle.pkcs.PKCSException;
 import org.junit.After;
 import org.junit.Test;
 
-import de.rwh.utils.crypto.io.CertificateReader;
-import de.rwh.utils.crypto.io.PemIo;
+import de.hsheilbronn.mi.utils.crypto.io.CertificateReader;
+import de.hsheilbronn.mi.utils.crypto.io.PemIo;
 
 public class PemIoTest
 {

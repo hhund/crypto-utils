@@ -1,4 +1,4 @@
-package de.rwh.utils.crypto;
+package de.hsheilbronn.mi.utils.crypto;
 
 import java.security.KeyStore;
 import java.security.cert.X509Certificate;
