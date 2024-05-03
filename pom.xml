@@ -16,7 +16,7 @@
 		<maven.compiler.release>11</maven.compiler.release>
 
 		<slf4j.version>2.0.9</slf4j.version>
-		<bouncycastle.version>1.76</bouncycastle.version>
+		<bouncycastle.version>1.78</bouncycastle.version>
 	</properties>
 
 	<licenses>
