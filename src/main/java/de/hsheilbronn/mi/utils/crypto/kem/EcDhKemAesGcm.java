@@ -196,15 +196,18 @@ public class EcDhKemAesGcm
 			throw new IllegalArgumentException("privateKey.algorithm " + privateKey.getAlgorithm() + " not supported");
 
 		byte[] encapsulationLengthBytes = new byte[4];
-		encrypted.read(encapsulationLengthBytes);
+		int elr = encrypted.read(encapsulationLengthBytes);
+		checkReadBytes(4, elr, "encapsulation length");
 
 		int encapsulationLength = ByteBuffer.wrap(encapsulationLengthBytes).getInt();
 
 		byte[] encapsulation = new byte[encapsulationLength];
-		encrypted.read(encapsulation);
+		int er = encrypted.read(encapsulation);
+		checkReadBytes(encapsulationLength, er, "encapsulation");
 
 		byte[] iv = new byte[AES_IV_LENGTH];
-		encrypted.read(iv);
+		int ivr = encrypted.read(iv);
+		checkReadBytes(AES_IV_LENGTH, ivr, "initialization vector");
 
 		KEM kem = KEM.getInstance(KEM_NAME);
 		Decapsulator decapsulator = kem.newDecapsulator(privateKey);
@@ -214,5 +217,12 @@ public class EcDhKemAesGcm
 				new GCMParameterSpec(GCM_AUTH_TAG_LENGTH, iv));
 
 		return new CipherInputStream(encrypted, decryptor);
+	}
+
+	private void checkReadBytes(int expectedBytes, int readBytes, String valueName) throws IOException
+	{
+		if (readBytes != expectedBytes)
+			throw new IOException("Could not read " + valueName + ", only read " + readBytes + " bytes instead of "
+					+ expectedBytes + " bytes");
 	}
 }
