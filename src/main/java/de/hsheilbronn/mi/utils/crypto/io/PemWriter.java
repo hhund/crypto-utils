@@ -304,6 +304,7 @@ public final class PemWriter
 			this.privateKey = privateKey;
 		}
 
+		@Override
 		public String toString()
 		{
 			return PemWriter.toString(this::toStream);
@@ -342,6 +343,7 @@ public final class PemWriter
 				this.encryptor = encryptor;
 			}
 
+			@Override
 			public void toStream(OutputStream out, PrivateKey privateKey) throws IOException
 			{
 				try (OutputStreamWriter writer = new OutputStreamWriter(out);
