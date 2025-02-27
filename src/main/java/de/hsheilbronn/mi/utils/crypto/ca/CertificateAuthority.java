@@ -365,7 +365,7 @@ public class CertificateAuthority
 
 	private final JcaContentSignerBuilder contentSignerBuilder;
 	private final KeyPairGeneratorFactory keyPairGeneratorFactory;
-	private final X509Certificate certificate;
+	private final X509Certificate caCertificate;
 	private final KeyPair keyPair;
 
 	private CertificateAuthority(JcaContentSignerBuilder contentSignerBuilder,
@@ -373,7 +373,7 @@ public class CertificateAuthority
 	{
 		this.contentSignerBuilder = contentSignerBuilder;
 		this.keyPairGeneratorFactory = keyPairGeneratorFactory;
-		this.certificate = caCertificate;
+		this.caCertificate = caCertificate;
 		this.keyPair = caKeyPair;
 	}
 
@@ -399,7 +399,7 @@ public class CertificateAuthority
 	 */
 	public X509Certificate getCertificate() throws IllegalStateException
 	{
-		return certificate;
+		return caCertificate;
 	}
 
 	/**
@@ -540,7 +540,7 @@ public class CertificateAuthority
 			List<GeneralName> subjectAlternativeNames = requestSubjectAlternativeNamesModifier
 					.apply(getSubjectAlternativeNames(request));
 
-			JcaX509v3CertificateBuilder certificateBuilder = new JcaX509v3CertificateBuilder(certificate,
+			JcaX509v3CertificateBuilder certificateBuilder = new JcaX509v3CertificateBuilder(caCertificate,
 					createSerial(), toDate(notBefore), toDate(notAfter), subject, reqPublicKey);
 
 			certificateBuilder.addExtension(Extension.subjectKeyIdentifier, false,
@@ -728,14 +728,14 @@ public class CertificateAuthority
 		LocalDateTime now = LocalDateTime.now();
 		LocalDateTime nextUpdate = now.plus(nextUpdateIn);
 
-		X509v2CRLBuilder crlBuilder = new JcaX509v2CRLBuilder(certificate.getSubjectX500Principal(), toDate(now));
+		X509v2CRLBuilder crlBuilder = new JcaX509v2CRLBuilder(caCertificate.getSubjectX500Principal(), toDate(now));
 		crlBuilder.setNextUpdate(toDate(nextUpdate));
 
 		try
 		{
 			JcaX509ExtensionUtils extUtils = new JcaX509ExtensionUtils();
 			crlBuilder.addExtension(Extension.authorityKeyIdentifier, false,
-					extUtils.createAuthorityKeyIdentifier(certificate));
+					extUtils.createAuthorityKeyIdentifier(caCertificate));
 
 			ExtensionsGenerator generator = new ExtensionsGenerator();
 			if (entries != null)
