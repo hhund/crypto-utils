@@ -39,7 +39,7 @@ jobs:
         queries: security-extended, security-and-quality
 
     - name: Build with Maven
-      run: mvn -B verify -Dgpg.skip --file pom.xml
+      run: mvn -B --file pom.xml -Dmaven.javadoc.skip=true -Dgpg.skip -Denforcer.skip -DskipTests clean package
 
     - name: Perform CodeQL Analysis
       uses: github/codeql-action/analyze@v3
