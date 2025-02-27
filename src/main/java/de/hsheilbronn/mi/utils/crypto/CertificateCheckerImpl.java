@@ -70,7 +70,7 @@ public class CertificateCheckerImpl implements CertificateChecker
 
 			getCaCertificate(trustStore)
 					.forEach(ca -> logger.info("Using CA certificate '{}'. {} to check certificate trust",
-							ca.getSubjectDN().toString(), validText(ca)));
+							ca.getSubjectX500Principal().toString(), validText(ca)));
 
 			try
 			{

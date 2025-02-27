@@ -10,62 +10,58 @@ import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManagerFactory;
 
-public class SSLContextFactory
+public final class SSLContextFactory
 {
-	public SSLContext createSSLContext(KeyStore trustStore)
-			throws KeyStoreException, NoSuchAlgorithmException, UnrecoverableKeyException, KeyManagementException
+	private SSLContextFactory()
 	{
-		return createSSLContext(trustStore, null, null);
 	}
 
-	public SSLContext createSSLContext(KeyStore trustStore, KeyStore keyStore, char[] keyStorePassword)
+	public static SSLContext createSSLContext(KeyStore trustStore)
 			throws KeyStoreException, NoSuchAlgorithmException, UnrecoverableKeyException, KeyManagementException
 	{
-		TrustManagerFactory tmf = trustStore == null ? null : createTrustManagerFactory();
-		if (tmf != null && trustStore != null)
-			tmf.init(trustStore);
+		return createSSLContext(trustStore, "TLS");
+	}
 
-		KeyManagerFactory kmf = keyStore == null ? null : createKeyManagerFactory();
-		if (kmf != null)
-			kmf.init(keyStore, keyStorePassword);
+	public static SSLContext createSSLContext(KeyStore trustStore, String protocol)
+			throws KeyStoreException, NoSuchAlgorithmException, UnrecoverableKeyException, KeyManagementException
+	{
+		return createSSLContext(trustStore, null, null, protocol);
+	}
 
-		SSLContext sc = SSLContext.getInstance(getProtocol());
-		sc.init(kmf != null ? kmf.getKeyManagers() : null, tmf != null ? tmf.getTrustManagers() : null, null);
+	public static SSLContext createSSLContext(KeyStore trustStore, KeyStore keyStore, char[] keyStorePassword)
+			throws KeyStoreException, NoSuchAlgorithmException, UnrecoverableKeyException, KeyManagementException
+	{
+		return createSSLContext(trustStore, keyStore, keyStorePassword, "TLS");
+	}
+
+	public static SSLContext createSSLContext(KeyStore trustStore, KeyStore keyStore, char[] keyStorePassword,
+			String protocol)
+			throws KeyStoreException, NoSuchAlgorithmException, UnrecoverableKeyException, KeyManagementException
+	{
+		TrustManagerFactory tmf = createTrustManagerFactory(trustStore);
+		KeyManagerFactory kmf = createKeyManagerFactory(keyStore, keyStorePassword);
+
+		SSLContext sc = SSLContext.getInstance(protocol);
+		sc.init(kmf.getKeyManagers(), tmf.getTrustManagers(), null);
 
 		return sc;
 	}
 
-	/**
-	 * Override for non default behavior
-	 * 
-	 * @return {@link TrustManagerFactory#getInstance(String)} with {@link TrustManagerFactory#getDefaultAlgorithm()}
-	 * @throws NoSuchAlgorithmException
-	 */
-	protected TrustManagerFactory createTrustManagerFactory() throws NoSuchAlgorithmException
+	public static TrustManagerFactory createTrustManagerFactory(KeyStore trustStore)
+			throws NoSuchAlgorithmException, KeyStoreException
 	{
-		return TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
+		TrustManagerFactory factory = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
+		factory.init(trustStore);
+
+		return factory;
 	}
 
-	/**
-	 * Override for non default behavior
-	 * 
-	 * @return {@link KeyManagerFactory#getInstance(String)} with {@link KeyManagerFactory#getDefaultAlgorithm()}
-	 * @throws NoSuchAlgorithmException
-	 */
-	protected KeyManagerFactory createKeyManagerFactory() throws NoSuchAlgorithmException
+	public static KeyManagerFactory createKeyManagerFactory(KeyStore keyStore, char[] keyStorePassword)
+			throws NoSuchAlgorithmException, UnrecoverableKeyException, KeyStoreException
 	{
-		return KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
-	}
+		KeyManagerFactory factory = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
+		factory.init(keyStore, keyStorePassword);
 
-	/**
-	 * Override to return other name of the requested protocol from <a href=
-	 * "https://docs.oracle.com/en/java/javase/11/docs/specs/security/standard-names.html#sslcontext-algorithms">Java
-	 * Security Standard Algorithm Names Specification</a>
-	 * 
-	 * @return TLS
-	 */
-	protected String getProtocol()
-	{
-		return "TLS";
+		return factory;
 	}
 }
