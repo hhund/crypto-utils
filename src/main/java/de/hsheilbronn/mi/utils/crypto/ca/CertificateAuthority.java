@@ -309,6 +309,9 @@ public class CertificateAuthority
 					certificateBuilder.addExtension(Extension.basicConstraints, true, new BasicConstraints(true));
 					certificateBuilder.addExtension(Extension.keyUsage, true,
 							new KeyUsage(KeyUsage.digitalSignature | KeyUsage.keyCertSign | KeyUsage.cRLSign));
+					certificateBuilder.addExtension(Extension.extendedKeyUsage, false,
+							new ExtendedKeyUsage(new KeyPurposeId[] { KeyPurposeId.id_kp_clientAuth,
+									KeyPurposeId.id_kp_emailProtection, KeyPurposeId.id_kp_serverAuth }));
 
 					ContentSigner contentSigner = builder.contentSignerBuilder.build(privateKey);
 					X509CertificateHolder certificateHolder = certificateBuilder.build(contentSigner);
@@ -412,28 +415,55 @@ public class CertificateAuthority
 		return keyPair;
 	}
 
+	/**
+	 * @return {@link CertificationRequestBuilder} with {@link JcaContentSignerBuilder} and
+	 *         {@link KeyPairGeneratorFactory} from this CA
+	 */
 	public CertificationRequestBuilder createCertificationRequestBuilder()
 	{
 		return new CertificationRequestBuilder(contentSignerBuilder, keyPairGeneratorFactory);
 	}
 
-	public static CertificationRequestBuilder createCertificationRequestBuilder(
-			JcaContentSignerBuilder contentSignerBuilder, KeyPairGeneratorFactory keyPairGeneratorFactory)
-	{
-		return new CertificationRequestBuilder(contentSignerBuilder, keyPairGeneratorFactory);
-	}
-
+	/**
+	 * @param request
+	 *            not <code>null</code>, request.subject not <code>null</code>
+	 * @return CA certificate for issuing client and server certificates, valid for {@link #FIVE_YEARS}
+	 * @see KeyPurposeId#id_kp_clientAuth
+	 * @see KeyPurposeId#id_kp_serverAuth
+	 */
 	public X509Certificate signClientServerIssuingCaCertificate(JcaPKCS10CertificationRequest request)
 	{
 		return signClientServerIssuingCaCertificate(request, FIVE_YEARS);
 	}
 
+	/**
+	 * @param request
+	 *            not <code>null</code>, request.subject not <code>null</code>
+	 * @param validityPeriod
+	 *            not <code>null</code>
+	 * @return CA certificate for issuing client and server certificates
+	 * @see KeyPurposeId#id_kp_clientAuth
+	 * @see KeyPurposeId#id_kp_serverAuth
+	 */
 	public X509Certificate signClientServerIssuingCaCertificate(JcaPKCS10CertificationRequest request,
 			TemporalAmount validityPeriod)
 	{
 		return signClientServerIssuingCaCertificate(request, validityPeriod, Function.identity(), Function.identity());
 	}
 
+	/**
+	 * @param request
+	 *            not <code>null</code>, request.subject not <code>null</code>
+	 * @param validityPeriod
+	 *            not <code>null</code>
+	 * @param requestSubjectNameModifier
+	 *            not <code>null</code>
+	 * @param requestSubjectAlternativeNamesModifier
+	 *            not <code>null</code>
+	 * @return CA certificate for issuing client and server certificates
+	 * @see KeyPurposeId#id_kp_clientAuth
+	 * @see KeyPurposeId#id_kp_serverAuth
+	 */
 	public X509Certificate signClientServerIssuingCaCertificate(JcaPKCS10CertificationRequest request,
 			TemporalAmount validityPeriod, Function<X500Name, X500Name> requestSubjectNameModifier,
 			Function<List<GeneralName>, List<GeneralName>> requestSubjectAlternativeNamesModifier)
@@ -446,17 +476,46 @@ public class CertificateAuthority
 				requestSubjectNameModifier, requestSubjectAlternativeNamesModifier);
 	}
 
+	/**
+	 * @param request
+	 *            not <code>null</code>, request.subject not <code>null</code>
+	 * @return CA certificate for issuing client and S/MIME certificates, valid for {@link #FIVE_YEARS}
+	 * @see KeyPurposeId#id_kp_clientAuth
+	 * @see KeyPurposeId#id_kp_emailProtection
+	 */
 	public X509Certificate signClientSmimeIssuingCaCertificate(JcaPKCS10CertificationRequest request)
 	{
 		return signClientSmimeIssuingCaCertificate(request, FIVE_YEARS);
 	}
 
+	/**
+	 * @param request
+	 *            not <code>null</code>, request.subject not <code>null</code>
+	 * @param validityPeriod
+	 *            not <code>null</code>
+	 * @return CA certificate for issuing client and S/MIME certificates
+	 * @see KeyPurposeId#id_kp_clientAuth
+	 * @see KeyPurposeId#id_kp_emailProtection
+	 */
 	public X509Certificate signClientSmimeIssuingCaCertificate(JcaPKCS10CertificationRequest request,
 			TemporalAmount validityPeriod)
 	{
 		return signClientSmimeIssuingCaCertificate(request, validityPeriod, Function.identity(), Function.identity());
 	}
 
+	/**
+	 * @param request
+	 *            not <code>null</code>, request.subject not <code>null</code>
+	 * @param validityPeriod
+	 *            not <code>null</code>
+	 * @param requestSubjectNameModifier
+	 *            not <code>null</code>
+	 * @param requestSubjectAlternativeNamesModifier
+	 *            not <code>null</code>
+	 * @return CA certificate for issuing client and S/MIME certificates
+	 * @see KeyPurposeId#id_kp_clientAuth
+	 * @see KeyPurposeId#id_kp_emailProtection
+	 */
 	public X509Certificate signClientSmimeIssuingCaCertificate(JcaPKCS10CertificationRequest request,
 			TemporalAmount validityPeriod, Function<X500Name, X500Name> requestSubjectNameModifier,
 			Function<List<GeneralName>, List<GeneralName>> requestSubjectAlternativeNamesModifier)
@@ -469,16 +528,42 @@ public class CertificateAuthority
 				requestSubjectNameModifier, requestSubjectAlternativeNamesModifier);
 	}
 
+	/**
+	 * @param request
+	 *            not <code>null</code>, request.subject not <code>null</code>
+	 * @return signed client certificate valid for {@link #ONE_YEAR}
+	 * @see KeyPurposeId#id_kp_clientAuth
+	 */
 	public X509Certificate signClientCertificate(JcaPKCS10CertificationRequest request)
 	{
 		return signClientCertificate(request, ONE_YEAR);
 	}
 
+	/**
+	 * @param request
+	 *            not <code>null</code>, request.subject not <code>null</code>
+	 * @param validityPeriod
+	 *            not <code>null</code>
+	 * @return signed client certificate
+	 * @see KeyPurposeId#id_kp_clientAuth
+	 */
 	public X509Certificate signClientCertificate(JcaPKCS10CertificationRequest request, TemporalAmount validityPeriod)
 	{
 		return signClientCertificate(request, validityPeriod, Function.identity(), Function.identity());
 	}
 
+	/**
+	 * @param request
+	 *            not <code>null</code>, request.subject not <code>null</code>
+	 * @param validityPeriod
+	 *            not <code>null</code>
+	 * @param requestSubjectNameModifier
+	 *            not <code>null</code>
+	 * @param requestSubjectAlternativeNamesModifier
+	 *            not <code>null</code>
+	 * @return signed client certificate
+	 * @see KeyPurposeId#id_kp_clientAuth
+	 */
 	public X509Certificate signClientCertificate(JcaPKCS10CertificationRequest request, TemporalAmount validityPeriod,
 			Function<X500Name, X500Name> requestSubjectNameModifier,
 			Function<List<GeneralName>, List<GeneralName>> requestSubjectAlternativeNamesModifier)
@@ -491,16 +576,87 @@ public class CertificateAuthority
 				requestSubjectNameModifier, requestSubjectAlternativeNamesModifier);
 	}
 
+	/**
+	 * @param request
+	 *            not <code>null</code>, request.subject not <code>null</code>
+	 * @return signed S/MIME certificate valid for {@link #ONE_YEAR}
+	 * @see KeyPurposeId#id_kp_emailProtection
+	 */
+	public X509Certificate signSmimeCertificate(JcaPKCS10CertificationRequest request)
+	{
+		return signSmimeCertificate(request, ONE_YEAR);
+	}
+
+	/**
+	 * @param request
+	 *            not <code>null</code>, request.subject not <code>null</code>
+	 * @param validityPeriod
+	 *            not <code>null</code>
+	 * @return signed S/MIME certificate
+	 * @see KeyPurposeId#id_kp_emailProtection
+	 */
+	public X509Certificate signSmimeCertificate(JcaPKCS10CertificationRequest request, TemporalAmount validityPeriod)
+	{
+		return signSmimeCertificate(request, validityPeriod, Function.identity(), Function.identity());
+	}
+
+	/**
+	 * @param request
+	 *            not <code>null</code>, request.subject not <code>null</code>
+	 * @param validityPeriod
+	 *            not <code>null</code>
+	 * @param requestSubjectNameModifier
+	 *            not <code>null</code>
+	 * @param requestSubjectAlternativeNamesModifier
+	 *            not <code>null</code>
+	 * @return signed S/MIME certificate
+	 * @see KeyPurposeId#id_kp_emailProtection
+	 */
+	public X509Certificate signSmimeCertificate(JcaPKCS10CertificationRequest request, TemporalAmount validityPeriod,
+			Function<X500Name, X500Name> requestSubjectNameModifier,
+			Function<List<GeneralName>, List<GeneralName>> requestSubjectAlternativeNamesModifier)
+	{
+		KeyUsage keyUsage = new KeyUsage(
+				KeyUsage.nonRepudiation | KeyUsage.digitalSignature | KeyUsage.keyEncipherment);
+		ExtendedKeyUsage extendedKeyUsage = new ExtendedKeyUsage(KeyPurposeId.id_kp_emailProtection);
+
+		return sign(request, keyUsage, extendedKeyUsage, new BasicConstraints(false), validityPeriod,
+				requestSubjectNameModifier, requestSubjectAlternativeNamesModifier);
+	}
+
+	/**
+	 * @param request
+	 *            not <code>null</code>, request.subject not <code>null</code>
+	 * @return signed server certificate valid for {@link #ONE_YEAR}
+	 */
 	public X509Certificate signServerCertificate(JcaPKCS10CertificationRequest request)
 	{
 		return signServerCertificate(request, ONE_YEAR);
 	}
 
+	/**
+	 * @param request
+	 *            not <code>null</code>, request.subject not <code>null</code>
+	 * @param validityPeriod
+	 *            not <code>null</code>
+	 * @return signed server certificate
+	 */
 	public X509Certificate signServerCertificate(JcaPKCS10CertificationRequest request, TemporalAmount validityPeriod)
 	{
 		return signServerCertificate(request, validityPeriod, Function.identity(), Function.identity());
 	}
 
+	/**
+	 * @param request
+	 *            not <code>null</code>, request.subject not <code>null</code>
+	 * @param validityPeriod
+	 *            not <code>null</code>
+	 * @param requestSubjectNameModifier
+	 *            not <code>null</code>
+	 * @param requestSubjectAlternativeNamesModifier
+	 *            not <code>null</code>
+	 * @return signed server certificate
+	 */
 	public X509Certificate signServerCertificate(JcaPKCS10CertificationRequest request, TemporalAmount validityPeriod,
 			Function<X500Name, X500Name> requestSubjectNameModifier,
 			Function<List<GeneralName>, List<GeneralName>> requestSubjectAlternativeNamesModifier)
@@ -513,7 +669,7 @@ public class CertificateAuthority
 				requestSubjectNameModifier, requestSubjectAlternativeNamesModifier);
 	}
 
-	private X509Certificate sign(JcaPKCS10CertificationRequest request, KeyUsage keyUsage,
+	public X509Certificate sign(JcaPKCS10CertificationRequest request, KeyUsage keyUsage,
 			ExtendedKeyUsage extendedKeyUsage, BasicConstraints basicConstraints, TemporalAmount validityPeriod,
 			Function<X500Name, X500Name> requestSubjectNameModifier,
 			Function<List<GeneralName>, List<GeneralName>> requestSubjectAlternativeNamesModifier)
@@ -708,23 +864,46 @@ public class CertificateAuthority
 			return null;
 	}
 
+	/**
+	 * @return empty revocation list with next update in {@link #SEVEN_DAYS}
+	 */
 	public X509CRL createEmptyRevocationList()
 	{
 		return createEmptyRevocationList(SEVEN_DAYS);
 	}
 
+	/**
+	 * @param nextUpdateIn
+	 *            not <code>null</code>
+	 * @return empty revocation list
+	 */
 	public X509CRL createEmptyRevocationList(TemporalAmount nextUpdateIn)
 	{
 		return createRevocationList(List.of(), nextUpdateIn);
 	}
 
+	/**
+	 * @param entries
+	 *            not <code>null</code>
+	 * @return signed revocation list with next update in {@link #SEVEN_DAYS}
+	 */
 	public X509CRL createRevocationList(List<RevocationEntry> entries)
 	{
 		return createRevocationList(entries, SEVEN_DAYS);
 	}
 
+	/**
+	 * @param entries
+	 *            not <code>null</code>
+	 * @param nextUpdateIn
+	 *            not <code>null</code>
+	 * @return signed revocation list
+	 */
 	public X509CRL createRevocationList(List<RevocationEntry> entries, TemporalAmount nextUpdateIn)
 	{
+		Objects.requireNonNull(entries, "entries");
+		Objects.requireNonNull(nextUpdateIn, "nextUpdateIn");
+
 		LocalDateTime now = LocalDateTime.now();
 		LocalDateTime nextUpdate = now.plus(nextUpdateIn);
 
@@ -738,9 +917,8 @@ public class CertificateAuthority
 					extUtils.createAuthorityKeyIdentifier(caCertificate));
 
 			ExtensionsGenerator generator = new ExtensionsGenerator();
-			if (entries != null)
-				entries.forEach(e -> crlBuilder.addCRLEntry(e.certificate().getSerialNumber(),
-						toDate(e.revocationDate()), generate(generator, e)));
+			entries.forEach(e -> crlBuilder.addCRLEntry(e.certificate().getSerialNumber(), toDate(e.revocationDate()),
+					generate(generator, e)));
 
 			JcaX509CRLConverter converter = new JcaX509CRLConverter();
 			return converter.getCRL(crlBuilder.build(contentSignerBuilder.build(keyPair.getPrivate())));

@@ -38,10 +38,11 @@ public class CertificateAuthorityTest
 		logger.debug("RSA3072-CA certificate:\n{}", ca.getCertificate().toString());
 
 		X509Certificate clientCert = testSignClientCertificate(ca);
+		X509Certificate smimeCert = testSignSmimeCertificate(ca);
 		X509Certificate serverCert = testSignServerCertificate(ca);
 
 		testGenerateEmptyCrl(ca);
-		testGenerateCrl(ca, clientCert, serverCert);
+		testGenerateCrl(ca, clientCert, smimeCert, serverCert);
 
 		testInitCaFromExisting(ca.getCertificate(), ca.getKeyPair().getPrivate());
 	}
@@ -61,10 +62,11 @@ public class CertificateAuthorityTest
 		logger.debug("RSA4096-CA certificate:\n{}", ca.getCertificate().toString());
 
 		X509Certificate clientCert = testSignClientCertificate(ca);
+		X509Certificate smimeCert = testSignSmimeCertificate(ca);
 		X509Certificate serverCert = testSignServerCertificate(ca);
 
 		testGenerateEmptyCrl(ca);
-		testGenerateCrl(ca, clientCert, serverCert);
+		testGenerateCrl(ca, clientCert, smimeCert, serverCert);
 
 		testInitCaFromExisting(ca.getCertificate(), ca.getKeyPair().getPrivate());
 	}
@@ -84,10 +86,11 @@ public class CertificateAuthorityTest
 		logger.debug("secp384r1-CA certificate:\n{}", ca.getCertificate().toString());
 
 		X509Certificate clientCert = testSignClientCertificate(ca);
+		X509Certificate smimeCert = testSignSmimeCertificate(ca);
 		X509Certificate serverCert = testSignServerCertificate(ca);
 
 		testGenerateEmptyCrl(ca);
-		testGenerateCrl(ca, clientCert, serverCert);
+		testGenerateCrl(ca, clientCert, smimeCert, serverCert);
 
 		testInitCaFromExisting(ca.getCertificate(), ca.getKeyPair().getPrivate());
 	}
@@ -107,10 +110,11 @@ public class CertificateAuthorityTest
 		logger.debug("secp521r1-CA certificate:\n{}", ca.getCertificate().toString());
 
 		X509Certificate clientCert = testSignClientCertificate(ca);
+		X509Certificate smimeCert = testSignSmimeCertificate(ca);
 		X509Certificate serverCert = testSignServerCertificate(ca);
 
 		testGenerateEmptyCrl(ca);
-		testGenerateCrl(ca, clientCert, serverCert);
+		testGenerateCrl(ca, clientCert, smimeCert, serverCert);
 
 		testInitCaFromExisting(ca.getCertificate(), ca.getKeyPair().getPrivate());
 	}
@@ -132,27 +136,46 @@ public class CertificateAuthorityTest
 		CertificationRequestBuilder builder = ca.createCertificationRequestBuilder();
 		assertNotNull(builder);
 
-		KeyPair issuingCaKeyPair = builder.getKeyPairGenerator().generateKeyPair();
-		assertNotNull(issuingCaKeyPair);
-		X500Name issuingCaSubject = builder.createName("DE", null, null, null, null, "secp521r1-Issuing-CA");
-		assertNotNull(issuingCaSubject);
-		JcaPKCS10CertificationRequest issuingCaRequest = builder.createCertificationRequest(issuingCaKeyPair,
-				issuingCaSubject);
-		assertNotNull(issuingCaRequest);
+		KeyPair clienServerIssuingCaKeyPair = builder.getKeyPairGenerator().generateKeyPair();
+		assertNotNull(clienServerIssuingCaKeyPair);
+		X500Name clientServerIssuingCaSubject = builder.createName("DE", null, null, null, null,
+				"secp521r1-Client-Server-Issuing-CA");
+		assertNotNull(clientServerIssuingCaSubject);
+		JcaPKCS10CertificationRequest clientServerIssuingCaRequest = builder
+				.createCertificationRequest(clienServerIssuingCaKeyPair, clientServerIssuingCaSubject);
+		assertNotNull(clientServerIssuingCaRequest);
 
-		X509Certificate issuingCaCertificate = ca.signClientServerIssuingCaCertificate(issuingCaRequest);
+		KeyPair clienSmimeIssuingCaKeyPair = builder.getKeyPairGenerator().generateKeyPair();
+		assertNotNull(clienSmimeIssuingCaKeyPair);
+		X500Name clientSmimeIssuingCaSubject = builder.createName("DE", null, null, null, null,
+				"secp521r1-Client-S/MIME-Issuing-CA");
+		assertNotNull(clientSmimeIssuingCaSubject);
+		JcaPKCS10CertificationRequest clientSmimeIssuingCaRequest = builder
+				.createCertificationRequest(clienSmimeIssuingCaKeyPair, clientSmimeIssuingCaSubject);
+		assertNotNull(clientSmimeIssuingCaRequest);
 
-		CertificateAuthority issuingCa = testInitCaFromExisting(issuingCaCertificate, issuingCaKeyPair.getPrivate());
+		X509Certificate clientServerIssuingCaCertificate = ca
+				.signClientServerIssuingCaCertificate(clientServerIssuingCaRequest);
+		X509Certificate clientSmimeIssuingCaCertificate = ca
+				.signClientSmimeIssuingCaCertificate(clientSmimeIssuingCaRequest);
 
-		logger.debug("secp521r1-Issuing-CA certificate:\n{}", issuingCa.getCertificate().toString());
+		CertificateAuthority clientServerIssuingCa = testInitCaFromExisting(clientServerIssuingCaCertificate,
+				clienServerIssuingCaKeyPair.getPrivate());
+		logger.debug("secp521r1-Client-Server-Issuing-CA certificate:\n{}",
+				clientServerIssuingCa.getCertificate().toString());
+		CertificateAuthority clientSmimeIssuingCa = testInitCaFromExisting(clientSmimeIssuingCaCertificate,
+				clienSmimeIssuingCaKeyPair.getPrivate());
+		logger.debug("secp521r1-Client-Server-Issuing-CA certificate:\n{}",
+				clientSmimeIssuingCa.getCertificate().toString());
 
-		X509Certificate clientCert = testSignClientCertificate(issuingCa);
-		X509Certificate serverCert = testSignServerCertificate(issuingCa);
+		X509Certificate clientCert = testSignClientCertificate(clientServerIssuingCa);
+		X509Certificate smimeCert = testSignSmimeCertificate(clientSmimeIssuingCa);
+		X509Certificate serverCert = testSignServerCertificate(clientServerIssuingCa);
 
-		testGenerateEmptyCrl(issuingCa);
-		testGenerateCrl(issuingCa, clientCert, serverCert);
+		testGenerateEmptyCrl(clientServerIssuingCa);
+		testGenerateCrl(clientServerIssuingCa, clientCert, smimeCert, serverCert);
 
-		testInitCaFromExisting(issuingCa.getCertificate(), issuingCa.getKeyPair().getPrivate());
+		testInitCaFromExisting(clientServerIssuingCa.getCertificate(), clientServerIssuingCa.getKeyPair().getPrivate());
 	}
 
 	@Test
@@ -170,10 +193,11 @@ public class CertificateAuthorityTest
 		logger.debug("ed25519-CA certificate:\n{}", ca.getCertificate().toString());
 
 		X509Certificate clientCert = testSignClientCertificate(ca);
+		X509Certificate smimeCert = testSignSmimeCertificate(ca);
 		X509Certificate serverCert = testSignServerCertificate(ca);
 
 		testGenerateEmptyCrl(ca);
-		testGenerateCrl(ca, clientCert, serverCert);
+		testGenerateCrl(ca, clientCert, smimeCert, serverCert);
 
 		testInitCaFromExisting(ca.getCertificate(), ca.getKeyPair().getPrivate());
 	}
@@ -192,10 +216,11 @@ public class CertificateAuthorityTest
 		logger.debug("ed448-CA certificate:\n{}", ca.getCertificate().toString());
 
 		X509Certificate clientCert = testSignClientCertificate(ca);
+		X509Certificate smimeCert = testSignSmimeCertificate(ca);
 		X509Certificate serverCert = testSignServerCertificate(ca);
 
 		testGenerateEmptyCrl(ca);
-		testGenerateCrl(ca, clientCert, serverCert);
+		testGenerateCrl(ca, clientCert, smimeCert, serverCert);
 
 		testInitCaFromExisting(ca.getCertificate(), ca.getKeyPair().getPrivate());
 	}
@@ -218,6 +243,28 @@ public class CertificateAuthorityTest
 		assertNotNull(certificate);
 
 		logger.debug("Client certificate:\n{}", certificate.toString());
+
+		return certificate;
+	}
+
+	private X509Certificate testSignSmimeCertificate(CertificateAuthority ca)
+	{
+		CertificationRequestBuilder builder = ca.createCertificationRequestBuilder();
+		assertNotNull(builder);
+
+		KeyPair keyPair = builder.getKeyPairGenerator().generateKeyPair();
+		assertNotNull(keyPair);
+
+		X500Name subject = builder.createName("DE", null, null, null, null, "client");
+		assertNotNull(subject);
+
+		JcaPKCS10CertificationRequest request = builder.createCertificationRequest(keyPair, subject, "email@test.com");
+		assertNotNull(request);
+
+		X509Certificate certificate = ca.signSmimeCertificate(request);
+		assertNotNull(certificate);
+
+		logger.debug("S/MIME certificate:\n{}", certificate.toString());
 
 		return certificate;
 	}

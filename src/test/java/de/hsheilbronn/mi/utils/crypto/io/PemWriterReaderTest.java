@@ -205,7 +205,7 @@ public class PemWriterReaderTest
 	@Test
 	void writeReadCertificateRevocationListString() throws Exception
 	{
-		X509CRL crl = ca.createRevocationList(null);
+		X509CRL crl = ca.createRevocationList(List.of());
 
 		String pem = PemWriter.writeCertificateRevocationList(crl);
 		assertNotNull(pem);
@@ -219,7 +219,7 @@ public class PemWriterReaderTest
 	@Test
 	void writeReadCertificateRevocationListFile(@TempDir Path tmp) throws Exception
 	{
-		X509CRL crl = ca.createRevocationList(null);
+		X509CRL crl = ca.createRevocationList(List.of());
 
 		Path crlPath = tmp.resolve("csr.pem");
 
