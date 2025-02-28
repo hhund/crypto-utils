@@ -1,4 +1,4 @@
-package de.hsheilbronn.mi.utils.crypto;
+package de.hsheilbronn.mi.utils.crypto.check;
 
 import java.security.KeyStore;
 import java.security.cert.X509Certificate;

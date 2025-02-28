@@ -1,4 +1,4 @@
-package de.hsheilbronn.mi.utils.crypto;
+package de.hsheilbronn.mi.utils.crypto.check;
 
 import java.security.InvalidAlgorithmParameterException;
 import java.security.KeyStore;
