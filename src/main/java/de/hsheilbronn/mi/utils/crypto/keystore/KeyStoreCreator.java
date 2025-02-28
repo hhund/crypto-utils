@@ -30,15 +30,6 @@ public final class KeyStoreCreator
 		return forPrivateKeyAndCertificateChain(keyStoreType, key, password, chain.toArray(X509Certificate[]::new));
 	}
 
-	/**
-	 * @param key
-	 *            not <code>null</code>
-	 * @param password
-	 *            not <code>null</code>
-	 * @param chain
-	 *            not <code>null</code>, at least one
-	 * @return jks {@link KeyStore} for the given key and chain
-	 */
 	private static KeyStore forPrivateKeyAndCertificateChain(String keyStoreType, PrivateKey key, char[] password,
 			X509Certificate... chain)
 	{
@@ -67,11 +58,6 @@ public final class KeyStoreCreator
 		}
 	}
 
-	/**
-	 * @param certificates
-	 *            not <code>null</code>, at least one
-	 * @return jks {@link KeyStore} for the given certificates
-	 */
 	private static KeyStore forTrustedCertificates(String keyStoreType, X509Certificate... certificates)
 	{
 		Objects.requireNonNull(certificates, "certificates");
@@ -79,11 +65,6 @@ public final class KeyStoreCreator
 		return forTrustedCertificates(keyStoreType, List.of(certificates));
 	}
 
-	/**
-	 * @param certificates
-	 *            not <code>null</code>, not empty
-	 * @return jks {@link KeyStore} for the given certificates
-	 */
 	private static KeyStore forTrustedCertificates(String keyStoreType,
 			Collection<? extends X509Certificate> certificates)
 	{
@@ -191,7 +172,7 @@ public final class KeyStoreCreator
 	{
 		return forPrivateKeyAndCertificateChain(KEY_STORE_TYPE_PKCS12, key, password, chain);
 	}
-	
+
 	/**
 	 * @param certificates
 	 *            not <code>null</code>, at least one
