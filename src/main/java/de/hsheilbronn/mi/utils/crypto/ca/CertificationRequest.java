@@ -370,7 +370,7 @@ public class CertificationRequest
 		 * Clears dnsNames property and sets all from the given collection.
 		 * 
 		 * @param dnsNames
-		 *            ignores <code>null</code> values
+		 *            not <code>null</code>, ignores <code>null</code> values
 		 * @return this {@link CertificationRequestBuilder}
 		 * @throws IllegalArgumentException
 		 *             if collection contains {@link String#isBlank()} values or values that can not be encoded with
@@ -378,6 +378,8 @@ public class CertificationRequest
 		 */
 		public CertificationRequestBuilder setDnsNames(Collection<String> dnsNames)
 		{
+			Objects.requireNonNull(dnsNames, "dnsNames");
+			
 			if (dnsNames.stream().filter(Objects::nonNull)
 					.anyMatch(n -> n.isBlank() || !StandardCharsets.US_ASCII.newEncoder().canEncode(n)))
 				throw new IllegalArgumentException("dnsNames contains blank or non US_ASCII characters value");

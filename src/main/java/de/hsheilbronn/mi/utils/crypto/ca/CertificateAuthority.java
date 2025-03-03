@@ -470,9 +470,9 @@ public class CertificateAuthority
 		private final List<URL> crlDistributionPoints = new ArrayList<>();
 		private TemporalAmount caValidityPeriod = TEN_YEARS;
 
-		private final EnumSet<KeyUsage> keyUsage = KeyUsage.KEY_CERT_SIGN_AND_CRL_SIGN;
+		private final EnumSet<KeyUsage> keyUsages = KeyUsage.KEY_CERT_SIGN_AND_CRL_SIGN;
 
-		private final EnumSet<ExtendedKeyUsage> extendedKeyUsage = EnumSet.of(ExtendedKeyUsage.CLIENT_AUTH,
+		private final EnumSet<ExtendedKeyUsage> extendedKeyUsages = EnumSet.of(ExtendedKeyUsage.CLIENT_AUTH,
 				ExtendedKeyUsage.EMAIL_PROTECTION, ExtendedKeyUsage.SERVER_AUTH, ExtendedKeyUsage.TIME_STAMPING,
 				ExtendedKeyUsage.OCSP_SIGNING);
 
@@ -505,13 +505,14 @@ public class CertificateAuthority
 
 		/**
 		 * @param url
-		 *            does nothing if <code>null</code>
+		 *            not <code>null</code>
 		 * @return this {@link CertificateAuthorityBuilder}
 		 */
 		public CertificateAuthorityBuilder addCrlDistributionPoint(URL url)
 		{
-			if (url != null)
-				crlDistributionPoints.add(url);
+			Objects.requireNonNull(url, "url");
+
+			crlDistributionPoints.add(url);
 
 			return this;
 		}
@@ -519,14 +520,13 @@ public class CertificateAuthority
 		/**
 		 * Clears crlDistributionPoints property and sets all from the given collection.
 		 * 
-		 * @param url
-		 *            does nothing if <code>null</code>
+		 * @param urls
+		 *            ignores <code>null</code> values
 		 * @return this {@link CertificateAuthorityBuilder}
 		 */
-		public CertificateAuthorityBuilder setCrlDistributionPoints(URL... url)
+		public CertificateAuthorityBuilder setCrlDistributionPoints(URL... urls)
 		{
-			if (url != null)
-				setCrlDistributionPoints(List.of(url));
+			setCrlDistributionPoints(List.of(urls));
 
 			return this;
 		}
@@ -534,30 +534,30 @@ public class CertificateAuthority
 		/**
 		 * Clears crlDistributionPoints property and sets all from the given collection.
 		 * 
-		 * @param url
-		 *            does nothing if <code>null</code>
+		 * @param urls
+		 *            not <code>null</code>, ignores <code>null</code> values
 		 * @return this {@link CertificateAuthorityBuilder}
 		 */
-		public CertificateAuthorityBuilder setCrlDistributionPoints(Collection<? extends URL> url)
+		public CertificateAuthorityBuilder setCrlDistributionPoints(Collection<? extends URL> urls)
 		{
-			if (url != null)
-			{
-				crlDistributionPoints.clear();
-				crlDistributionPoints.addAll(url);
-			}
+			Objects.requireNonNull(urls, "urls");
+
+			crlDistributionPoints.clear();
+			crlDistributionPoints.addAll(urls.stream().filter(Objects::nonNull).toList());
 
 			return this;
 		}
 
 		/**
 		 * @param keyUsage
-		 *            does nothing if <code>null</code>
+		 *            not <code>null</code>
 		 * @return this {@link CertificateAuthorityBuilder}
 		 */
 		public CertificateAuthorityBuilder addKeyUsage(KeyUsage keyUsage)
 		{
-			if (keyUsage != null)
-				this.keyUsage.add(keyUsage);
+			Objects.requireNonNull(keyUsage, "keyUsage");
+
+			this.keyUsages.add(keyUsage);
 
 			return this;
 		}
@@ -565,14 +565,13 @@ public class CertificateAuthority
 		/**
 		 * Clears keyUsage property and sets all from the given collection.
 		 * 
-		 * @param keyUsage
-		 *            does nothing if <code>null</code>
+		 * @param keyUsages
+		 *            ignores <code>null</code> values
 		 * @return this {@link CertificateAuthorityBuilder}
 		 */
-		public CertificateAuthorityBuilder setKeyUsages(KeyUsage... keyUsage)
+		public CertificateAuthorityBuilder setKeyUsages(KeyUsage... keyUsages)
 		{
-			if (keyUsage != null)
-				setKeyUsages(List.of(keyUsage));
+			setKeyUsages(List.of(keyUsages));
 
 			return this;
 		}
@@ -580,30 +579,30 @@ public class CertificateAuthority
 		/**
 		 * Clears keyUsage property and sets all from the given collection.
 		 * 
-		 * @param keyUsage
-		 *            does nothing if <code>null</code>
+		 * @param keyUsages
+		 *            not <code>null</code>, ignores <code>null</code> value
 		 * @return this {@link CertificateAuthorityBuilder}
 		 */
-		public CertificateAuthorityBuilder setKeyUsages(Collection<KeyUsage> keyUsage)
+		public CertificateAuthorityBuilder setKeyUsages(Collection<KeyUsage> keyUsages)
 		{
-			if (keyUsage != null)
-			{
-				this.keyUsage.clear();
-				this.keyUsage.addAll(keyUsage);
-			}
+			Objects.requireNonNull(keyUsages, "keyUsages");
+
+			this.keyUsages.clear();
+			this.keyUsages.addAll(keyUsages.stream().filter(Objects::nonNull).toList());
 
 			return this;
 		}
 
 		/**
 		 * @param extendedKeyUsage
-		 *            does nothing if <code>null</code>
+		 *            not <code>null</code>
 		 * @return this {@link CertificateAuthorityBuilder}
 		 */
 		public CertificateAuthorityBuilder addExtendedKeyUsage(ExtendedKeyUsage extendedKeyUsage)
 		{
-			if (extendedKeyUsage != null)
-				this.extendedKeyUsage.add(extendedKeyUsage);
+			Objects.requireNonNull(extendedKeyUsage, "extendedKeyUsage");
+
+			this.extendedKeyUsages.add(extendedKeyUsage);
 
 			return this;
 		}
@@ -611,14 +610,13 @@ public class CertificateAuthority
 		/**
 		 * Clears extendedKeyUsage property and sets all from the given collection.
 		 * 
-		 * @param extendedKeyUsage
-		 *            does nothing if <code>null</code>
+		 * @param extendedKeyUsages
+		 *            ignores <code>null</code> value
 		 * @return this {@link CertificateAuthorityBuilder}
 		 */
-		public CertificateAuthorityBuilder setExtendedKeyUsages(ExtendedKeyUsage... extendedKeyUsage)
+		public CertificateAuthorityBuilder setExtendedKeyUsages(ExtendedKeyUsage... extendedKeyUsages)
 		{
-			if (extendedKeyUsage != null)
-				setExtendedKeyUsages(List.of(extendedKeyUsage));
+			setExtendedKeyUsages(List.of(extendedKeyUsages));
 
 			return this;
 		}
@@ -626,17 +624,16 @@ public class CertificateAuthority
 		/**
 		 * Clears extendedKeyUsage property and sets all from the given collection.
 		 * 
-		 * @param extendedKeyUsage
-		 *            does nothing if <code>null</code>
+		 * @param extendedKeyUsages
+		 *            not <code>null</code>, ignores <code>null</code> value
 		 * @return this {@link CertificateAuthorityBuilder}
 		 */
-		public CertificateAuthorityBuilder setExtendedKeyUsages(Collection<ExtendedKeyUsage> extendedKeyUsage)
+		public CertificateAuthorityBuilder setExtendedKeyUsages(Collection<ExtendedKeyUsage> extendedKeyUsages)
 		{
-			if (extendedKeyUsage != null)
-			{
-				this.extendedKeyUsage.clear();
-				this.extendedKeyUsage.addAll(extendedKeyUsage);
-			}
+			Objects.requireNonNull(extendedKeyUsages, "extendedKeyUsages");
+
+			this.extendedKeyUsages.clear();
+			this.extendedKeyUsages.addAll(extendedKeyUsages.stream().filter(Objects::nonNull).toList());
 
 			return this;
 		}
@@ -669,10 +666,10 @@ public class CertificateAuthority
 				certificateBuilder.addExtension(Extension.basicConstraints, true, new BasicConstraints(true));
 
 				certificateBuilder.addExtension(Extension.keyUsage, true, new org.bouncycastle.asn1.x509.KeyUsage(
-						keyUsage.stream().mapToInt(KeyUsage::getValue).reduce((a, b) -> a | b).getAsInt()));
+						keyUsages.stream().mapToInt(KeyUsage::getValue).reduce((a, b) -> a | b).getAsInt()));
 
 				certificateBuilder.addExtension(Extension.extendedKeyUsage, false,
-						new org.bouncycastle.asn1.x509.ExtendedKeyUsage(extendedKeyUsage.stream()
+						new org.bouncycastle.asn1.x509.ExtendedKeyUsage(extendedKeyUsages.stream()
 								.map(ExtendedKeyUsage::toKeyPurposeId).toArray(KeyPurposeId[]::new)));
 
 				ContentSigner contentSigner = contentSignerBuilder.build(privateKey);
