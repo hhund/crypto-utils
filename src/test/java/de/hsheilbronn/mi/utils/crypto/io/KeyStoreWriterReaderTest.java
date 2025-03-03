@@ -32,8 +32,8 @@ public class KeyStoreWriterReaderTest
 	@Test
 	void writeReadPkcs12String() throws Exception
 	{
-		CertificateAuthority ca = CertificateAuthority.builderSha256Rsa3072()
-				.newCa("DE", null, null, null, null, "JUnit Test CA").build();
+		CertificateAuthority ca = CertificateAuthority
+				.builderSha256Rsa3072("DE", null, null, null, null, "JUnit Test CA").build();
 		PrivateKey privateKey = ca.getKeyPair().getPrivate();
 		X509Certificate certificate = ca.getCertificate();
 		KeyStore keyStore = KeyStoreCreator.pkcs12ForPrivateKeyAndCertificateChain(privateKey, password, certificate);
@@ -49,8 +49,8 @@ public class KeyStoreWriterReaderTest
 	@Test
 	void writeReadJksString() throws Exception
 	{
-		CertificateAuthority ca = CertificateAuthority.builderSha256Rsa3072()
-				.newCa("DE", null, null, null, null, "JUnit Test CA").build();
+		CertificateAuthority ca = CertificateAuthority
+				.builderSha256Rsa3072("DE", null, null, null, null, "JUnit Test CA").build();
 		PrivateKey privateKey = ca.getKeyPair().getPrivate();
 		X509Certificate certificate = ca.getCertificate();
 		KeyStore keyStore = KeyStoreCreator.jksForPrivateKeyAndCertificateChain(privateKey, password, certificate);
@@ -66,8 +66,8 @@ public class KeyStoreWriterReaderTest
 	@Test
 	void writeReadPkcs12File(@TempDir Path tmp) throws Exception
 	{
-		CertificateAuthority ca = CertificateAuthority.builderSha256Rsa3072()
-				.newCa("DE", null, null, null, null, "JUnit Test CA").build();
+		CertificateAuthority ca = CertificateAuthority
+				.builderSha256Rsa3072("DE", null, null, null, null, "JUnit Test CA").build();
 		PrivateKey privateKey = ca.getKeyPair().getPrivate();
 		X509Certificate certificate = ca.getCertificate();
 		KeyStore keyStore = KeyStoreCreator.pkcs12ForPrivateKeyAndCertificateChain(privateKey, password, certificate);
@@ -83,8 +83,8 @@ public class KeyStoreWriterReaderTest
 	@Test
 	void writeReadJksFile(@TempDir Path tmp) throws Exception
 	{
-		CertificateAuthority ca = CertificateAuthority.builderSha256Rsa3072()
-				.newCa("DE", null, null, null, null, "JUnit Test CA").build();
+		CertificateAuthority ca = CertificateAuthority
+				.builderSha256Rsa3072("DE", null, null, null, null, "JUnit Test CA").build();
 		PrivateKey privateKey = ca.getKeyPair().getPrivate();
 		X509Certificate certificate = ca.getCertificate();
 		KeyStore keyStore = KeyStoreCreator.jksForPrivateKeyAndCertificateChain(privateKey, password, certificate);

@@ -9,7 +9,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.security.KeyPair;
 import java.security.PrivateKey;
 import java.security.cert.X509CRL;
 import java.security.cert.X509Certificate;
@@ -20,7 +19,6 @@ import java.util.stream.Stream;
 
 import javax.crypto.EncryptedPrivateKeyInfo;
 
-import org.bouncycastle.asn1.x500.X500Name;
 import org.bouncycastle.pkcs.jcajce.JcaPKCS10CertificationRequest;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -29,7 +27,7 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
 import de.hsheilbronn.mi.utils.crypto.ca.CertificateAuthority;
-import de.hsheilbronn.mi.utils.crypto.ca.CertificationRequestBuilder;
+import de.hsheilbronn.mi.utils.crypto.ca.CertificationRequest;
 import de.hsheilbronn.mi.utils.crypto.io.PemWriter.PrivateKeyPemWriter;
 import de.hsheilbronn.mi.utils.crypto.io.PemWriter.PrivateKeyPemWriterBuilder;
 import de.hsheilbronn.mi.utils.crypto.io.PemWriter.PrivateKeyPemWriterOpenSslClassicBuilder.OpenSslClassicAlgorithm;
@@ -38,8 +36,8 @@ import de.hsheilbronn.mi.utils.crypto.io.PemWriter.PrivateKeyPemWriterPkcs8Build
 public class PemWriterReaderTest
 {
 	private static final char[] PASSWORD = "password".toCharArray();
-	private static final CertificateAuthority ca = CertificateAuthority.builderSha256Rsa3072()
-			.newCa("DE", null, null, null, null, "JUnit Test CA").build();
+	private static final CertificateAuthority ca = CertificateAuthority
+			.builderSha256Rsa3072("DE", null, null, null, null, "JUnit Test CA").build();
 
 	@Test
 	void writeReadCertificateString() throws Exception
@@ -196,10 +194,7 @@ public class PemWriterReaderTest
 
 	private JcaPKCS10CertificationRequest createRequest()
 	{
-		CertificationRequestBuilder builder = ca.createCertificationRequestBuilder();
-		X500Name subject = builder.createName("DE", null, null, null, null, "JUnit Test Client");
-		KeyPair keyPair = builder.getKeyPairGenerator().generateKeyPair();
-		return builder.createCertificationRequest(keyPair, subject);
+		return CertificationRequest.builder(ca, "DE", null, null, null, null, "JUnit Test Client").build().getRequest();
 	}
 
 	@Test

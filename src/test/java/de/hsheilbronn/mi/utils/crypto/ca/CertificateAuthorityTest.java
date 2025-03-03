@@ -1,8 +1,9 @@
 package de.hsheilbronn.mi.utils.crypto.ca;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import java.security.KeyPair;
 import java.security.PrivateKey;
 import java.security.cert.X509CRL;
 import java.security.cert.X509Certificate;
@@ -10,14 +11,14 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Stream;
 
-import org.bouncycastle.asn1.x500.X500Name;
-import org.bouncycastle.pkcs.jcajce.JcaPKCS10CertificationRequest;
+import org.bouncycastle.asn1.x509.GeneralName;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import de.hsheilbronn.mi.utils.crypto.ca.CertificateAuthority.RevocationEntry;
 import de.hsheilbronn.mi.utils.crypto.ca.CertificateAuthority.RevocationReason;
+import de.hsheilbronn.mi.utils.crypto.ca.CertificationRequest.CertificationRequestBuilder;
 
 public class CertificateAuthorityTest
 {
@@ -26,9 +27,8 @@ public class CertificateAuthorityTest
 	@Test
 	public void testRsa3072() throws Exception
 	{
-		CertificateAuthority ca = CertificateAuthority.builderSha256Rsa3072()
-				.newCa("DE", null, null, null, null, "RSA3072-CA").validityPeriod(CertificateAuthority.TEN_YEARS)
-				.build();
+		CertificateAuthority ca = CertificateAuthority.builderSha256Rsa3072("DE", null, null, null, null, "RSA3072-CA")
+				.setValidityPeriod(CertificateAuthority.TEN_YEARS).build();
 
 		assertNotNull(ca);
 		assertNotNull(ca.getKeyPair());
@@ -50,9 +50,8 @@ public class CertificateAuthorityTest
 	@Test
 	public void testRsa4096() throws Exception
 	{
-		CertificateAuthority ca = CertificateAuthority.builderSha512Rsa4096()
-				.newCa("DE", null, null, null, null, "RSA4096-CA").validityPeriod(CertificateAuthority.TEN_YEARS)
-				.build();
+		CertificateAuthority ca = CertificateAuthority.builderSha512Rsa4096("DE", null, null, null, null, "RSA4096-CA")
+				.setValidityPeriod(CertificateAuthority.TEN_YEARS).build();
 
 		assertNotNull(ca);
 		assertNotNull(ca.getKeyPair());
@@ -74,9 +73,9 @@ public class CertificateAuthorityTest
 	@Test
 	public void testSecp384r1() throws Exception
 	{
-		CertificateAuthority ca = CertificateAuthority.builderSha384EcdsaSecp384r1()
-				.newCa("DE", null, null, null, null, "secp384r1-CA").validityPeriod(CertificateAuthority.TEN_YEARS)
-				.build();
+		CertificateAuthority ca = CertificateAuthority
+				.builderSha384EcdsaSecp384r1("DE", null, null, null, null, "secp384r1-CA")
+				.setValidityPeriod(CertificateAuthority.TEN_YEARS).build();
 
 		assertNotNull(ca);
 		assertNotNull(ca.getKeyPair());
@@ -98,9 +97,9 @@ public class CertificateAuthorityTest
 	@Test
 	public void testSecp521r1() throws Exception
 	{
-		CertificateAuthority ca = CertificateAuthority.builderSha512EcdsaSecp521r1()
-				.newCa("DE", null, null, null, null, "secp521r1-CA").validityPeriod(CertificateAuthority.TEN_YEARS)
-				.build();
+		CertificateAuthority ca = CertificateAuthority
+				.builderSha512EcdsaSecp521r1("DE", null, null, null, null, "secp521r1-CA")
+				.setValidityPeriod(CertificateAuthority.TEN_YEARS).build();
 
 		assertNotNull(ca);
 		assertNotNull(ca.getKeyPair());
@@ -122,9 +121,9 @@ public class CertificateAuthorityTest
 	@Test
 	public void testSecp521r1WithIssuingCa() throws Exception
 	{
-		CertificateAuthority ca = CertificateAuthority.builderSha512EcdsaSecp521r1()
-				.newCa("DE", null, null, null, null, "secp521r1-CA").validityPeriod(CertificateAuthority.TEN_YEARS)
-				.build();
+		CertificateAuthority ca = CertificateAuthority
+				.builderSha512EcdsaSecp521r1("DE", null, null, null, null, "secp521r1-CA")
+				.setValidityPeriod(CertificateAuthority.TEN_YEARS).build();
 
 		assertNotNull(ca);
 		assertNotNull(ca.getKeyPair());
@@ -133,38 +132,34 @@ public class CertificateAuthorityTest
 
 		logger.debug("secp521r1-CA certificate:\n{}", ca.getCertificate().toString());
 
-		CertificationRequestBuilder builder = ca.createCertificationRequestBuilder();
-		assertNotNull(builder);
+		CertificationRequestBuilder clientServerIssuingCaRequestBuilder = CertificationRequest.builder(ca, "DE", null,
+				null, null, null, "secp521r1-Client-Server-Issuing-CA");
+		assertNotNull(clientServerIssuingCaRequestBuilder);
 
-		KeyPair clienServerIssuingCaKeyPair = builder.getKeyPairGenerator().generateKeyPair();
-		assertNotNull(clienServerIssuingCaKeyPair);
-		X500Name clientServerIssuingCaSubject = builder.createName("DE", null, null, null, null,
-				"secp521r1-Client-Server-Issuing-CA");
-		assertNotNull(clientServerIssuingCaSubject);
-		JcaPKCS10CertificationRequest clientServerIssuingCaRequest = builder
-				.createCertificationRequest(clienServerIssuingCaKeyPair, clientServerIssuingCaSubject);
-		assertNotNull(clientServerIssuingCaRequest);
+		CertificationRequest clientServerIssuingCaRequest = clientServerIssuingCaRequestBuilder.build();
+		checkRequest(clientServerIssuingCaRequest);
 
-		KeyPair clienSmimeIssuingCaKeyPair = builder.getKeyPairGenerator().generateKeyPair();
-		assertNotNull(clienSmimeIssuingCaKeyPair);
-		X500Name clientSmimeIssuingCaSubject = builder.createName("DE", null, null, null, null,
-				"secp521r1-Client-S/MIME-Issuing-CA");
-		assertNotNull(clientSmimeIssuingCaSubject);
-		JcaPKCS10CertificationRequest clientSmimeIssuingCaRequest = builder
-				.createCertificationRequest(clienSmimeIssuingCaKeyPair, clientSmimeIssuingCaSubject);
-		assertNotNull(clientSmimeIssuingCaRequest);
+		CertificationRequestBuilder clientSmimeIssuingCaRequestBuilder = CertificationRequest.builder(ca, "DE", null,
+				null, null, null, "secp521r1-Client-Server-Issuing-CA");
+		assertNotNull(clientSmimeIssuingCaRequestBuilder);
+
+		CertificationRequest clientSmimeIssuingCaRequest = clientSmimeIssuingCaRequestBuilder.build();
+		checkRequest(clientSmimeIssuingCaRequest);
 
 		X509Certificate clientServerIssuingCaCertificate = ca
-				.signClientServerIssuingCaCertificate(clientServerIssuingCaRequest);
+				.signClientServerIssuingCaCertificate(clientSmimeIssuingCaRequest);
+		assertNotNull(clientServerIssuingCaCertificate);
+
 		X509Certificate clientSmimeIssuingCaCertificate = ca
 				.signClientSmimeIssuingCaCertificate(clientSmimeIssuingCaRequest);
+		assertNotNull(clientSmimeIssuingCaCertificate);
 
 		CertificateAuthority clientServerIssuingCa = testInitCaFromExisting(clientServerIssuingCaCertificate,
-				clienServerIssuingCaKeyPair.getPrivate());
+				clientServerIssuingCaRequest.getPrivateKey().get());
 		logger.debug("secp521r1-Client-Server-Issuing-CA certificate:\n{}",
 				clientServerIssuingCa.getCertificate().toString());
 		CertificateAuthority clientSmimeIssuingCa = testInitCaFromExisting(clientSmimeIssuingCaCertificate,
-				clienSmimeIssuingCaKeyPair.getPrivate());
+				clientSmimeIssuingCaRequest.getPrivateKey().get());
 		logger.debug("secp521r1-Client-Server-Issuing-CA certificate:\n{}",
 				clientSmimeIssuingCa.getCertificate().toString());
 
@@ -178,12 +173,21 @@ public class CertificateAuthorityTest
 		testInitCaFromExisting(clientServerIssuingCa.getCertificate(), clientServerIssuingCa.getKeyPair().getPrivate());
 	}
 
+	private void checkRequest(CertificationRequest request)
+	{
+		assertNotNull(request);
+		assertNotNull(request.getPrivateKey());
+		assertTrue(request.getPrivateKey().isPresent());
+		assertNotNull(request.getPublicKey());
+		assertNotNull(request.getRequest());
+		assertNotNull(request.getSubject());
+	}
+
 	@Test
 	public void testEd25519() throws Exception
 	{
-		CertificateAuthority ca = CertificateAuthority.builderEd25519()
-				.newCa("DE", null, null, null, null, "ed25519-CA").validityPeriod(CertificateAuthority.TEN_YEARS)
-				.build();
+		CertificateAuthority ca = CertificateAuthority.builderEd25519("DE", null, null, null, null, "ed25519-CA")
+				.setValidityPeriod(CertificateAuthority.TEN_YEARS).build();
 
 		assertNotNull(ca);
 		assertNotNull(ca.getKeyPair());
@@ -205,8 +209,8 @@ public class CertificateAuthorityTest
 	@Test
 	public void testEd448() throws Exception
 	{
-		CertificateAuthority ca = CertificateAuthority.builderEd448().newCa("DE", null, null, null, null, "ed448-CA")
-				.validityPeriod(CertificateAuthority.TEN_YEARS).build();
+		CertificateAuthority ca = CertificateAuthority.builderEd448("DE", null, null, null, null, "ed448-CA")
+				.setValidityPeriod(CertificateAuthority.TEN_YEARS).build();
 
 		assertNotNull(ca);
 		assertNotNull(ca.getKeyPair());
@@ -227,17 +231,13 @@ public class CertificateAuthorityTest
 
 	private X509Certificate testSignClientCertificate(CertificateAuthority ca)
 	{
-		CertificationRequestBuilder builder = ca.createCertificationRequestBuilder();
+		CertificationRequestBuilder builder = CertificationRequest.builder(ca, "DE", null, null, null, null, "client");
 		assertNotNull(builder);
 
-		KeyPair keyPair = builder.getKeyPairGenerator().generateKeyPair();
-		assertNotNull(keyPair);
+		builder.setEmail("email@test.com");
 
-		X500Name subject = builder.createName("DE", null, null, null, null, "client");
-		assertNotNull(subject);
-
-		JcaPKCS10CertificationRequest request = builder.createCertificationRequest(keyPair, subject, "email@test.com");
-		assertNotNull(request);
+		CertificationRequest request = builder.build();
+		checkRequest(request);
 
 		X509Certificate certificate = ca.signClientCertificate(request);
 		assertNotNull(certificate);
@@ -249,17 +249,14 @@ public class CertificateAuthorityTest
 
 	private X509Certificate testSignSmimeCertificate(CertificateAuthority ca)
 	{
-		CertificationRequestBuilder builder = ca.createCertificationRequestBuilder();
+		CertificationRequestBuilder builder = CertificationRequest.builder(ca,
+				CertificateAuthority.createName("DE", null, null, null, null, "client"));
 		assertNotNull(builder);
 
-		KeyPair keyPair = builder.getKeyPairGenerator().generateKeyPair();
-		assertNotNull(keyPair);
+		builder.setEmail("email@test.com");
 
-		X500Name subject = builder.createName("DE", null, null, null, null, "client");
-		assertNotNull(subject);
-
-		JcaPKCS10CertificationRequest request = builder.createCertificationRequest(keyPair, subject, "email@test.com");
-		assertNotNull(request);
+		CertificationRequest request = builder.build();
+		checkRequest(request);
 
 		X509Certificate certificate = ca.signSmimeCertificate(request);
 		assertNotNull(certificate);
@@ -271,18 +268,17 @@ public class CertificateAuthorityTest
 
 	private X509Certificate testSignServerCertificate(CertificateAuthority ca)
 	{
-		CertificationRequestBuilder builder = ca.createCertificationRequestBuilder();
+		CertificationRequestBuilder builder = CertificationRequest.builder(ca, "DE", null, null, null, null, "server");
 		assertNotNull(builder);
 
-		KeyPair keyPair = builder.getKeyPairGenerator().generateKeyPair();
-		assertNotNull(keyPair);
+		builder.setEmail("email@test.com");
+		builder.addDnsName("localhost");
 
-		X500Name subject = builder.createName("DE", null, null, null, null, "server");
-		assertNotNull(subject);
-
-		JcaPKCS10CertificationRequest request = builder.createCertificationRequest(keyPair, subject, "email@test.com",
-				List.of("server"));
-		assertNotNull(request);
+		CertificationRequest request = builder.build();
+		checkRequest(request);
+		List<GeneralName> names = CertificateAuthority.getSubjectAlternativeNames(request.getRequest());
+		assertNotNull(names);
+		assertEquals(3, names.size());
 
 		X509Certificate certificate = ca.signServerCertificate(request);
 		assertNotNull(certificate);
@@ -311,7 +307,7 @@ public class CertificateAuthorityTest
 
 	private CertificateAuthority testInitCaFromExisting(X509Certificate certificate, PrivateKey privateKey)
 	{
-		CertificateAuthority ca = CertificateAuthority.existingCa(certificate, privateKey);
+		CertificateAuthority ca = CertificateAuthority.existingCa(certificate, privateKey, List.of());
 		assertNotNull(ca);
 		assertNotNull(ca.getKeyPair());
 		assertNotNull(ca.getCertificate());

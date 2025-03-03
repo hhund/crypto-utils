@@ -131,8 +131,8 @@ public class KeyStoreCreatorTest
 			TriFunction<PrivateKey, char[], Collection<X509Certificate>, KeyStore> forCollection,
 			TriFunction<PrivateKey, char[], X509Certificate[], KeyStore> forArray) throws Exception
 	{
-		final CertificateAuthority ca = CertificateAuthority.builderSha256Rsa3072()
-				.newCa("DE", null, null, null, null, "JUnit Test CA").build();
+		final CertificateAuthority ca = CertificateAuthority
+				.builderSha256Rsa3072("DE", null, null, null, null, "JUnit Test CA").build();
 		final X509Certificate certificate = ca.getCertificate();
 		final PrivateKey key = ca.getKeyPair().getPrivate();
 		final char[] password = "password".toCharArray();
