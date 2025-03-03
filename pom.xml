@@ -6,7 +6,7 @@
 	<version>5.0.0</version>
 
 	<name>crypto-utils</name>
-	<description>Utility library for reading and writing X509 certificates as well as reading, writing and generating RSA and EC keys. Also provides a simple certificate authority implementation based on BouncyCastle and a ECDH KEM AES GCM implementation based on JEP 452.</description>
+	<description>Utility library for reading and writing X509 certificates as well as reading, writing and generating RSA and EC keys. Also provides a simple certificate authority implementation and RSA-KEM AES GCM based on BouncyCastle as well as a ECDH-KEM AES GCM implementation based on JEP 452.</description>
 	<url>https://github.com/hhund/crypto-utils</url>
 
 	<properties>

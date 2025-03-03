@@ -17,10 +17,10 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
-import de.hsheilbronn.mi.utils.crypto.kem.EcDhKemAesGcm.Variant;
+import de.hsheilbronn.mi.utils.crypto.kem.AbstractKemAesGcm.Variant;
 import de.hsheilbronn.mi.utils.crypto.keypair.KeyPairGeneratorFactory;
 
-public class EcDhKemAesGcmTest
+public class KemAesGcmTest
 {
 	private static final String TEST_DATA = """
 			Lorem ipsum dolor sit amet, consectetur adipiscing elit. Fusce finibus risus et lacus vestibulum sodales. Aliquam pretium efficitur ipsum, vitae faucibus nibh mollis lobortis. Vivamus feugiat finibus lorem posuere volutpat. Sed sed pulvinar velit. Fusce ac viverra mauris. In hac habitasse platea dictumst. Nulla porta, eros id maximus aliquam, nibh ante ullamcorper mi, in fringilla tellus est eu libero. Praesent mattis, lacus non consequat euismod, risus dui gravida dui, eget volutpat nulla felis vitae tellus. Duis imperdiet dignissim ultricies. In hac habitasse platea dictumst. Vestibulum ultricies nisl a magna suscipit scelerisque. Curabitur eget dapibus eros, id aliquam lorem. Donec congue odio nec tortor interdum, non molestie erat interdum. Sed at lacinia tellus, at consequat ligula.
@@ -30,54 +30,78 @@ public class EcDhKemAesGcmTest
 
 	private static Stream<Arguments> forEncryptDecryptTest()
 	{
-		Supplier<Stream<KeyPairGeneratorFactory>> factories = () -> Stream.of(KeyPairGeneratorFactory.secp256r1(),
+		Supplier<Stream<KeyPairGeneratorFactory>> ecFactories = () -> Stream.of(KeyPairGeneratorFactory.secp256r1(),
 				KeyPairGeneratorFactory.secp384r1(), KeyPairGeneratorFactory.secp521r1(),
 				KeyPairGeneratorFactory.x25519(), KeyPairGeneratorFactory.x448());
+		Supplier<Stream<KeyPairGeneratorFactory>> rsaFactories = () -> Stream.of(KeyPairGeneratorFactory.rsa1024(),
+				KeyPairGeneratorFactory.rsa2048(), KeyPairGeneratorFactory.rsa3072(),
+				KeyPairGeneratorFactory.rsa4096());
 
-		return EnumSet.allOf(Variant.class).stream().flatMap(v -> factories.get().map(kp -> Arguments.of(v, kp)));
+		return EnumSet.allOf(Variant.class).stream().flatMap(v ->
+
+		Stream.concat(ecFactories.get().map(kp -> Arguments.of(new EcDhKemAesGcm(v), kp)),
+				rsaFactories.get().map(kp -> Arguments.of(new RsaKemAesGcm(v), kp))));
 	}
 
 	@ParameterizedTest
 	@MethodSource("forEncryptDecryptTest")
-	void encryptDecryptTest(Variant variant, KeyPairGeneratorFactory factory) throws Exception
+	void encryptDecryptTest(AbstractKemAesGcm kem, KeyPairGeneratorFactory factory) throws Exception
 	{
 		KeyPair keyPair = factory.initialize().generateKeyPair();
 
-		InputStream encrypted = new EcDhKemAesGcm(variant)
-				.encrypt(new ByteArrayInputStream(TEST_DATA.getBytes(StandardCharsets.UTF_8)), keyPair.getPublic());
+		InputStream encrypted = kem.encrypt(new ByteArrayInputStream(TEST_DATA.getBytes(StandardCharsets.UTF_8)),
+				keyPair.getPublic());
 		assertNotNull(encrypted);
 
-		InputStream decrypted = new EcDhKemAesGcm(variant).decrypt(encrypted, keyPair.getPrivate());
+		InputStream decrypted = kem.decrypt(encrypted, keyPair.getPrivate());
 		assertNotNull(decrypted);
 
 		assertEquals(TEST_DATA, new String(decrypted.readAllBytes(), StandardCharsets.UTF_8));
 	}
 
-	@Test
-	void encryptInvalidArguments() throws Exception
+	private static Stream<Arguments> forEncryptDecryptInvalidArguments()
 	{
-		assertThrowsExactly(NullPointerException.class, () -> new EcDhKemAesGcm(null));
-		assertThrowsExactly(NullPointerException.class, () -> new EcDhKemAesGcm().encrypt(null, null));
-		assertThrowsExactly(NullPointerException.class,
-				() -> new EcDhKemAesGcm().encrypt(new ByteArrayInputStream(new byte[0]), null));
-		assertThrowsExactly(NullPointerException.class, () -> new EcDhKemAesGcm().encrypt(null,
-				KeyPairGeneratorFactory.secp256r1().initialize().generateKeyPair().getPublic()));
-		assertThrowsExactly(IllegalArgumentException.class,
-				() -> new EcDhKemAesGcm().encrypt(new ByteArrayInputStream(new byte[0]),
-						KeyPairGeneratorFactory.rsa1024().initialize().generateKeyPair().getPublic()));
+		KeyPair secp256r1 = KeyPairGeneratorFactory.secp256r1().initialize().genKeyPair();
+		KeyPair rsa1024 = KeyPairGeneratorFactory.rsa1024().initialize().generateKeyPair();
+
+		return EnumSet.allOf(Variant.class).stream()
+				.flatMap(v -> Stream.of(Arguments.of(new EcDhKemAesGcm(v), secp256r1, rsa1024),
+						Arguments.of(new RsaKemAesGcm(v), rsa1024, secp256r1)));
 	}
 
 	@Test
-	void decryptInvalidArguments() throws Exception
+	void constructorInvalidArguments() throws Exception
 	{
 		assertThrowsExactly(NullPointerException.class, () -> new EcDhKemAesGcm(null));
-		assertThrowsExactly(NullPointerException.class, () -> new EcDhKemAesGcm().decrypt(null, null));
-		assertThrowsExactly(NullPointerException.class,
-				() -> new EcDhKemAesGcm().decrypt(new ByteArrayInputStream(new byte[0]), null));
-		assertThrowsExactly(NullPointerException.class, () -> new EcDhKemAesGcm().decrypt(null,
-				KeyPairGeneratorFactory.secp256r1().initialize().generateKeyPair().getPrivate()));
+		assertThrowsExactly(NullPointerException.class, () -> new EcDhKemAesGcm(null, AbstractKemAesGcm.SECURE_RANDOM));
+		assertThrowsExactly(NullPointerException.class, () -> new EcDhKemAesGcm(Variant.AES_128, null));
+		assertThrowsExactly(NullPointerException.class, () -> new EcDhKemAesGcm(null, null));
+
+		assertThrowsExactly(NullPointerException.class, () -> new RsaKemAesGcm(null));
+		assertThrowsExactly(NullPointerException.class, () -> new RsaKemAesGcm(null, AbstractKemAesGcm.SECURE_RANDOM));
+		assertThrowsExactly(NullPointerException.class, () -> new RsaKemAesGcm(Variant.AES_128, null));
+		assertThrowsExactly(NullPointerException.class, () -> new RsaKemAesGcm(null, null));
+	}
+
+	@ParameterizedTest
+	@MethodSource("forEncryptDecryptInvalidArguments")
+	void encryptInvalidArguments(AbstractKemAesGcm kem, KeyPair validKeyPair, KeyPair invalidKeyPair) throws Exception
+	{
+		assertThrowsExactly(NullPointerException.class, () -> kem.encrypt(null, null));
+		assertThrowsExactly(NullPointerException.class, () -> kem.encrypt(new ByteArrayInputStream(new byte[0]), null));
+		assertThrowsExactly(NullPointerException.class, () -> kem.encrypt(null, validKeyPair.getPublic()));
 		assertThrowsExactly(IllegalArgumentException.class,
-				() -> new EcDhKemAesGcm().decrypt(new ByteArrayInputStream(new byte[0]),
-						KeyPairGeneratorFactory.rsa1024().initialize().generateKeyPair().getPrivate()));
+				() -> kem.encrypt(new ByteArrayInputStream(new byte[0]), invalidKeyPair.getPublic()));
+	}
+
+	@ParameterizedTest
+	@MethodSource("forEncryptDecryptInvalidArguments")
+	void decryptInvalidArguments(AbstractKemAesGcm kem, KeyPair validKeyPair, KeyPair invalidKeyPair) throws Exception
+	{
+		assertThrowsExactly(NullPointerException.class, () -> kem.decrypt(null, null));
+		assertThrowsExactly(NullPointerException.class, () -> kem.decrypt(new ByteArrayInputStream(new byte[0]), null));
+		assertThrowsExactly(NullPointerException.class, () -> kem.decrypt(null, validKeyPair.getPrivate()));
+		assertThrowsExactly(IllegalArgumentException.class,
+				() -> kem.decrypt(new ByteArrayInputStream(new byte[0]), invalidKeyPair.getPrivate()));
 	}
 }
