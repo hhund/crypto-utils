@@ -45,7 +45,8 @@ public class EcDhKemAesGcm extends AbstractKemAesGcm
 	 * @param variant
 	 *            not <code>null</code>
 	 * @param secureRandom
-	 *            not <code>null</code>
+	 *            not <code>null</code>, to generate random AES initialization vectors and as source of randomness for
+	 *            encapsulation
 	 */
 	public EcDhKemAesGcm(Variant variant, SecureRandom secureRandom)
 	{
@@ -53,25 +54,20 @@ public class EcDhKemAesGcm extends AbstractKemAesGcm
 	}
 
 	@Override
-	protected Encapsulated getEncapsulated(PublicKey publicKey) throws NoSuchAlgorithmException, InvalidKeyException
+	protected Encapsulated getEncapsulated(PublicKey publicKey, Variant variant, SecureRandom secureRandom)
+			throws NoSuchAlgorithmException, InvalidKeyException
 	{
 		KEM kem = KEM.getInstance(KEM_NAME);
-		Encapsulator encapsulator = kem.newEncapsulator(publicKey);
+		Encapsulator encapsulator = kem.newEncapsulator(publicKey, secureRandom);
 		return encapsulator.encapsulate(0, variant.size, ALGORITHM_NAME);
 	}
 
 	@Override
-	protected SecretKey getSecretKey(PrivateKey privateKey, byte[] encapsulation)
+	protected SecretKey getSecretKey(PrivateKey privateKey, Variant variant, byte[] encapsulation)
 			throws NoSuchAlgorithmException, InvalidKeyException, DecapsulateException
 	{
 		KEM kem = KEM.getInstance(KEM_NAME);
 		Decapsulator decapsulator = kem.newDecapsulator(privateKey);
 		return decapsulator.decapsulate(encapsulation, 0, variant.size, ALGORITHM_NAME);
-	}
-
-	@Override
-	public String toString()
-	{
-		return "EcDhKemAesGcm [variant=" + variant + "]";
 	}
 }

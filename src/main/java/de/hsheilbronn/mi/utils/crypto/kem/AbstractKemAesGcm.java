@@ -30,7 +30,7 @@ import de.hsheilbronn.mi.utils.crypto.keypair.KeyPairGeneratorFactory;
 public abstract class AbstractKemAesGcm
 {
 	/**
-	 * To generate random AES initialization vectors.
+	 * To generate random AES initialization vectors and as source of randomness for encapsulation.
 	 * 
 	 * @see #AES_IV_LENGTH
 	 */
@@ -73,11 +73,11 @@ public abstract class AbstractKemAesGcm
 		}
 	}
 
-	protected final Variant variant;
-	protected final SecureRandom secureRandom;
+	private final Variant variant;
+	private final SecureRandom secureRandom;
 	private final Set<String> supportedAsymetricKeyAlgorithms = new HashSet<>();
 
-	public AbstractKemAesGcm(Variant variant, SecureRandom secureRandom, String... supportedAsymetricKeyAlgorithms)
+	protected AbstractKemAesGcm(Variant variant, SecureRandom secureRandom, String... supportedAsymetricKeyAlgorithms)
 	{
 		Objects.requireNonNull(variant, "variant");
 		Objects.requireNonNull(secureRandom, "secureRandom");
@@ -114,7 +114,7 @@ public abstract class AbstractKemAesGcm
 		if (!supportedAsymetricKeyAlgorithms.contains(publicKey.getAlgorithm()))
 			throw new IllegalArgumentException("publicKey.algorithm " + publicKey.getAlgorithm() + " not supported");
 
-		Encapsulated encapsulated = getEncapsulated(publicKey);
+		Encapsulated encapsulated = getEncapsulated(publicKey, variant, secureRandom);
 
 		byte[] iv = new byte[AES_IV_LENGTH];
 		secureRandom.nextBytes(iv);
@@ -128,7 +128,7 @@ public abstract class AbstractKemAesGcm
 				new CipherInputStream(data, encryptor))));
 	}
 
-	protected abstract Encapsulated getEncapsulated(PublicKey publicKey)
+	protected abstract Encapsulated getEncapsulated(PublicKey publicKey, Variant variant, SecureRandom secureRandom)
 			throws NoSuchAlgorithmException, InvalidKeyException;
 
 	/**
@@ -170,7 +170,7 @@ public abstract class AbstractKemAesGcm
 		checkReadBytes(AES_IV_LENGTH, ivr, "initialization vector");
 
 		Cipher decryptor = Cipher.getInstance(CIPHER_NAME);
-		decryptor.init(Cipher.DECRYPT_MODE, getSecretKey(privateKey, encapsulation),
+		decryptor.init(Cipher.DECRYPT_MODE, getSecretKey(privateKey, variant, encapsulation),
 				new GCMParameterSpec(GCM_AUTH_TAG_LENGTH, iv));
 
 		return new CipherInputStream(encrypted, decryptor);
@@ -183,6 +183,12 @@ public abstract class AbstractKemAesGcm
 					+ expectedBytes + " bytes");
 	}
 
-	protected abstract SecretKey getSecretKey(PrivateKey privateKey, byte[] encapsulation)
+	protected abstract SecretKey getSecretKey(PrivateKey privateKey, Variant variant, byte[] encapsulation)
 			throws NoSuchAlgorithmException, InvalidKeyException, DecapsulateException;
+
+	@Override
+	public String toString()
+	{
+		return getClass().getSimpleName() + " [variant=" + variant + "]";
+	}
 }

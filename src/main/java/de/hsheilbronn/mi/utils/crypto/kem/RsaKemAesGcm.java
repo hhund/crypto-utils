@@ -51,7 +51,8 @@ public class RsaKemAesGcm extends AbstractKemAesGcm
 	 * @param variant
 	 *            not <code>null</code>
 	 * @param secureRandom
-	 *            not <code>null</code>
+	 *            not <code>null</code>, to generate random AES initialization vectors and as source of randomness for
+	 *            encapsulation
 	 */
 	public RsaKemAesGcm(Variant variant, SecureRandom secureRandom)
 	{
@@ -64,7 +65,8 @@ public class RsaKemAesGcm extends AbstractKemAesGcm
 	}
 
 	@Override
-	protected Encapsulated getEncapsulated(PublicKey publicKey) throws NoSuchAlgorithmException, InvalidKeyException
+	protected Encapsulated getEncapsulated(PublicKey publicKey, Variant variant, SecureRandom secureRandom)
+			throws NoSuchAlgorithmException, InvalidKeyException
 	{
 		RSAKEMGenerator encapsulator = new RSAKEMGenerator(variant.size, createKeyDerivationFunction(), secureRandom);
 		SecretWithEncapsulation encapsulated = encapsulator.generateEncapsulated(toParameters(publicKey));
@@ -80,7 +82,7 @@ public class RsaKemAesGcm extends AbstractKemAesGcm
 	}
 
 	@Override
-	protected SecretKey getSecretKey(PrivateKey privateKey, byte[] encapsulation)
+	protected SecretKey getSecretKey(PrivateKey privateKey, Variant variant, byte[] encapsulation)
 			throws NoSuchAlgorithmException, InvalidKeyException, DecapsulateException
 	{
 		RSAPrivateKey rsaPrivateKey = (RSAPrivateKey) privateKey;
@@ -89,11 +91,5 @@ public class RsaKemAesGcm extends AbstractKemAesGcm
 		RSAKEMExtractor decapsulator = new RSAKEMExtractor(rsaKeyParameters, variant.size,
 				createKeyDerivationFunction());
 		return new SecretKeySpec(decapsulator.extractSecret(encapsulation), ALGORITHM_NAME);
-	}
-
-	@Override
-	public String toString()
-	{
-		return "RsaKemAesGcm [variant=" + variant + "]";
 	}
 }
