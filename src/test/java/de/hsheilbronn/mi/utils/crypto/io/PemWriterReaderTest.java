@@ -19,7 +19,6 @@ import java.util.stream.Stream;
 
 import javax.crypto.EncryptedPrivateKeyInfo;
 
-import org.bouncycastle.pkcs.jcajce.JcaPKCS10CertificationRequest;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -167,13 +166,13 @@ public class PemWriterReaderTest
 	@Test
 	void writeReadCertificationRequestString() throws Exception
 	{
-		JcaPKCS10CertificationRequest request = createRequest();
+		CertificationRequest request = createRequest();
 
 		String pem = PemWriter.writeCertificationRequest(request);
 		assertNotNull(pem);
 		assertFalse(pem.isBlank());
 
-		JcaPKCS10CertificationRequest readRequest = PemReader.readCertificateRequest(pem);
+		CertificationRequest readRequest = PemReader.readCertificationRequest(pem);
 		assertNotNull(readRequest);
 		assertEquals(request, readRequest);
 	}
@@ -181,20 +180,20 @@ public class PemWriterReaderTest
 	@Test
 	void writeReadCertificationRequestFile(@TempDir Path tmp) throws Exception
 	{
-		JcaPKCS10CertificationRequest request = createRequest();
+		CertificationRequest request = createRequest();
 
 		Path csrPath = tmp.resolve("csr.pem");
 
 		PemWriter.writeCertificationRequest(request, csrPath);
 
-		JcaPKCS10CertificationRequest readRequest = PemReader.readCertificateRequest(csrPath);
+		CertificationRequest readRequest = PemReader.readCertificationRequest(csrPath);
 		assertNotNull(readRequest);
 		assertEquals(request, readRequest);
 	}
 
-	private JcaPKCS10CertificationRequest createRequest()
+	private CertificationRequest createRequest()
 	{
-		return CertificationRequest.builder(ca, "DE", null, null, null, null, "JUnit Test Client").build().getRequest();
+		return CertificationRequest.builder(ca, "DE", null, null, null, null, "JUnit Test Client").build();
 	}
 
 	@Test
@@ -303,16 +302,15 @@ public class PemWriterReaderTest
 	@Test
 	void readCertReq() throws Exception
 	{
-		JcaPKCS10CertificationRequest req = PemReader
-				.readCertificateRequest(Paths.get("src/test/resources/cert_req.pem"));
+		CertificationRequest req = PemReader.readCertificationRequest(Paths.get("src/test/resources/cert_req.pem"));
 		assertNotNull(req);
 	}
 
 	@Test
 	void readCertReqNull() throws Exception
 	{
-		assertThrows(NullPointerException.class, () -> PemReader.readCertificateRequest((String) null));
-		assertThrows(NullPointerException.class, () -> PemReader.readCertificateRequest((InputStream) null));
-		assertThrows(NullPointerException.class, () -> PemReader.readCertificateRequest((Path) null));
+		assertThrows(NullPointerException.class, () -> PemReader.readCertificationRequest((String) null));
+		assertThrows(NullPointerException.class, () -> PemReader.readCertificationRequest((InputStream) null));
+		assertThrows(NullPointerException.class, () -> PemReader.readCertificationRequest((Path) null));
 	}
 }

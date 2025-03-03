@@ -379,7 +379,7 @@ public class CertificationRequest
 		public CertificationRequestBuilder setDnsNames(Collection<String> dnsNames)
 		{
 			Objects.requireNonNull(dnsNames, "dnsNames");
-			
+
 			if (dnsNames.stream().filter(Objects::nonNull)
 					.anyMatch(n -> n.isBlank() || !StandardCharsets.US_ASCII.newEncoder().canEncode(n)))
 				throw new IllegalArgumentException("dnsNames contains blank or non US_ASCII characters value");
@@ -478,7 +478,7 @@ public class CertificationRequest
 	 * @throws RuntimeException
 	 *             if public key extraction fails with {@link InvalidKeyException} or {@link NoSuchAlgorithmException}
 	 */
-	public CertificationRequest fromJcaPKCS10CertificationRequest(JcaPKCS10CertificationRequest request)
+	public static CertificationRequest of(JcaPKCS10CertificationRequest request)
 	{
 		Objects.requireNonNull(request, "request");
 
@@ -534,5 +534,24 @@ public class CertificationRequest
 	public PublicKey getPublicKey()
 	{
 		return getPublicKey(request);
+	}
+
+	@Override
+	public int hashCode()
+	{
+		return Objects.hash(request);
+	}
+
+	@Override
+	public boolean equals(Object obj)
+	{
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		CertificationRequest other = (CertificationRequest) obj;
+		return Objects.equals(request, other.request);
 	}
 }

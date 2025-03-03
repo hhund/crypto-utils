@@ -32,8 +32,9 @@ import org.bouncycastle.openssl.PKCS8Generator;
 import org.bouncycastle.openssl.jcajce.JcePEMEncryptorBuilder;
 import org.bouncycastle.operator.OperatorCreationException;
 import org.bouncycastle.operator.OutputEncryptor;
-import org.bouncycastle.pkcs.jcajce.JcaPKCS10CertificationRequest;
 import org.bouncycastle.pkcs.jcajce.JcePKCSPBEOutputEncryptorBuilder;
+
+import de.hsheilbronn.mi.utils.crypto.ca.CertificationRequest;
 
 public final class PemWriter
 {
@@ -107,20 +108,19 @@ public final class PemWriter
 		out.write('\n');
 	}
 
-	public static String writeCertificationRequest(JcaPKCS10CertificationRequest request)
+	public static String writeCertificationRequest(CertificationRequest request)
 	{
 		return toString(out -> writeCertificationRequest(request, out));
 	}
 
-	public static void writeCertificationRequest(JcaPKCS10CertificationRequest request, Path pem) throws IOException
+	public static void writeCertificationRequest(CertificationRequest request, Path pem) throws IOException
 	{
 		toFile(out -> writeCertificationRequest(request, out), pem);
 	}
 
-	public static void writeCertificationRequest(JcaPKCS10CertificationRequest request, OutputStream out)
-			throws IOException
+	public static void writeCertificationRequest(CertificationRequest request, OutputStream out) throws IOException
 	{
-		byte[] encodedRequest = request.getEncoded();
+		byte[] encodedRequest = request.getRequest().getEncoded();
 
 		writeEncoded(REQUEST_BEGIN, null, encodedRequest, REQUEST_END, LINE_LENGTH, out);
 	}

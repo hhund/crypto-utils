@@ -40,6 +40,8 @@ import org.bouncycastle.pkcs.PKCSException;
 import org.bouncycastle.pkcs.jcajce.JcaPKCS10CertificationRequest;
 import org.bouncycastle.pkcs.jcajce.JcePKCSPBEInputDecryptorProviderBuilder;
 
+import de.hsheilbronn.mi.utils.crypto.ca.CertificationRequest;
+
 public final class PemReader
 {
 	private PemReader()
@@ -259,13 +261,13 @@ public final class PemReader
 	 *             if the given {@link String} does not contain a pem encoded certificate request, more than one or is
 	 *             not readable or parsable
 	 */
-	public static JcaPKCS10CertificationRequest readCertificateRequest(String pem) throws IOException
+	public static CertificationRequest readCertificationRequest(String pem) throws IOException
 	{
 		Objects.requireNonNull(pem, "pem");
 
 		try (InputStream in = new ByteArrayInputStream(pem.getBytes(StandardCharsets.UTF_8)))
 		{
-			return readCertificateRequest(in);
+			return readCertificationRequest(in);
 		}
 	}
 
@@ -277,13 +279,13 @@ public final class PemReader
 	 *             if the given file does not contain a pem encoded certificate request, more than one or is not
 	 *             readable or parsable
 	 */
-	public static JcaPKCS10CertificationRequest readCertificateRequest(Path pem) throws IOException
+	public static CertificationRequest readCertificationRequest(Path pem) throws IOException
 	{
 		Objects.requireNonNull(pem, "pem");
 
 		try (InputStream in = Files.newInputStream(pem))
 		{
-			return readCertificateRequest(in);
+			return readCertificationRequest(in);
 		}
 	}
 
@@ -295,7 +297,7 @@ public final class PemReader
 	 *             if the given {@link InputStream} does not contain a pem encoded certificate request, more than one or
 	 *             is not readable or parsable
 	 */
-	public static JcaPKCS10CertificationRequest readCertificateRequest(InputStream pem) throws IOException
+	public static CertificationRequest readCertificationRequest(InputStream pem) throws IOException
 	{
 		Objects.requireNonNull(pem, "pem");
 
@@ -304,7 +306,7 @@ public final class PemReader
 			Object o = parser.readObject();
 
 			if (o instanceof PKCS10CertificationRequest r)
-				return new JcaPKCS10CertificationRequest(r);
+				return CertificationRequest.of(new JcaPKCS10CertificationRequest(r));
 			else
 				throw new IOException("Read pem object not a certificate request, but " + o.getClass().getName());
 		}
