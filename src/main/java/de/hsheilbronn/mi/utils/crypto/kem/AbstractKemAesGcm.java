@@ -20,9 +20,7 @@ import java.util.Set;
 import javax.crypto.Cipher;
 import javax.crypto.CipherInputStream;
 import javax.crypto.DecapsulateException;
-import javax.crypto.KEM.Decapsulator;
 import javax.crypto.KEM.Encapsulated;
-import javax.crypto.KEM.Encapsulator;
 import javax.crypto.NoSuchPaddingException;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.GCMParameterSpec;
@@ -46,10 +44,7 @@ public abstract class AbstractKemAesGcm
 	public static final String CIPHER_NAME = "AES/GCM/NoPadding";
 
 	/**
-	 * Algorithm name.
-	 * 
-	 * @see Encapsulator#encapsulate(int, int, String)
-	 * @see Decapsulator#decapsulate(byte[], int, int, String)
+	 * Symmetric encryption algorithm name.
 	 */
 	public static final String ALGORITHM_NAME = "AES";
 
