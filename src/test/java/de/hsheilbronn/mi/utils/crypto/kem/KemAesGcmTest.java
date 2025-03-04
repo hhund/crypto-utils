@@ -28,24 +28,40 @@ public class KemAesGcmTest
 			Quisque molestie efficitur dolor, ac volutpat libero mollis vel. Vestibulum non tortor quis turpis laoreet cursus non eu leo. Praesent pulvinar purus id tristique accumsan. Phasellus efficitur id leo nec tincidunt. Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia curae; Sed ac blandit augue, eget mollis enim. Proin lacinia risus non nibh egestas, ac interdum risus mattis. Vestibulum eu justo ac nunc viverra venenatis vitae vel velit. Vivamus sagittis aliquam lobortis. Nunc volutpat, metus aliquam finibus placerat, massa mauris venenatis est, et mattis purus leo id libero. Nulla ornare massa erat, et lacinia tortor condimentum quis. In eu tempor arcu, a facilisis urna. Duis ultricies justo mi, nec blandit nisi suscipit sit amet. Nullam sit amet interdum tellus. Vivamus vel enim ligula.
 			""";
 
+	private static final record FactoryAndExpectedNoDataEncryptedLength(KeyPairGeneratorFactory factory,
+			int expectedDataEncryptedLength, int expectedNoDataEncryptedLength)
+	{
+	}
+
 	private static Stream<Arguments> forEncryptDecryptTest()
 	{
-		Supplier<Stream<KeyPairGeneratorFactory>> ecFactories = () -> Stream.of(KeyPairGeneratorFactory.secp256r1(),
-				KeyPairGeneratorFactory.secp384r1(), KeyPairGeneratorFactory.secp521r1(),
-				KeyPairGeneratorFactory.x25519(), KeyPairGeneratorFactory.x448());
-		Supplier<Stream<KeyPairGeneratorFactory>> rsaFactories = () -> Stream.of(KeyPairGeneratorFactory.rsa1024(),
-				KeyPairGeneratorFactory.rsa2048(), KeyPairGeneratorFactory.rsa3072(),
-				KeyPairGeneratorFactory.rsa4096());
+		Supplier<Stream<FactoryAndExpectedNoDataEncryptedLength>> ecFactories = () -> Stream.of(
+				new FactoryAndExpectedNoDataEncryptedLength(KeyPairGeneratorFactory.secp256r1(), 2269, 95),
+				new FactoryAndExpectedNoDataEncryptedLength(KeyPairGeneratorFactory.secp384r1(), 2301, 127),
+				new FactoryAndExpectedNoDataEncryptedLength(KeyPairGeneratorFactory.secp521r1(), 2337, 163),
+				new FactoryAndExpectedNoDataEncryptedLength(KeyPairGeneratorFactory.x25519(), 2236, 62),
+				new FactoryAndExpectedNoDataEncryptedLength(KeyPairGeneratorFactory.x448(), 2260, 86));
+
+		Supplier<Stream<FactoryAndExpectedNoDataEncryptedLength>> rsaFactories = () -> Stream.of(
+				new FactoryAndExpectedNoDataEncryptedLength(KeyPairGeneratorFactory.rsa1024(), 2332, 158),
+				new FactoryAndExpectedNoDataEncryptedLength(KeyPairGeneratorFactory.rsa2048(), 2460, 286),
+				new FactoryAndExpectedNoDataEncryptedLength(KeyPairGeneratorFactory.rsa3072(), 2588, 414),
+				new FactoryAndExpectedNoDataEncryptedLength(KeyPairGeneratorFactory.rsa4096(), 2716, 542));
 
 		return EnumSet.allOf(Variant.class).stream().flatMap(v ->
 
-		Stream.concat(ecFactories.get().map(kp -> Arguments.of(new EcDhKemAesGcm(v), kp)),
-				rsaFactories.get().map(kp -> Arguments.of(new RsaKemAesGcm(v), kp))));
+		Stream.concat(
+				ecFactories.get()
+						.map(kp -> Arguments.of(new EcDhKemAesGcm(v), kp.factory, kp.expectedDataEncryptedLength,
+								kp.expectedNoDataEncryptedLength)),
+				rsaFactories.get().map(kp -> Arguments.of(new RsaKemAesGcm(v), kp.factory,
+						kp.expectedDataEncryptedLength, kp.expectedNoDataEncryptedLength))));
 	}
 
 	@ParameterizedTest
 	@MethodSource("forEncryptDecryptTest")
-	void encryptDecryptTest(AbstractKemAesGcm kem, KeyPairGeneratorFactory factory) throws Exception
+	void encryptDecryptTest(AbstractKemAesGcm kem, KeyPairGeneratorFactory factory, int expectedDataEncryptedLength,
+			int expectedNoDataEncryptedLength) throws Exception
 	{
 		KeyPair keyPair = factory.initialize().generateKeyPair();
 
@@ -53,10 +69,26 @@ public class KemAesGcmTest
 				keyPair.getPublic());
 		assertNotNull(encrypted);
 
-		InputStream decrypted = kem.decrypt(encrypted, keyPair.getPrivate());
+		byte[] encryptedBytes = encrypted.readAllBytes();
+		assertNotNull(encryptedBytes);
+		assertEquals(expectedDataEncryptedLength, encryptedBytes.length);
+
+		InputStream decrypted = kem.decrypt(new ByteArrayInputStream(encryptedBytes), keyPair.getPrivate());
 		assertNotNull(decrypted);
 
 		assertEquals(TEST_DATA, new String(decrypted.readAllBytes(), StandardCharsets.UTF_8));
+
+		InputStream encrypted0 = kem.encrypt(new ByteArrayInputStream(new byte[0]), keyPair.getPublic());
+		assertNotNull(encrypted0);
+
+		byte[] encrypted0Bytes = encrypted0.readAllBytes();
+		assertNotNull(encrypted0Bytes);
+		assertEquals(expectedNoDataEncryptedLength, encrypted0Bytes.length);
+
+		InputStream decrypted0 = kem.decrypt(new ByteArrayInputStream(encrypted0Bytes), keyPair.getPrivate());
+		assertNotNull(decrypted0);
+
+		assertEquals(0, decrypted0.readAllBytes().length);
 	}
 
 	private static Stream<Arguments> forEncryptDecryptInvalidArguments()

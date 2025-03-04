@@ -51,12 +51,17 @@ public abstract class AbstractKemAesGcm
 	/**
 	 * AES GCM authentication tag length (in bits).
 	 */
-	public static int GCM_AUTH_TAG_LENGTH = 128;
+	public static final int GCM_AUTH_TAG_LENGTH = 128;
 
 	/**
 	 * AES initialization vector length (in bytes).
 	 */
-	public static int AES_IV_LENGTH = 12;
+	public static final int AES_IV_LENGTH = 12;
+
+	/**
+	 * Number of bytes at start of encrypted {@link InputStream} representing the encapsulation length in bytes.
+	 */
+	public static final int ENCAPSULATION_LENGTH_BYTES = 2;
 
 	/**
 	 * AES variant with (128, 192, 256) bit keys.
@@ -89,15 +94,16 @@ public abstract class AbstractKemAesGcm
 
 	/**
 	 * Encrypts the given {@link InputStream} with an AES session key calculated by KEM for the given {@link PublicKey}.
-	 * The returned {@link InputStream} has the form [encapsulation length (int, big-endian, 4 bytes), encapsulation,
-	 * AES initialization vector (12 bytes), AES encrypted data].
+	 * The returned {@link InputStream} has the form [encapsulation length (big-endian,
+	 * {@value #ENCAPSULATION_LENGTH_BYTES} bytes), encapsulation, AES initialization vector ({@value #AES_IV_LENGTH}
+	 * bytes), AES encrypted data].
 	 * 
 	 * @param data
 	 *            not <code>null</code>
 	 * @param publicKey
 	 *            not <code>null</code>
-	 * @return {@link InputStream} of [encapsulation length (int, big-endian, 4 bytes), encapsulation, iv (12 bytes),
-	 *         encrypted data]
+	 * @return {@link InputStream} of [encapsulation length (big-endian, {@value #ENCAPSULATION_LENGTH_BYTES} bytes),
+	 *         encapsulation, iv ({@value #AES_IV_LENGTH} bytes), encrypted data]
 	 * @throws NoSuchAlgorithmException
 	 * @throws InvalidKeyException
 	 * @throws NoSuchPaddingException
@@ -115,17 +121,27 @@ public abstract class AbstractKemAesGcm
 			throw new IllegalArgumentException("publicKey.algorithm " + publicKey.getAlgorithm() + " not supported");
 
 		Encapsulated encapsulated = getEncapsulated(publicKey, variant, secureRandom);
-
-		byte[] iv = new byte[AES_IV_LENGTH];
-		secureRandom.nextBytes(iv);
+		byte[] iv = generateIv();
 
 		Cipher encryptor = Cipher.getInstance(CIPHER_NAME);
 		encryptor.init(Cipher.ENCRYPT_MODE, encapsulated.key(), new GCMParameterSpec(GCM_AUTH_TAG_LENGTH, iv));
 
+		int encapsulationLength = encapsulated.encapsulation().length;
+		if (encapsulationLength > Short.MAX_VALUE)
+			throw new RuntimeException("Encapsulation byte array longer than " + Short.MAX_VALUE);
+
 		return new SequenceInputStream(Collections.enumeration(List.of(
-				new ByteArrayInputStream(ByteBuffer.allocate(4).putInt(encapsulated.encapsulation().length).array()),
+				new ByteArrayInputStream(
+						ByteBuffer.allocate(ENCAPSULATION_LENGTH_BYTES).putShort((short) encapsulationLength).array()),
 				new ByteArrayInputStream(encapsulated.encapsulation()), new ByteArrayInputStream(iv),
 				new CipherInputStream(data, encryptor))));
+	}
+
+	private byte[] generateIv()
+	{
+		byte[] iv = new byte[AES_IV_LENGTH];
+		secureRandom.nextBytes(iv);
+		return iv;
 	}
 
 	protected abstract Encapsulated getEncapsulated(PublicKey publicKey, Variant variant, SecureRandom secureRandom)
@@ -133,8 +149,9 @@ public abstract class AbstractKemAesGcm
 
 	/**
 	 * @param encrypted
-	 *            not <code>null</code>, {@link InputStream} of [encapsulation length (int, big-endian, 4 bytes),
-	 *            encapsulation, iv (12 bytes), encrypted data]
+	 *            not <code>null</code>, {@link InputStream} of [encapsulation length (big-endian,
+	 *            {@value #ENCAPSULATION_LENGTH_BYTES} bytes), encapsulation, iv ({@value #AES_IV_LENGTH} bytes),
+	 *            encrypted data]
 	 * @param privateKey
 	 *            not <code>null</code>
 	 * @return decrypted data
@@ -155,32 +172,15 @@ public abstract class AbstractKemAesGcm
 		if (!supportedAsymetricKeyAlgorithms.contains(privateKey.getAlgorithm()))
 			throw new IllegalArgumentException("privateKey.algorithm " + privateKey.getAlgorithm() + " not supported");
 
-		byte[] encapsulationLengthBytes = new byte[4];
-		int elr = encrypted.read(encapsulationLengthBytes);
-		checkReadBytes(4, elr, "encapsulation length");
-
-		int encapsulationLength = ByteBuffer.wrap(encapsulationLengthBytes).getInt();
-
-		byte[] encapsulation = new byte[encapsulationLength];
-		int er = encrypted.read(encapsulation);
-		checkReadBytes(encapsulationLength, er, "encapsulation");
-
-		byte[] iv = new byte[AES_IV_LENGTH];
-		int ivr = encrypted.read(iv);
-		checkReadBytes(AES_IV_LENGTH, ivr, "initialization vector");
+		short encapsulationLength = ByteBuffer.wrap(encrypted.readNBytes(ENCAPSULATION_LENGTH_BYTES)).getShort();
+		byte[] encapsulation = encrypted.readNBytes(encapsulationLength);
+		byte[] iv = encrypted.readNBytes(AES_IV_LENGTH);
 
 		Cipher decryptor = Cipher.getInstance(CIPHER_NAME);
 		decryptor.init(Cipher.DECRYPT_MODE, getSecretKey(privateKey, variant, encapsulation),
 				new GCMParameterSpec(GCM_AUTH_TAG_LENGTH, iv));
 
 		return new CipherInputStream(encrypted, decryptor);
-	}
-
-	private void checkReadBytes(int expectedBytes, int readBytes, String valueName) throws IOException
-	{
-		if (readBytes != expectedBytes)
-			throw new IOException("Could not read " + valueName + ", only read " + readBytes + " bytes instead of "
-					+ expectedBytes + " bytes");
 	}
 
 	protected abstract SecretKey getSecretKey(PrivateKey privateKey, Variant variant, byte[] encapsulation)

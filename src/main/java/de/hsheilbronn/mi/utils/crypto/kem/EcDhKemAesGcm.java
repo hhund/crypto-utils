@@ -8,9 +8,7 @@ import java.security.SecureRandom;
 
 import javax.crypto.DecapsulateException;
 import javax.crypto.KEM;
-import javax.crypto.KEM.Decapsulator;
 import javax.crypto.KEM.Encapsulated;
-import javax.crypto.KEM.Encapsulator;
 import javax.crypto.SecretKey;
 
 /**
@@ -18,8 +16,6 @@ import javax.crypto.SecretKey;
  */
 public class EcDhKemAesGcm extends AbstractKemAesGcm
 {
-	private static final String KEM_NAME = "DHKEM";
-
 	/**
 	 * With {@link Variant#AES_256} and {@link AbstractKemAesGcm#SECURE_RANDOM}
 	 */
@@ -57,17 +53,18 @@ public class EcDhKemAesGcm extends AbstractKemAesGcm
 	protected Encapsulated getEncapsulated(PublicKey publicKey, Variant variant, SecureRandom secureRandom)
 			throws NoSuchAlgorithmException, InvalidKeyException
 	{
-		KEM kem = KEM.getInstance(KEM_NAME);
-		Encapsulator encapsulator = kem.newEncapsulator(publicKey, secureRandom);
-		return encapsulator.encapsulate(0, variant.size, ALGORITHM_NAME);
+		return createKem().newEncapsulator(publicKey, secureRandom).encapsulate(0, variant.size, ALGORITHM_NAME);
 	}
 
 	@Override
 	protected SecretKey getSecretKey(PrivateKey privateKey, Variant variant, byte[] encapsulation)
 			throws NoSuchAlgorithmException, InvalidKeyException, DecapsulateException
 	{
-		KEM kem = KEM.getInstance(KEM_NAME);
-		Decapsulator decapsulator = kem.newDecapsulator(privateKey);
-		return decapsulator.decapsulate(encapsulation, 0, variant.size, ALGORITHM_NAME);
+		return createKem().newDecapsulator(privateKey).decapsulate(encapsulation, 0, variant.size, ALGORITHM_NAME);
+	}
+
+	private KEM createKem() throws NoSuchAlgorithmException
+	{
+		return KEM.getInstance("DHKEM");
 	}
 }
