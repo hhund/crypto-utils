@@ -492,13 +492,14 @@ public class CertificateAuthority
 		 * Default {@link CertificateAuthority#TEN_YEARS}
 		 * 
 		 * @param caValidityPeriod
-		 *            does nothing if <code>null</code>
+		 *            not <code>null</code>
 		 * @return this {@link CertificateAuthorityBuilder}
 		 */
 		public CertificateAuthorityBuilder setValidityPeriod(TemporalAmount caValidityPeriod)
 		{
-			if (caValidityPeriod != null)
-				this.caValidityPeriod = caValidityPeriod;
+			Objects.requireNonNull(caValidityPeriod, "caValidityPeriod");
+
+			this.caValidityPeriod = caValidityPeriod;
 
 			return this;
 		}
