@@ -12,11 +12,12 @@ import java.util.Objects;
 
 import de.hsheilbronn.mi.utils.crypto.ca.CertificateAuthority;
 import de.hsheilbronn.mi.utils.crypto.kem.EcDhKemAesGcm;
+import de.hsheilbronn.mi.utils.crypto.kem.RsaKemAesGcm;
 
 /**
  * <p>
- * {@link KeyPairGenerator} factory to create {@link KeyPair}s for use with {@link CertificateAuthority} and
- * {@link EcDhKemAesGcm}.
+ * {@link KeyPairGenerator} factory to create {@link KeyPair}s for use with {@link CertificateAuthority},
+ * {@link EcDhKemAesGcm} and {@link RsaKemAesGcm}.
  * </p>
  * For {@link CertificateAuthority} use:
  * <ul>
@@ -28,6 +29,10 @@ import de.hsheilbronn.mi.utils.crypto.kem.EcDhKemAesGcm;
  * <ul>
  * <li>{@link #secp256r1()}, {@link #secp384r1()} or {@link #secp521r1()}</li>
  * <li>{@link #x25519()} or {@link #x448()}</li>
+ * </ul>
+ * For {@link RsaKemAesGcm} use:
+ * <ul>
+ * <li>{@link #rsa(int)}, {@link #rsa1024()}, {@link #rsa2048()}, {@link #rsa3072()} or {@link #rsa4096()}</li>
  * </ul>
  */
 public class KeyPairGeneratorFactory

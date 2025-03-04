@@ -88,16 +88,16 @@ public abstract class AbstractKemAesGcm
 	}
 
 	/**
-	 * Encrypts the given {@link InputStream} with an AES session key calculated by DH KEM for the given
-	 * {@link PublicKey}. The returned {@link InputStream} has the form [encapsulation length (4 bytes), encapsulation,
+	 * Encrypts the given {@link InputStream} with an AES session key calculated by KEM for the given {@link PublicKey}.
+	 * The returned {@link InputStream} has the form [encapsulation length (int, big-endian, 4 bytes), encapsulation,
 	 * AES initialization vector (12 bytes), AES encrypted data].
-	 * <p>
 	 * 
 	 * @param data
 	 *            not <code>null</code>
 	 * @param publicKey
 	 *            not <code>null</code>
-	 * @return {@link InputStream} of [encapsulation length (4 bytes), encapsulation, iv (12 bytes), encrypted data]
+	 * @return {@link InputStream} of [encapsulation length (int, big-endian, 4 bytes), encapsulation, iv (12 bytes),
+	 *         encrypted data]
 	 * @throws NoSuchAlgorithmException
 	 * @throws InvalidKeyException
 	 * @throws NoSuchPaddingException
@@ -133,8 +133,8 @@ public abstract class AbstractKemAesGcm
 
 	/**
 	 * @param encrypted
-	 *            not <code>null</code>, {@link InputStream} of [encapsulation length (4 bytes), encapsulation, iv (12
-	 *            bytes), encrypted data]
+	 *            not <code>null</code>, {@link InputStream} of [encapsulation length (int, big-endian, 4 bytes),
+	 *            encapsulation, iv (12 bytes), encrypted data]
 	 * @param privateKey
 	 *            not <code>null</code>
 	 * @return decrypted data
