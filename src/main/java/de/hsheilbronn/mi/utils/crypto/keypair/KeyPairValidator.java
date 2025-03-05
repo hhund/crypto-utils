@@ -6,9 +6,9 @@ import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.security.Signature;
 import java.security.SignatureException;
+import java.security.interfaces.RSAPrivateCrtKey;
+import java.security.interfaces.RSAPublicKey;
 import java.util.Arrays;
-import java.util.Random;
-import java.util.function.Predicate;
 
 import javax.crypto.DecapsulateException;
 import javax.crypto.KEM;
@@ -22,12 +22,11 @@ public class KeyPairValidator
 	{
 	}
 
-	private static final Random RANDOM = new Random();
-
 	/**
 	 * Checks if the given <b>privateKey</b> and <b>publicKey</b> match by checking if a generated signature can be
 	 * verified for RSA, EC and EdDSA key pairs or a Diffie-Hellman key agreement produces the same secret key for a XDH
-	 * key pair.
+	 * key pair. If the <b>privateKey</b> is a {@link RSAPrivateCrtKey} and the <b>publicKey</b> is a
+	 * {@link RSAPublicKey} modulus and public-exponent will be compared.
 	 * 
 	 * @param privateKey
 	 *            may be <code>null</code>
@@ -40,73 +39,58 @@ public class KeyPairValidator
 		if (privateKey == null || publicKey == null || !privateKey.getAlgorithm().equals(publicKey.getAlgorithm()))
 			return false;
 
-		return match(publicKey).test(privateKey);
-	}
-
-	private static Predicate<PrivateKey> match(PublicKey publicKey)
-	{
 		return switch (publicKey.getAlgorithm())
 		{
-			case "RSA" -> matchesRsaEcEdDsa(publicKey, "NONEwithRSA");
-			case "EC" -> matchesRsaEcEdDsa(publicKey, "NONEwithECDSA");
-			case "EdDSA" -> matchesRsaEcEdDsa(publicKey, "EdDSA");
-			case "XDH" -> matchesXdh(publicKey);
+			case "RSA" -> matchesRsa(privateKey, publicKey, "NONEwithRSA");
+			case "EC" -> matchesRsaEcEdDsa(privateKey, publicKey, "NONEwithECDSA");
+			case "EdDSA" -> matchesRsaEcEdDsa(privateKey, publicKey, "EdDSA");
+			case "XDH" -> matchesXdh(privateKey, publicKey);
 
 			default -> throw new IllegalArgumentException(
 					"PublicKey algorithm " + publicKey.getAlgorithm() + " not supported");
 		};
 	}
 
-	private static Predicate<PrivateKey> matchesRsaEcEdDsa(PublicKey publicKey, String algorithm)
+	private static boolean matchesRsa(PrivateKey privateKey, PublicKey publicKey, String algorithm)
 	{
-		return privateKey ->
-		{
-			try
-			{
-				byte[] b = random(16);
-
-				Signature signature = Signature.getInstance(algorithm);
-				signature.initSign(privateKey);
-				signature.update(b);
-
-				byte[] signed = signature.sign();
-
-				signature.initVerify(publicKey);
-				signature.update(b);
-
-				return signature.verify(signed);
-			}
-			catch (InvalidKeyException | NoSuchAlgorithmException | SignatureException e)
-			{
-				throw new RuntimeException(e);
-			}
-		};
+		if (privateKey instanceof RSAPrivateCrtKey rPriv && publicKey instanceof RSAPublicKey rPub)
+			return rPriv.getModulus().equals(rPub.getModulus())
+					&& rPriv.getPublicExponent().equals(rPub.getPublicExponent());
+		else
+			return matchesRsaEcEdDsa(privateKey, publicKey, algorithm);
 	}
 
-	private static byte[] random(int length)
+	private static boolean matchesRsaEcEdDsa(PrivateKey privateKey, PublicKey publicKey, String algorithm)
 	{
-		byte[] b = new byte[length];
-		RANDOM.nextBytes(b);
-		return b;
+		try
+		{
+			Signature s = Signature.getInstance(algorithm);
+			s.initSign(privateKey);
+			byte[] sn = s.sign();
+
+			s.initVerify(publicKey);
+			return s.verify(sn);
+		}
+		catch (InvalidKeyException | NoSuchAlgorithmException | SignatureException e)
+		{
+			throw new RuntimeException(e);
+		}
 	}
 
-	private static Predicate<PrivateKey> matchesXdh(PublicKey publicKey)
+	private static boolean matchesXdh(PrivateKey privateKey, PublicKey publicKey)
 	{
-		return privateKey ->
+		try
 		{
-			try
-			{
-				KEM kem = KEM.getInstance("DHKEM");
-				Encapsulator e = kem.newEncapsulator(publicKey);
-				Encapsulated en = e.encapsulate();
-				Decapsulator d = kem.newDecapsulator(privateKey);
+			KEM kem = KEM.getInstance("DHKEM");
+			Encapsulator e = kem.newEncapsulator(publicKey);
+			Encapsulated ed = e.encapsulate();
+			Decapsulator d = kem.newDecapsulator(privateKey);
 
-				return Arrays.equals(en.key().getEncoded(), d.decapsulate(en.encapsulation()).getEncoded());
-			}
-			catch (InvalidKeyException | NoSuchAlgorithmException | DecapsulateException e)
-			{
-				throw new RuntimeException(e);
-			}
-		};
+			return Arrays.equals(ed.key().getEncoded(), d.decapsulate(ed.encapsulation()).getEncoded());
+		}
+		catch (InvalidKeyException | NoSuchAlgorithmException | DecapsulateException e)
+		{
+			throw new RuntimeException(e);
+		}
 	}
 }
