@@ -34,6 +34,7 @@ import org.bouncycastle.pkcs.jcajce.JcaPKCS10CertificationRequest;
 import org.bouncycastle.pkcs.jcajce.JcaPKCS10CertificationRequestBuilder;
 
 import de.hsheilbronn.mi.utils.crypto.keypair.KeyPairGeneratorFactory;
+import de.hsheilbronn.mi.utils.crypto.keypair.KeyPairValidator;
 
 public class CertificationRequest
 {
@@ -480,9 +481,47 @@ public class CertificationRequest
 	 */
 	public static CertificationRequest of(JcaPKCS10CertificationRequest request)
 	{
+		return of(request, null);
+	}
+
+	/**
+	 * Does not verify if the given <b>privateKey</b> matches the public-key from the <b>request</b>.
+	 * 
+	 * @param request
+	 *            not <code>null</code>
+	 * @param privateKey
+	 *            may be <code>null</code>
+	 * @return {@link CertificationRequest} from the given {@link JcaPKCS10CertificationRequest}
+	 * @throws RuntimeException
+	 *             if public key extraction fails with {@link InvalidKeyException} or {@link NoSuchAlgorithmException}
+	 * @see KeyPairValidator#matches(PrivateKey, PublicKey)
+	 */
+	public static CertificationRequest of(JcaPKCS10CertificationRequest request, PrivateKey privateKey)
+	{
 		Objects.requireNonNull(request, "request");
 
-		return new CertificationRequest(request, null);
+		return new CertificationRequest(request, privateKey);
+	}
+
+	/**
+	 * Does not verify if the given <b>privateKey</b> matches the public-key from the <b>request</b>.
+	 * 
+	 * @param request
+	 *            not <code>null</code>, no privateKey
+	 * @param privateKey
+	 *            may be <code>null</code>
+	 * @return {@link CertificationRequest} from the given {@link JcaPKCS10CertificationRequest}
+	 * @throws RuntimeException
+	 *             if public key extraction fails with {@link InvalidKeyException} or {@link NoSuchAlgorithmException}
+	 * @see KeyPairValidator#matches(PrivateKey, PublicKey)
+	 */
+	public static CertificationRequest of(CertificationRequest request, PrivateKey privateKey)
+	{
+		Objects.requireNonNull(request, "request");
+		if (request.getPrivateKey().isPresent())
+			throw new IllegalArgumentException("request.privateKey present");
+
+		return new CertificationRequest(request.request, privateKey);
 	}
 
 	private final PrivateKey privateKey;
