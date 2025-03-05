@@ -4,6 +4,10 @@ import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
 
 public class JcaContentSignerBuilderFactory
 {
+	private JcaContentSignerBuilderFactory()
+	{
+	}
+
 	public static JcaContentSignerBuilder algorithm(String signatureAlgorith)
 	{
 		return new JcaContentSignerBuilder(signatureAlgorith);
@@ -42,9 +46,5 @@ public class JcaContentSignerBuilderFactory
 	public static JcaContentSignerBuilder ed448()
 	{
 		return new JcaContentSignerBuilder("Ed448");
-	}
-
-	private JcaContentSignerBuilderFactory()
-	{
 	}
 }
