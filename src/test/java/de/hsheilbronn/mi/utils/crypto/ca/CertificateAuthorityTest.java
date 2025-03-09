@@ -307,7 +307,7 @@ public class CertificateAuthorityTest
 
 	private CertificateAuthority testInitCaFromExisting(X509Certificate certificate, PrivateKey privateKey)
 	{
-		CertificateAuthority ca = CertificateAuthority.existingCa(certificate, privateKey, List.of());
+		CertificateAuthority ca = CertificateAuthority.existingCa(certificate, privateKey);
 		assertNotNull(ca);
 		assertNotNull(ca.getKeyPair());
 		assertNotNull(ca.getCertificate());

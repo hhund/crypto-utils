@@ -560,6 +560,10 @@ public class CertificationRequest
 		return request.getSubject();
 	}
 
+	/**
+	 * @return {@link Optional#isEmpty()} if created from {@link JcaPKCS10CertificationRequest} without
+	 *         {@link PrivateKey}
+	 */
 	public Optional<PrivateKey> getPrivateKey()
 	{
 		return Optional.ofNullable(privateKey);
@@ -573,6 +577,14 @@ public class CertificationRequest
 	public PublicKey getPublicKey()
 	{
 		return getPublicKey(request);
+	}
+
+	/**
+	 * @return {@link KeyPair}.privateKey may be <code>null</code>
+	 */
+	public KeyPair getKeyPair()
+	{
+		return new KeyPair(getPublicKey(), getPrivateKey().orElse(null));
 	}
 
 	@Override

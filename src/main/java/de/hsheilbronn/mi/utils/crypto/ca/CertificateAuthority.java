@@ -96,17 +96,28 @@ public class CertificateAuthority
 		DECIPHER_ONLY(org.bouncycastle.asn1.x509.KeyUsage.decipherOnly);
 		//@formatter:on
 
+		/**
+		 * New {@link EnumSet} of {@link #DIGITAL_SIGNATURE} and {@link #KEY_ENCIPHERMENT}
+		 */
+		public static final EnumSet<KeyUsage> digitalSignatureKeyEncipherment()
+		{
+			return EnumSet.of(DIGITAL_SIGNATURE, KEY_ENCIPHERMENT);
+		}
+
+		/**
+		 * New {@link EnumSet} of {@link #KEY_CERT_SIGN} and {@link #CRL_SIGN}
+		 */
+		public static final EnumSet<KeyUsage> keyCertSignCrlSign()
+		{
+			return EnumSet.of(KeyUsage.KEY_CERT_SIGN, KeyUsage.CRL_SIGN);
+		}
+
 		private final int value;
 
 		private KeyUsage(int value)
 		{
 			this.value = value;
 		}
-
-		public static final EnumSet<KeyUsage> DIGITAL_SIGNATURE_AND_KEY_ENCIPHERMENT = EnumSet.of(DIGITAL_SIGNATURE,
-				KEY_ENCIPHERMENT);
-		public static final EnumSet<KeyUsage> KEY_CERT_SIGN_AND_CRL_SIGN = EnumSet.of(KeyUsage.KEY_CERT_SIGN,
-				KeyUsage.CRL_SIGN);
 
 		public int getValue()
 		{
@@ -145,6 +156,32 @@ public class CertificateAuthority
 		NS_SGC(KeyPurposeId.id_kp_nsSGC);
 		//@formatter:on
 
+		/**
+		 * @return new {@link EnumSet} of {@link #SERVER_AUTH}, {@link #CLIENT_AUTH}, {@link #CODE_SIGNING},
+		 *         {@link #EMAIL_PROTECTION}, {@link #TIME_STAMPING} and {@link #OCSP_SIGNING}
+		 */
+		public static final EnumSet<ExtendedKeyUsage> serverAuthClientAuthCodeSigningEmailProtectioTimeStampingOcspSigning()
+		{
+			return EnumSet.of(ExtendedKeyUsage.SERVER_AUTH, ExtendedKeyUsage.CLIENT_AUTH, ExtendedKeyUsage.CODE_SIGNING,
+					ExtendedKeyUsage.EMAIL_PROTECTION, ExtendedKeyUsage.TIME_STAMPING, ExtendedKeyUsage.OCSP_SIGNING);
+		}
+
+		/**
+		 * @return new {@link EnumSet} of {@link #SERVER_AUTH} and {@link #CLIENT_AUTH}
+		 */
+		public static final EnumSet<ExtendedKeyUsage> serverAuthClientAuth()
+		{
+			return EnumSet.of(ExtendedKeyUsage.SERVER_AUTH, ExtendedKeyUsage.CLIENT_AUTH);
+		}
+
+		/**
+		 * @return new {@link EnumSet} of {@link #CLIENT_AUTH} and {@link #EMAIL_PROTECTION}
+		 */
+		public static final Set<ExtendedKeyUsage> clientAuthEmailProtection()
+		{
+			return EnumSet.of(ExtendedKeyUsage.CLIENT_AUTH, ExtendedKeyUsage.EMAIL_PROTECTION);
+		}
+
 		private final KeyPurposeId value;
 
 		private ExtendedKeyUsage(KeyPurposeId value)
@@ -155,6 +192,11 @@ public class CertificateAuthority
 		public KeyPurposeId toKeyPurposeId()
 		{
 			return value;
+		}
+
+		public EnumSet<ExtendedKeyUsage> asEnumSet()
+		{
+			return EnumSet.of(this);
 		}
 	}
 
@@ -430,6 +472,20 @@ public class CertificateAuthority
 	 *            not <code>null</code>
 	 * @param privateKey
 	 *            not <code>null</code>
+	 * @return {@link CertificateAuthority} for the given <b>certificate</b>, <b>privateKey</b> and no
+	 *         crlDistributionPoints, {@link JcaContentSignerBuilder} and {@link KeyPairGeneratorFactory} derived from
+	 *         the given <b>certificate</b>
+	 */
+	public static CertificateAuthority existingCa(X509Certificate certificate, PrivateKey privateKey)
+	{
+		return existingCa(certificate, privateKey, List.of());
+	}
+
+	/**
+	 * @param certificate
+	 *            not <code>null</code>
+	 * @param privateKey
+	 *            not <code>null</code>
 	 * @param crlDistributionPoints
 	 *            may be <code>null</code>
 	 * @return {@link CertificateAuthority} for the given <b>certificate</b>, <b>privateKey</b> and
@@ -470,11 +526,10 @@ public class CertificateAuthority
 		private final List<URL> crlDistributionPoints = new ArrayList<>();
 		private TemporalAmount caValidityPeriod = TEN_YEARS;
 
-		private final EnumSet<KeyUsage> keyUsages = KeyUsage.KEY_CERT_SIGN_AND_CRL_SIGN;
+		private final EnumSet<KeyUsage> keyUsages = KeyUsage.keyCertSignCrlSign();
 
-		private final EnumSet<ExtendedKeyUsage> extendedKeyUsages = EnumSet.of(ExtendedKeyUsage.CLIENT_AUTH,
-				ExtendedKeyUsage.EMAIL_PROTECTION, ExtendedKeyUsage.SERVER_AUTH, ExtendedKeyUsage.TIME_STAMPING,
-				ExtendedKeyUsage.OCSP_SIGNING);
+		private final EnumSet<ExtendedKeyUsage> extendedKeyUsages = ExtendedKeyUsage
+				.serverAuthClientAuthCodeSigningEmailProtectioTimeStampingOcspSigning();
 
 		private CertificateAuthorityBuilder(JcaContentSignerBuilder contentSignerBuilder,
 				KeyPairGeneratorFactory keyPairGeneratorFactory, X500Name name)
@@ -489,7 +544,7 @@ public class CertificateAuthority
 		}
 
 		/**
-		 * Default {@link CertificateAuthority#TEN_YEARS}
+		 * Default: {@link CertificateAuthority#TEN_YEARS}
 		 * 
 		 * @param caValidityPeriod
 		 *            not <code>null</code>
@@ -505,6 +560,8 @@ public class CertificateAuthority
 		}
 
 		/**
+		 * Default: none
+		 * 
 		 * @param url
 		 *            not <code>null</code>
 		 * @return this {@link CertificateAuthorityBuilder}
@@ -519,6 +576,8 @@ public class CertificateAuthority
 		}
 
 		/**
+		 * Default: none
+		 * 
 		 * Clears crlDistributionPoints property and sets all from the given collection.
 		 * 
 		 * @param urls
@@ -533,6 +592,8 @@ public class CertificateAuthority
 		}
 
 		/**
+		 * Default: none
+		 * 
 		 * Clears crlDistributionPoints property and sets all from the given collection.
 		 * 
 		 * @param urls
@@ -550,6 +611,8 @@ public class CertificateAuthority
 		}
 
 		/**
+		 * Default: {@link KeyUsage#keyCertSignCrlSign()}
+		 * 
 		 * @param keyUsage
 		 *            not <code>null</code>
 		 * @return this {@link CertificateAuthorityBuilder}
@@ -564,6 +627,8 @@ public class CertificateAuthority
 		}
 
 		/**
+		 * Default: {@link KeyUsage#keyCertSignCrlSign()}
+		 * 
 		 * Clears keyUsage property and sets all from the given collection.
 		 * 
 		 * @param keyUsages
@@ -578,6 +643,8 @@ public class CertificateAuthority
 		}
 
 		/**
+		 * Default: {@link KeyUsage#keyCertSignCrlSign()}
+		 * 
 		 * Clears keyUsage property and sets all from the given collection.
 		 * 
 		 * @param keyUsages
@@ -595,6 +662,8 @@ public class CertificateAuthority
 		}
 
 		/**
+		 * Default: {@link ExtendedKeyUsage#serverAuthClientAuthCodeSigningEmailProtectioTimeStampingOcspSigning()}
+		 * 
 		 * @param extendedKeyUsage
 		 *            not <code>null</code>
 		 * @return this {@link CertificateAuthorityBuilder}
@@ -609,6 +678,8 @@ public class CertificateAuthority
 		}
 
 		/**
+		 * Default: {@link ExtendedKeyUsage#serverAuthClientAuthCodeSigningEmailProtectioTimeStampingOcspSigning()}
+		 * 
 		 * Clears extendedKeyUsage property and sets all from the given collection.
 		 * 
 		 * @param extendedKeyUsages
@@ -623,6 +694,8 @@ public class CertificateAuthority
 		}
 
 		/**
+		 * Default: {@link ExtendedKeyUsage#serverAuthClientAuthCodeSigningEmailProtectioTimeStampingOcspSigning()}
+		 * 
 		 * Clears extendedKeyUsage property and sets all from the given collection.
 		 * 
 		 * @param extendedKeyUsages
@@ -790,9 +863,9 @@ public class CertificateAuthority
 			Function<X500Name, X500Name> requestSubjectNameModifier,
 			Function<List<GeneralName>, List<GeneralName>> requestSubjectAlternativeNamesModifier)
 	{
-		return signCertificate(request, KeyUsage.KEY_CERT_SIGN_AND_CRL_SIGN,
-				EnumSet.of(ExtendedKeyUsage.CLIENT_AUTH, ExtendedKeyUsage.SERVER_AUTH), new BasicConstraints(0),
-				validityPeriod, requestSubjectNameModifier, requestSubjectAlternativeNamesModifier);
+		return signCertificate(request, KeyUsage.keyCertSignCrlSign(), ExtendedKeyUsage.SERVER_AUTH.asEnumSet(),
+				new BasicConstraints(0), validityPeriod, requestSubjectNameModifier,
+				requestSubjectAlternativeNamesModifier);
 	}
 
 	/**
@@ -832,17 +905,17 @@ public class CertificateAuthority
 	 * @return CA certificate for issuing client and server certificates
 	 * @see KeyUsage#KEY_CERT_SIGN
 	 * @see KeyUsage#CRL_SIGN
-	 * @see ExtendedKeyUsage#CLIENT_AUTH
 	 * @see ExtendedKeyUsage#SERVER_AUTH
+	 * @see ExtendedKeyUsage#CLIENT_AUTH
 	 * @see #signCertificate(CertificationRequest, Set, Set, BasicConstraints, TemporalAmount, Function, Function)
 	 */
 	public X509Certificate signClientServerIssuingCaCertificate(CertificationRequest request,
 			TemporalAmount validityPeriod, Function<X500Name, X500Name> requestSubjectNameModifier,
 			Function<List<GeneralName>, List<GeneralName>> requestSubjectAlternativeNamesModifier)
 	{
-		return signCertificate(request, KeyUsage.KEY_CERT_SIGN_AND_CRL_SIGN,
-				EnumSet.of(ExtendedKeyUsage.CLIENT_AUTH, ExtendedKeyUsage.SERVER_AUTH), new BasicConstraints(0),
-				validityPeriod, requestSubjectNameModifier, requestSubjectAlternativeNamesModifier);
+		return signCertificate(request, KeyUsage.keyCertSignCrlSign(), ExtendedKeyUsage.serverAuthClientAuth(),
+				new BasicConstraints(0), validityPeriod, requestSubjectNameModifier,
+				requestSubjectAlternativeNamesModifier);
 	}
 
 	/**
@@ -890,9 +963,9 @@ public class CertificateAuthority
 			TemporalAmount validityPeriod, Function<X500Name, X500Name> requestSubjectNameModifier,
 			Function<List<GeneralName>, List<GeneralName>> requestSubjectAlternativeNamesModifier)
 	{
-		return signCertificate(request, KeyUsage.KEY_CERT_SIGN_AND_CRL_SIGN,
-				EnumSet.of(ExtendedKeyUsage.CLIENT_AUTH, ExtendedKeyUsage.EMAIL_PROTECTION), new BasicConstraints(0),
-				validityPeriod, requestSubjectNameModifier, requestSubjectAlternativeNamesModifier);
+		return signCertificate(request, KeyUsage.keyCertSignCrlSign(), ExtendedKeyUsage.serverAuthClientAuth(),
+				new BasicConstraints(0), validityPeriod, requestSubjectNameModifier,
+				requestSubjectAlternativeNamesModifier);
 	}
 
 	/**
@@ -938,8 +1011,8 @@ public class CertificateAuthority
 			Function<X500Name, X500Name> requestSubjectNameModifier,
 			Function<List<GeneralName>, List<GeneralName>> requestSubjectAlternativeNamesModifier)
 	{
-		return signCertificate(request, KeyUsage.DIGITAL_SIGNATURE_AND_KEY_ENCIPHERMENT,
-				EnumSet.of(ExtendedKeyUsage.CLIENT_AUTH), new BasicConstraints(false), validityPeriod,
+		return signCertificate(request, KeyUsage.digitalSignatureKeyEncipherment(),
+				ExtendedKeyUsage.CLIENT_AUTH.asEnumSet(), new BasicConstraints(false), validityPeriod,
 				requestSubjectNameModifier, requestSubjectAlternativeNamesModifier);
 	}
 
@@ -987,10 +1060,9 @@ public class CertificateAuthority
 			Function<X500Name, X500Name> requestSubjectNameModifier,
 			Function<List<GeneralName>, List<GeneralName>> requestSubjectAlternativeNamesModifier)
 	{
-		return signCertificate(request, KeyUsage.DIGITAL_SIGNATURE_AND_KEY_ENCIPHERMENT,
-				EnumSet.of(ExtendedKeyUsage.CLIENT_AUTH, ExtendedKeyUsage.EMAIL_PROTECTION),
-				new BasicConstraints(false), validityPeriod, requestSubjectNameModifier,
-				requestSubjectAlternativeNamesModifier);
+		return signCertificate(request, KeyUsage.digitalSignatureKeyEncipherment(),
+				ExtendedKeyUsage.clientAuthEmailProtection(), new BasicConstraints(false), validityPeriod,
+				requestSubjectNameModifier, requestSubjectAlternativeNamesModifier);
 	}
 
 	/**
@@ -1036,8 +1108,8 @@ public class CertificateAuthority
 			Function<X500Name, X500Name> requestSubjectNameModifier,
 			Function<List<GeneralName>, List<GeneralName>> requestSubjectAlternativeNamesModifier)
 	{
-		return signCertificate(request, KeyUsage.DIGITAL_SIGNATURE_AND_KEY_ENCIPHERMENT,
-				EnumSet.of(ExtendedKeyUsage.EMAIL_PROTECTION), new BasicConstraints(false), validityPeriod,
+		return signCertificate(request, KeyUsage.digitalSignatureKeyEncipherment(),
+				ExtendedKeyUsage.EMAIL_PROTECTION.asEnumSet(), new BasicConstraints(false), validityPeriod,
 				requestSubjectNameModifier, requestSubjectAlternativeNamesModifier);
 	}
 
@@ -1084,8 +1156,8 @@ public class CertificateAuthority
 			Function<X500Name, X500Name> requestSubjectNameModifier,
 			Function<List<GeneralName>, List<GeneralName>> requestSubjectAlternativeNamesModifier)
 	{
-		return signCertificate(request, KeyUsage.DIGITAL_SIGNATURE_AND_KEY_ENCIPHERMENT,
-				EnumSet.of(ExtendedKeyUsage.SERVER_AUTH), new BasicConstraints(false), validityPeriod,
+		return signCertificate(request, KeyUsage.digitalSignatureKeyEncipherment(),
+				ExtendedKeyUsage.SERVER_AUTH.asEnumSet(), new BasicConstraints(false), validityPeriod,
 				requestSubjectNameModifier, requestSubjectAlternativeNamesModifier);
 	}
 
@@ -1125,17 +1197,17 @@ public class CertificateAuthority
 	 * @return signed client and server certificate
 	 * @see KeyUsage#DIGITAL_SIGNATURE
 	 * @see KeyUsage#KEY_ENCIPHERMENT
-	 * @see ExtendedKeyUsage#CLIENT_AUTH
 	 * @see ExtendedKeyUsage#SERVER_AUTH
+	 * @see ExtendedKeyUsage#CLIENT_AUTH
 	 * @see #signCertificate(CertificationRequest, Set, Set, BasicConstraints, TemporalAmount, Function, Function)
 	 */
 	public X509Certificate signClientServerCertificate(CertificationRequest request, TemporalAmount validityPeriod,
 			Function<X500Name, X500Name> requestSubjectNameModifier,
 			Function<List<GeneralName>, List<GeneralName>> requestSubjectAlternativeNamesModifier)
 	{
-		return signCertificate(request, KeyUsage.DIGITAL_SIGNATURE_AND_KEY_ENCIPHERMENT,
-				EnumSet.of(ExtendedKeyUsage.CLIENT_AUTH, ExtendedKeyUsage.SERVER_AUTH), new BasicConstraints(false),
-				validityPeriod, requestSubjectNameModifier, requestSubjectAlternativeNamesModifier);
+		return signCertificate(request, KeyUsage.digitalSignatureKeyEncipherment(),
+				ExtendedKeyUsage.serverAuthClientAuth(), new BasicConstraints(false), validityPeriod,
+				requestSubjectNameModifier, requestSubjectAlternativeNamesModifier);
 	}
 
 	/**
