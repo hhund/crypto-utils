@@ -7,11 +7,9 @@ import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
-import java.util.stream.Collectors;
 
 public final class KeyStoreCreator
 {
@@ -46,8 +44,7 @@ public final class KeyStoreCreator
 			KeyStore keyStore = KeyStore.getInstance(keyStoreType);
 			keyStore.load(null, null);
 
-			String alias = Arrays.stream(chain).map(c -> c.getSubjectX500Principal().getName())
-					.collect(Collectors.joining("/"));
+			String alias = chain[0].getSubjectX500Principal().getName();
 			keyStore.setKeyEntry(alias, key, password, chain);
 
 			return keyStore;

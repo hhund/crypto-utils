@@ -25,6 +25,7 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
 import de.hsheilbronn.mi.utils.crypto.ca.CertificateAuthority;
+import de.hsheilbronn.mi.utils.crypto.ca.CertificationRequest;
 import de.hsheilbronn.mi.utils.crypto.io.PemReader;
 import de.hsheilbronn.mi.utils.crypto.keypair.KeyPairGeneratorFactory;
 
@@ -133,18 +134,20 @@ public class KeyStoreCreatorTest
 	{
 		final CertificateAuthority ca = CertificateAuthority
 				.builderSha256Rsa3072("DE", null, null, null, null, "JUnit Test CA").build();
-		final X509Certificate certificate = ca.getCertificate();
-		final PrivateKey key = ca.getKeyPair().getPrivate();
+		final CertificationRequest req = CertificationRequest
+				.builder(ca, "DE", null, null, null, null, "JUnit Test Client").build();
+		final X509Certificate certificate = ca.signClientCertificate(req);
+		final PrivateKey key = req.getPrivateKey().get();
 		final char[] password = "password".toCharArray();
 
-		KeyStore keyStoreC = forCollection.apply(key, password, List.of(certificate));
-		assertKeyStoreOk(certificate, key, password, keyStoreC);
+		KeyStore keyStoreC = forCollection.apply(key, password, List.of(certificate, ca.getCertificate()));
+		assertKeyStoreOk(List.of(certificate, ca.getCertificate()), key, password, keyStoreC);
 
 		KeyStore keyStoreA = forArray.apply(key, password, new X509Certificate[] { certificate });
-		assertKeyStoreOk(certificate, key, password, keyStoreA);
+		assertKeyStoreOk(List.of(certificate), key, password, keyStoreA);
 	}
 
-	private void assertKeyStoreOk(final X509Certificate certificate, final PrivateKey key, final char[] password,
+	private void assertKeyStoreOk(final List<X509Certificate> certificates, final PrivateKey key, final char[] password,
 			KeyStore keyStore) throws KeyStoreException, NoSuchAlgorithmException, UnrecoverableKeyException
 	{
 		assertNotNull(keyStore);
@@ -159,11 +162,12 @@ public class KeyStoreCreatorTest
 
 		Certificate certificateFromStore = keyStore.getCertificate(aliases.get(0));
 		assertNotNull(certificateFromStore);
-		assertEquals(certificate, certificateFromStore);
+		assertEquals(certificates.get(0), certificateFromStore);
 
 		Certificate[] chain = keyStore.getCertificateChain(aliases.get(0));
 		assertNotNull(chain);
-		assertEquals(1, chain.length);
-		assertEquals(certificate, chain[0]);
+		assertEquals(certificates.size(), chain.length);
+		for (int i = 0; i < chain.length; i++)
+			assertEquals(certificates.get(i), chain[i]);
 	}
 }
