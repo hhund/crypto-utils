@@ -26,6 +26,7 @@ import org.junit.jupiter.params.provider.MethodSource;
 
 import de.hsheilbronn.mi.utils.crypto.ca.CertificateAuthority;
 import de.hsheilbronn.mi.utils.crypto.ca.CertificationRequest;
+import de.hsheilbronn.mi.utils.crypto.ca.CertificationRequest.CertificationRequestAndPrivateKey;
 import de.hsheilbronn.mi.utils.crypto.io.PemReader;
 import de.hsheilbronn.mi.utils.crypto.keypair.KeyPairGeneratorFactory;
 
@@ -134,10 +135,10 @@ public class KeyStoreCreatorTest
 	{
 		final CertificateAuthority ca = CertificateAuthority
 				.builderSha256Rsa3072("DE", null, null, null, null, "JUnit Test CA").build();
-		final CertificationRequest req = CertificationRequest
-				.builder(ca, "DE", null, null, null, null, "JUnit Test Client").build();
+		final CertificationRequestAndPrivateKey req = CertificationRequest
+				.builder(ca, "DE", null, null, null, null, "JUnit Test Client").generateKeyPair().signRequest();
 		final X509Certificate certificate = ca.signClientCertificate(req);
-		final PrivateKey key = req.getPrivateKey().get();
+		final PrivateKey key = req.getPrivateKey();
 		final char[] password = "password".toCharArray();
 
 		KeyStore keyStoreC = forCollection.apply(key, password, List.of(certificate, ca.getCertificate()));

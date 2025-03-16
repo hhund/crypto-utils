@@ -27,6 +27,7 @@ import org.junit.jupiter.params.provider.MethodSource;
 
 import de.hsheilbronn.mi.utils.crypto.ca.CertificateAuthority;
 import de.hsheilbronn.mi.utils.crypto.ca.CertificationRequest;
+import de.hsheilbronn.mi.utils.crypto.ca.CertificationRequest.CertificationRequestAndPrivateKey;
 import de.hsheilbronn.mi.utils.crypto.io.PemWriter.PrivateKeyPemWriter;
 import de.hsheilbronn.mi.utils.crypto.io.PemWriter.PrivateKeyPemWriterBuilder;
 import de.hsheilbronn.mi.utils.crypto.io.PemWriter.PrivateKeyPemWriterOpenSslClassicBuilder.OpenSslClassicAlgorithm;
@@ -166,7 +167,7 @@ public class PemWriterReaderTest
 	@Test
 	void writeReadCertificationRequestString() throws Exception
 	{
-		CertificationRequest request = createRequest();
+		CertificationRequestAndPrivateKey request = createRequest();
 
 		String pem = PemWriter.writeCertificationRequest(request);
 		assertNotNull(pem);
@@ -174,13 +175,13 @@ public class PemWriterReaderTest
 
 		CertificationRequest readRequest = PemReader.readCertificationRequest(pem);
 		assertNotNull(readRequest);
-		assertEquals(request, readRequest);
+		assertEquals(request.getRequest(), readRequest.getRequest());
 	}
 
 	@Test
 	void writeReadCertificationRequestFile(@TempDir Path tmp) throws Exception
 	{
-		CertificationRequest request = createRequest();
+		CertificationRequestAndPrivateKey request = createRequest();
 
 		Path csrPath = tmp.resolve("csr.pem");
 
@@ -188,12 +189,13 @@ public class PemWriterReaderTest
 
 		CertificationRequest readRequest = PemReader.readCertificationRequest(csrPath);
 		assertNotNull(readRequest);
-		assertEquals(request, readRequest);
+		assertEquals(request.getRequest(), readRequest.getRequest());
 	}
 
-	private CertificationRequest createRequest()
+	private CertificationRequestAndPrivateKey createRequest()
 	{
-		return CertificationRequest.builder(ca, "DE", null, null, null, null, "JUnit Test Client").build();
+		return CertificationRequest.builder(ca, "DE", null, null, null, null, "JUnit Test Client").generateKeyPair()
+				.signRequest();
 	}
 
 	@Test

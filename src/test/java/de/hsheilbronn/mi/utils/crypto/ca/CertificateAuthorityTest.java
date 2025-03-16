@@ -2,8 +2,9 @@ package de.hsheilbronn.mi.utils.crypto.ca;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.security.KeyPair;
+import java.security.KeyPairGenerator;
 import java.security.PrivateKey;
 import java.security.cert.X509CRL;
 import java.security.cert.X509Certificate;
@@ -18,7 +19,10 @@ import org.slf4j.LoggerFactory;
 
 import de.hsheilbronn.mi.utils.crypto.ca.CertificateAuthority.RevocationEntry;
 import de.hsheilbronn.mi.utils.crypto.ca.CertificateAuthority.RevocationReason;
+import de.hsheilbronn.mi.utils.crypto.ca.CertificationRequest.CertificationRequestAndPrivateKey;
 import de.hsheilbronn.mi.utils.crypto.ca.CertificationRequest.CertificationRequestBuilder;
+import de.hsheilbronn.mi.utils.crypto.ca.CertificationRequest.CertificationRequestBuilderKeyPair;
+import de.hsheilbronn.mi.utils.crypto.ca.CertificationRequest.CertificationRequestBuilderKeyPairGenerator;
 
 public class CertificateAuthorityTest
 {
@@ -132,18 +136,30 @@ public class CertificateAuthorityTest
 
 		logger.debug("secp521r1-CA certificate:\n{}", ca.getCertificate().toString());
 
-		CertificationRequestBuilder clientServerIssuingCaRequestBuilder = CertificationRequest.builder(ca, "DE", null,
-				null, null, null, "secp521r1-Client-Server-Issuing-CA");
-		assertNotNull(clientServerIssuingCaRequestBuilder);
+		CertificationRequestBuilderKeyPairGenerator clientServerIssuingCaRequestBuilderForKeyGenerator = CertificationRequest
+				.builder(ca, "DE", null, null, null, null, "secp521r1-Client-Server-Issuing-CA");
+		assertNotNull(clientServerIssuingCaRequestBuilderForKeyGenerator);
 
-		CertificationRequest clientServerIssuingCaRequest = clientServerIssuingCaRequestBuilder.build();
+		CertificationRequestBuilder clientServerIssuingCaRequestBuilder = clientServerIssuingCaRequestBuilderForKeyGenerator
+				.generateKeyPair();
+		assertNotNull(clientServerIssuingCaRequestBuilder);
+		assertNotNull(clientServerIssuingCaRequestBuilder.getKeyPair());
+
+		CertificationRequestAndPrivateKey clientServerIssuingCaRequest = clientServerIssuingCaRequestBuilder
+				.signRequest();
 		checkRequest(clientServerIssuingCaRequest);
 
-		CertificationRequestBuilder clientSmimeIssuingCaRequestBuilder = CertificationRequest.builder(ca, "DE", null,
-				null, null, null, "secp521r1-Client-Server-Issuing-CA");
-		assertNotNull(clientSmimeIssuingCaRequestBuilder);
+		CertificationRequestBuilderKeyPairGenerator clientSmimeIssuingCaRequestBuilderForKeyGenerator = CertificationRequest
+				.builder(ca, "DE", null, null, null, null, "secp521r1-Client-Server-Issuing-CA");
+		assertNotNull(clientSmimeIssuingCaRequestBuilderForKeyGenerator);
 
-		CertificationRequest clientSmimeIssuingCaRequest = clientSmimeIssuingCaRequestBuilder.build();
+		CertificationRequestBuilder clientSmimeIssuingCaRequestBuilder = clientSmimeIssuingCaRequestBuilderForKeyGenerator
+				.generateKeyPair();
+		assertNotNull(clientSmimeIssuingCaRequestBuilder);
+		assertNotNull(clientSmimeIssuingCaRequestBuilder.getKeyPair());
+
+		CertificationRequestAndPrivateKey clientSmimeIssuingCaRequest = clientSmimeIssuingCaRequestBuilder
+				.signRequest();
 		checkRequest(clientSmimeIssuingCaRequest);
 
 		X509Certificate clientServerIssuingCaCertificate = ca
@@ -155,11 +171,11 @@ public class CertificateAuthorityTest
 		assertNotNull(clientSmimeIssuingCaCertificate);
 
 		CertificateAuthority clientServerIssuingCa = testInitCaFromExisting(clientServerIssuingCaCertificate,
-				clientServerIssuingCaRequest.getPrivateKey().get());
+				clientServerIssuingCaRequest.getPrivateKey());
 		logger.debug("secp521r1-Client-Server-Issuing-CA certificate:\n{}",
 				clientServerIssuingCa.getCertificate().toString());
 		CertificateAuthority clientSmimeIssuingCa = testInitCaFromExisting(clientSmimeIssuingCaCertificate,
-				clientSmimeIssuingCaRequest.getPrivateKey().get());
+				clientSmimeIssuingCaRequest.getPrivateKey());
 		logger.debug("secp521r1-Client-Server-Issuing-CA certificate:\n{}",
 				clientSmimeIssuingCa.getCertificate().toString());
 
@@ -173,11 +189,10 @@ public class CertificateAuthorityTest
 		testInitCaFromExisting(clientServerIssuingCa.getCertificate(), clientServerIssuingCa.getKeyPair().getPrivate());
 	}
 
-	private void checkRequest(CertificationRequest request)
+	private void checkRequest(CertificationRequestAndPrivateKey request)
 	{
 		assertNotNull(request);
 		assertNotNull(request.getPrivateKey());
-		assertTrue(request.getPrivateKey().isPresent());
 		assertNotNull(request.getPublicKey());
 		assertNotNull(request.getRequest());
 		assertNotNull(request.getSubject());
@@ -231,12 +246,17 @@ public class CertificateAuthorityTest
 
 	private X509Certificate testSignClientCertificate(CertificateAuthority ca)
 	{
-		CertificationRequestBuilder builder = CertificationRequest.builder(ca, "DE", null, null, null, null, "client");
+		CertificationRequestBuilderKeyPairGenerator builderKeyPairGenerator = CertificationRequest.builder(ca, "DE",
+				null, null, null, null, "client");
+		assertNotNull(builderKeyPairGenerator);
+
+		CertificationRequestBuilder builder = builderKeyPairGenerator.generateKeyPair();
 		assertNotNull(builder);
+		assertNotNull(builder.getKeyPair());
 
 		builder.setEmail("email@test.com");
 
-		CertificationRequest request = builder.build();
+		CertificationRequestAndPrivateKey request = builder.signRequest();
 		checkRequest(request);
 
 		X509Certificate certificate = ca.signClientCertificate(request);
@@ -249,13 +269,23 @@ public class CertificateAuthorityTest
 
 	private X509Certificate testSignSmimeCertificate(CertificateAuthority ca)
 	{
-		CertificationRequestBuilder builder = CertificationRequest.builder(ca,
+		CertificationRequestBuilderKeyPair builderKeyPair = CertificationRequest.builder(ca.getContentSignerBuilder(),
 				CertificateAuthority.createName("DE", null, null, null, null, "client"));
+		assertNotNull(builderKeyPair);
+
+		KeyPairGenerator generator = ca.getKeyPairGeneratorFactory().initialize();
+		assertNotNull(generator);
+		KeyPair keyPair = generator.generateKeyPair();
+		assertNotNull(keyPair);
+
+		CertificationRequestBuilder builder = builderKeyPair.forKeyPair(keyPair);
 		assertNotNull(builder);
+		assertNotNull(builder.getKeyPair());
+		assertEquals(keyPair, builder.getKeyPair());
 
 		builder.setEmail("email@test.com");
 
-		CertificationRequest request = builder.build();
+		CertificationRequestAndPrivateKey request = builder.signRequest();
 		checkRequest(request);
 
 		X509Certificate certificate = ca.signSmimeCertificate(request);
@@ -268,13 +298,18 @@ public class CertificateAuthorityTest
 
 	private X509Certificate testSignServerCertificate(CertificateAuthority ca)
 	{
-		CertificationRequestBuilder builder = CertificationRequest.builder(ca, "DE", null, null, null, null, "server");
+		CertificationRequestBuilderKeyPairGenerator builderKeyPairGenerator = CertificationRequest.builder(ca, "DE",
+				null, null, null, null, "server");
+		assertNotNull(builderKeyPairGenerator);
+
+		CertificationRequestBuilder builder = builderKeyPairGenerator.generateKeyPair();
 		assertNotNull(builder);
+		assertNotNull(builder.getKeyPair());
 
 		builder.setEmail("email@test.com");
 		builder.addDnsName("localhost");
 
-		CertificationRequest request = builder.build();
+		CertificationRequestAndPrivateKey request = builder.signRequest();
 		checkRequest(request);
 		List<GeneralName> names = CertificateAuthority.getSubjectAlternativeNames(request.getRequest());
 		assertNotNull(names);

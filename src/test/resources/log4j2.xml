@@ -1,4 +1,4 @@
-<Configuration status="INFO" strict="true" monitorInterval="30" verbose="false">
+<Configuration status="WARN" strict="true" monitorInterval="30" verbose="false">
 	<Appenders>
 		<Appender name="CONSOLE" type="Console">
 			<Layout type="PatternLayout" pattern="%p\t%t - %C{1}.%M(%L) | %m%n" />

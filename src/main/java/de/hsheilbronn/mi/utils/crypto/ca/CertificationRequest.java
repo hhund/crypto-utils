@@ -39,6 +39,31 @@ import de.hsheilbronn.mi.utils.crypto.keypair.KeyPairValidator;
 public class CertificationRequest
 {
 	/**
+	 * @param contentSignerBuilder
+	 *            not <code>null</code>
+	 * @param countryCode
+	 *            may be <code>null</code>
+	 * @param state
+	 *            may be <code>null</code>
+	 * @param locality
+	 *            may be <code>null</code>
+	 * @param organization
+	 *            may be <code>null</code>
+	 * @param organizationalUnit
+	 *            may be <code>null</code>
+	 * @param commonName
+	 *            may be <code>null</code>
+	 * @return new {@link CertificationRequestBuilderKeyPair}
+	 */
+	public static CertificationRequestBuilderKeyPair builder(JcaContentSignerBuilder contentSignerBuilder,
+			String countryCode, String state, String locality, String organization, String organizationalUnit,
+			String commonName)
+	{
+		return builder(contentSignerBuilder,
+				createName(countryCode, state, locality, organization, organizationalUnit, commonName));
+	}
+
+	/**
 	 * Key: RSA 3072 Bit, Signature Algorithm: SHA512WithRSA
 	 * 
 	 * @param countryCode
@@ -52,19 +77,17 @@ public class CertificationRequest
 	 * @param organizationalUnit
 	 *            may be <code>null</code>
 	 * @param commonName
-	 *            not <code>null</code>, not {@link String#isBlank()}
-	 * @return new {@link CertificationRequestBuilder}
+	 *            may be <code>null</code>
+	 * @return new {@link CertificationRequestBuilderKeyPairGenerator}
 	 */
-	public static CertificationRequestBuilder builderSha256Rsa3072(String countryCode, String state, String locality,
-			String organization, String organizationalUnit, String commonName)
+	public static CertificationRequestBuilderKeyPairGenerator builderSha256Rsa3072(String countryCode, String state,
+			String locality, String organization, String organizationalUnit, String commonName)
 	{
 		Objects.requireNonNull(commonName, "commonName");
 
-		JcaContentSignerBuilder contentSignerBuilder = JcaContentSignerBuilderFactory.sha256WithRsa();
-		KeyPairGeneratorFactory keyPairGenertorFactory = KeyPairGeneratorFactory.rsa3072();
-
-		return builder(contentSignerBuilder, keyPairGenertorFactory,
-				createName(countryCode, state, locality, organization, organizationalUnit, commonName));
+		return builder(JcaContentSignerBuilderFactory.sha256WithRsa(),
+				createName(countryCode, state, locality, organization, organizationalUnit, commonName),
+				KeyPairGeneratorFactory.rsa3072());
 	}
 
 	/**
@@ -81,19 +104,15 @@ public class CertificationRequest
 	 * @param organizationalUnit
 	 *            may be <code>null</code>
 	 * @param commonName
-	 *            not <code>null</code>, not {@link String#isBlank()}
-	 * @return new {@link CertificationRequestBuilder}
+	 *            may be <code>null</code>
+	 * @return new {@link CertificationRequestBuilderKeyPairGenerator}
 	 */
-	public static CertificationRequestBuilder builderSha512Rsa4096(String countryCode, String state, String locality,
-			String organization, String organizationalUnit, String commonName)
+	public static CertificationRequestBuilderKeyPairGenerator builderSha512Rsa4096(String countryCode, String state,
+			String locality, String organization, String organizationalUnit, String commonName)
 	{
-		Objects.requireNonNull(commonName, "commonName");
-
-		JcaContentSignerBuilder contentSignerBuilder = JcaContentSignerBuilderFactory.sha512WithRsa();
-		KeyPairGeneratorFactory keyPairGenertorFactory = KeyPairGeneratorFactory.rsa4096();
-
-		return builder(contentSignerBuilder, keyPairGenertorFactory,
-				createName(countryCode, state, locality, organization, organizationalUnit, commonName));
+		return builder(JcaContentSignerBuilderFactory.sha512WithRsa(),
+				createName(countryCode, state, locality, organization, organizationalUnit, commonName),
+				KeyPairGeneratorFactory.rsa4096());
 	}
 
 	/**
@@ -110,23 +129,69 @@ public class CertificationRequest
 	 * @param organizationalUnit
 	 *            may be <code>null</code>
 	 * @param commonName
-	 *            not <code>null</code>, not {@link String#isBlank()}
-	 * @return new {@link CertificationRequestBuilder}
+	 *            may be <code>null</code>
+	 * @return new {@link CertificationRequestBuilderKeyPairGenerator}
 	 */
-	public static CertificationRequestBuilder builderSha384EcdsaSecp384r1(String countryCode, String state,
+	public static CertificationRequestBuilderKeyPairGenerator builderSha384EcdsaSecp384r1(String countryCode,
+			String state, String locality, String organization, String organizationalUnit, String commonName)
+	{
+		return builder(JcaContentSignerBuilderFactory.sha384withEcdsa(),
+				createName(countryCode, state, locality, organization, organizationalUnit, commonName),
+				KeyPairGeneratorFactory.secp384r1());
+	}
+
+	/**
+	 * Key: secp521r1, Signature algorithm: SHA512withECDSA Note: secp521r1 not widely supported by web browsers
+	 * 
+	 * @param countryCode
+	 *            may be <code>null</code>
+	 * @param state
+	 *            may be <code>null</code>
+	 * @param locality
+	 *            may be <code>null</code>
+	 * @param organization
+	 *            may be <code>null</code>
+	 * @param organizationalUnit
+	 *            may be <code>null</code>
+	 * @param commonName
+	 *            may be <code>null</code>
+	 * @return new {@link CertificationRequestBuilderKeyPairGenerator}
+	 */
+	public static CertificationRequestBuilderKeyPairGenerator builderSha512EcdsaSecp521r1(String countryCode,
+			String state, String locality, String organization, String organizationalUnit, String commonName)
+	{
+		return builder(JcaContentSignerBuilderFactory.sha512withEcdsa(),
+				createName(countryCode, state, locality, organization, organizationalUnit, commonName),
+				KeyPairGeneratorFactory.secp521r1());
+	}
+
+	/**
+	 * Key: ed25519, Signature algorithm: Ed25519 Note: ed25519 not supported by web browsers
+	 * 
+	 * @param countryCode
+	 *            may be <code>null</code>
+	 * @param state
+	 *            may be <code>null</code>
+	 * @param locality
+	 *            may be <code>null</code>
+	 * @param organization
+	 *            may be <code>null</code>
+	 * @param organizationalUnit
+	 *            may be <code>null</code>
+	 * @param commonName
+	 *            may be <code>null</code>
+	 * @return new {@link CertificationRequestBuilderKeyPairGenerator}
+	 */
+	public static CertificationRequestBuilderKeyPairGenerator builderEd25519(String countryCode, String state,
 			String locality, String organization, String organizationalUnit, String commonName)
 	{
-		Objects.requireNonNull(commonName, "commonName");
-
-		JcaContentSignerBuilder contentSignerBuilder = JcaContentSignerBuilderFactory.sha384withEcdsa();
-		KeyPairGeneratorFactory keyPairGenertorFactory = KeyPairGeneratorFactory.secp384r1();
-
-		return builder(contentSignerBuilder, keyPairGenertorFactory,
-				createName(countryCode, state, locality, organization, organizationalUnit, commonName));
+		return builder(JcaContentSignerBuilderFactory.ed25519(),
+				createName(countryCode, state, locality, organization, organizationalUnit, commonName),
+				KeyPairGeneratorFactory.ed25519());
 	}
 
 	/**
-	 * Key: secp521r1, Signature algorithm: SHA512withECDSA Note: secp521r1 not widely supported by webbrowsers
+	 * Key: ed448, Signature algorithm: Ed448 Note: ed448 not supported by web browsers
 	 * 
 	 * @param countryCode
 	 *            may be <code>null</code>
@@ -139,77 +204,15 @@ public class CertificationRequest
 	 * @param organizationalUnit
 	 *            may be <code>null</code>
 	 * @param commonName
-	 *            not <code>null</code>, not {@link String#isBlank()}
-	 * @return new {@link CertificationRequestBuilder}
+	 *            may be <code>null</code>
+	 * @return new {@link CertificationRequestBuilderKeyPairGenerator}
 	 */
-	public static CertificationRequestBuilder builderSha512EcdsaSecp521r1(String countryCode, String state,
+	public static CertificationRequestBuilderKeyPairGenerator builderEd448(String countryCode, String state,
 			String locality, String organization, String organizationalUnit, String commonName)
 	{
-		Objects.requireNonNull(commonName, "commonName");
-
-		JcaContentSignerBuilder contentSignerBuilder = JcaContentSignerBuilderFactory.sha512withEcdsa();
-		KeyPairGeneratorFactory keyPairGenertorFactory = KeyPairGeneratorFactory.secp521r1();
-
-		return builder(contentSignerBuilder, keyPairGenertorFactory,
-				createName(countryCode, state, locality, organization, organizationalUnit, commonName));
-	}
-
-	/**
-	 * Key: ed25519, Signature algorithm: Ed25519 Note: ed25519 not supported by webbrowsers
-	 * 
-	 * @param countryCode
-	 *            may be <code>null</code>
-	 * @param state
-	 *            may be <code>null</code>
-	 * @param locality
-	 *            may be <code>null</code>
-	 * @param organization
-	 *            may be <code>null</code>
-	 * @param organizationalUnit
-	 *            may be <code>null</code>
-	 * @param commonName
-	 *            not <code>null</code>, not {@link String#isBlank()}
-	 * @return new {@link CertificationRequestBuilder}
-	 */
-	public static CertificationRequestBuilder builderEd25519(String countryCode, String state, String locality,
-			String organization, String organizationalUnit, String commonName)
-	{
-		Objects.requireNonNull(commonName, "commonName");
-
-		JcaContentSignerBuilder contentSignerBuilder = JcaContentSignerBuilderFactory.ed25519();
-		KeyPairGeneratorFactory keyPairGenertorFactory = KeyPairGeneratorFactory.ed25519();
-
-		return builder(contentSignerBuilder, keyPairGenertorFactory,
-				createName(countryCode, state, locality, organization, organizationalUnit, commonName));
-	}
-
-	/**
-	 * Key: ed448, Signature algorithm: Ed448
-	 * 
-	 * @param countryCode
-	 *            may be <code>null</code>
-	 * @param state
-	 *            may be <code>null</code>
-	 * @param locality
-	 *            may be <code>null</code>
-	 * @param organization
-	 *            may be <code>null</code>
-	 * @param organizationalUnit
-	 *            may be <code>null</code>
-	 * @param commonName
-	 *            not <code>null</code>, not {@link String#isBlank()}
-	 * @return new {@link CertificationRequestBuilder}
-	 */
-	public static CertificationRequestBuilder builderEd448(String countryCode, String state, String locality,
-			String organization, String organizationalUnit, String commonName)
-	{
-		Objects.requireNonNull(commonName, "commonName");
-
-		JcaContentSignerBuilder contentSignerBuilder = JcaContentSignerBuilderFactory.ed448();
-		KeyPairGeneratorFactory keyPairGenertorFactory = KeyPairGeneratorFactory.ed448();
-
-		return builder(contentSignerBuilder, keyPairGenertorFactory,
-				createName(countryCode, state, locality, organization, organizationalUnit, commonName));
+		return builder(JcaContentSignerBuilderFactory.ed448(),
+				createName(countryCode, state, locality, organization, organizationalUnit, commonName),
+				KeyPairGeneratorFactory.ed448());
 	}
 
 	/**
@@ -226,33 +229,16 @@ public class CertificationRequest
 	 * @param organizationalUnit
 	 *            may be <code>null</code>
 	 * @param commonName
-	 *            not <code>null</code>, not {@link String#isBlank()}
-	 * @return new {@link CertificationRequestBuilder} with {@link JcaContentSignerBuilder} and
+	 *            may be <code>null</code>
+	 * @return new {@link CertificationRequestBuilderKeyPairGenerator} with {@link JcaContentSignerBuilder} and
 	 *         {@link KeyPairGeneratorFactory} from given <b>ca</b>
 	 */
-	public static CertificationRequestBuilder builder(CertificateAuthority ca, String countryCode, String state,
-			String locality, String organization, String organizationalUnit, String commonName)
-	{
-		Objects.requireNonNull(ca, "ca");
-		Objects.requireNonNull(commonName, "commonName");
-
-		return builder(ca.getContentSignerBuilder(), ca.getKeyPairGeneratorFactory(),
-				createName(countryCode, state, locality, organization, organizationalUnit, commonName));
-	}
-
-	/**
-	 * @param ca
-	 *            not <code>null</code>
-	 * @param name
-	 *            not <code>null</code>
-	 * @return new {@link CertificationRequestBuilder} with {@link JcaContentSignerBuilder} and
-	 *         {@link KeyPairGeneratorFactory} from given <b>ca</b>
-	 */
-	public static CertificationRequestBuilder builder(CertificateAuthority ca, X500Name name)
+	public static CertificationRequestBuilderKeyPairGenerator builder(CertificateAuthority ca, String countryCode,
+			String state, String locality, String organization, String organizationalUnit, String commonName)
 	{
 		Objects.requireNonNull(ca, "ca");
 
-		return builder(ca.getContentSignerBuilder(), ca.getKeyPairGeneratorFactory(), name);
+		return builder(ca, createName(countryCode, state, locality, organization, organizationalUnit, commonName));
 	}
 
 	/**
@@ -267,16 +253,12 @@ public class CertificationRequest
 	 * @param organizationalUnit
 	 *            may be <code>null</code>
 	 * @param commonName
-	 *            not <code>null</code>, not {@link String#isBlank()}
+	 *            may be <code>null</code>
 	 * @return X500 Name with non <code>null</code>, non blank elements
 	 */
 	public static X500Name createName(String countryCode, String state, String locality, String organization,
 			String organizationalUnit, String commonName)
 	{
-		Objects.requireNonNull(commonName, "commonName");
-		if (commonName.isBlank())
-			throw new IllegalArgumentException("commonName blank");
-
 		X500NameBuilder subjectBuilder = new X500NameBuilder(BCStyle.INSTANCE);
 
 		if (countryCode != null && !countryCode.isBlank())
@@ -289,8 +271,8 @@ public class CertificationRequest
 			subjectBuilder.addRDN(BCStyle.O, organization);
 		if (organizationalUnit != null && !organizationalUnit.isBlank())
 			subjectBuilder.addRDN(BCStyle.OU, organizationalUnit);
-
-		subjectBuilder.addRDN(BCStyle.CN, commonName);
+		if (commonName != null && !commonName.isBlank())
+			subjectBuilder.addRDN(BCStyle.CN, commonName);
 
 		return subjectBuilder.build();
 	}
@@ -298,38 +280,123 @@ public class CertificationRequest
 	/**
 	 * @param contentSignerBuilder
 	 *            not <code>null</code>
-	 * @param keyPairGenertorFactory
+	 * @param name
+	 *            not <code>null</code>
+	 * @return new {@link CertificationRequestBuilderKeyPair}
+	 */
+	public static CertificationRequestBuilderKeyPair builder(JcaContentSignerBuilder contentSignerBuilder,
+			X500Name name)
+	{
+		Objects.requireNonNull(contentSignerBuilder, "contentSignerBuilder");
+		Objects.requireNonNull(name, "name");
+
+		return new CertificationRequestBuilderKeyPair(contentSignerBuilder, name);
+	}
+
+	/**
+	 * @param ca
 	 *            not <code>null</code>
 	 * @param name
 	 *            not <code>null</code>
-	 * @return new {@link CertificationRequestBuilder}
+	 * @return new {@link CertificationRequestBuilderKeyPairGenerator} with {@link JcaContentSignerBuilder} and
+	 *         {@link KeyPairGeneratorFactory} from given <b>ca</b>
+	 */
+	public static CertificationRequestBuilderKeyPairGenerator builder(CertificateAuthority ca, X500Name name)
+	{
+		Objects.requireNonNull(ca, "ca");
+		Objects.requireNonNull(name, "name");
+
+		return builder(ca.getContentSignerBuilder(), name, ca.getKeyPairGeneratorFactory());
+	}
+
+	/**
+	 * @param contentSignerBuilder
+	 *            not <code>null</code>
+	 * @param name
+	 *            not <code>null</code>
+	 * @param keyPairGenertorFactory
+	 *            not <code>null</code>
+	 * @return new {@link CertificationRequestBuilderKeyPairGenerator}
 	 * @see JcaContentSignerBuilderFactory
 	 */
-	public static CertificationRequestBuilder builder(JcaContentSignerBuilder contentSignerBuilder,
-			KeyPairGeneratorFactory keyPairGenertorFactory, X500Name name)
+	public static CertificationRequestBuilderKeyPairGenerator builder(JcaContentSignerBuilder contentSignerBuilder,
+			X500Name name, KeyPairGeneratorFactory keyPairGenertorFactory)
 	{
-		return new CertificationRequestBuilder(contentSignerBuilder, keyPairGenertorFactory, name);
+		Objects.requireNonNull(contentSignerBuilder, "contentSignerBuilder");
+		Objects.requireNonNull(name, "name");
+		Objects.requireNonNull(keyPairGenertorFactory, "keyPairGenertorFactory");
+
+		return new CertificationRequestBuilderKeyPairGenerator(contentSignerBuilder, name, keyPairGenertorFactory);
+	}
+
+	public static class CertificationRequestBuilderKeyPairGenerator
+	{
+		private final JcaContentSignerBuilder contentSignerBuilder;
+		private final X500Name name;
+		private final KeyPairGeneratorFactory keyPairGenertorFactory;
+
+		private CertificationRequestBuilderKeyPairGenerator(JcaContentSignerBuilder contentSignerBuilder, X500Name name,
+				KeyPairGeneratorFactory keyPairGenertorFactory)
+		{
+			Objects.requireNonNull(contentSignerBuilder, "contentSignerBuilder");
+			Objects.requireNonNull(name, "name");
+			Objects.requireNonNull(keyPairGenertorFactory, "keyPairGenertorFactory");
+
+			this.contentSignerBuilder = contentSignerBuilder;
+			this.name = name;
+			this.keyPairGenertorFactory = keyPairGenertorFactory;
+		}
+
+		public CertificationRequestBuilder generateKeyPair()
+		{
+			return new CertificationRequestBuilder(contentSignerBuilder, name,
+					keyPairGenertorFactory.initialize().generateKeyPair());
+		}
+	}
+
+	public static class CertificationRequestBuilderKeyPair
+	{
+		private final JcaContentSignerBuilder contentSignerBuilder;
+		private final X500Name name;
+
+		private CertificationRequestBuilderKeyPair(JcaContentSignerBuilder contentSignerBuilder, X500Name name)
+		{
+			this.contentSignerBuilder = contentSignerBuilder;
+			this.name = name;
+		}
+
+		public CertificationRequestBuilder forKeyPair(KeyPair keyPair)
+		{
+			Objects.requireNonNull(keyPair, "keyPair");
+
+			return new CertificationRequestBuilder(contentSignerBuilder, name, keyPair);
+		}
 	}
 
 	public static class CertificationRequestBuilder
 	{
 		private final JcaContentSignerBuilder contentSignerBuilder;
-		private final KeyPairGeneratorFactory keyPairGeneratorFactory;
 		private final X500Name name;
+		private final KeyPair keyPair;
 
 		private final List<String> dnsNames = new ArrayList<>();
 		private String email;
 
-		private CertificationRequestBuilder(JcaContentSignerBuilder contentSignerBuilder,
-				KeyPairGeneratorFactory keyPairGeneratorFactory, X500Name name)
+		private CertificationRequestBuilder(JcaContentSignerBuilder contentSignerBuilder, X500Name name,
+				KeyPair keyPair)
 		{
 			Objects.requireNonNull(contentSignerBuilder, "contentSignerBuilder");
-			Objects.requireNonNull(keyPairGeneratorFactory, "keyPairGeneratorFactory");
 			Objects.requireNonNull(name, "name");
+			Objects.requireNonNull(keyPair, "keyPair");
 
 			this.contentSignerBuilder = contentSignerBuilder;
-			this.keyPairGeneratorFactory = keyPairGeneratorFactory;
 			this.name = name;
+			this.keyPair = keyPair;
+		}
+
+		public KeyPair getKeyPair()
+		{
+			return keyPair;
 		}
 
 		/**
@@ -412,16 +479,15 @@ public class CertificationRequest
 			return this;
 		}
 
-		public CertificationRequest build()
+		public CertificationRequestAndPrivateKey signRequest()
 		{
-			KeyPair keyPair = keyPairGeneratorFactory.initialize().generateKeyPair();
 			JcaPKCS10CertificationRequest request = toJcaPKCS10CertificationRequest(contentSignerBuilder, keyPair, name,
 					email, dnsNames);
 
-			return new CertificationRequest(request, keyPair.getPrivate());
+			return new CertificationRequestAndPrivateKey(request, keyPair.getPrivate());
 		}
 
-		private static JcaPKCS10CertificationRequest toJcaPKCS10CertificationRequest(
+		private JcaPKCS10CertificationRequest toJcaPKCS10CertificationRequest(
 				JcaContentSignerBuilder contentSignerBuilder, KeyPair keyPair, X500Name subject, String email,
 				Collection<String> dnsNames)
 		{
@@ -481,7 +547,9 @@ public class CertificationRequest
 	 */
 	public static CertificationRequest of(JcaPKCS10CertificationRequest request)
 	{
-		return of(request, null);
+		Objects.requireNonNull(request, "request");
+
+		return new CertificationRequest(request);
 	}
 
 	/**
@@ -491,16 +559,16 @@ public class CertificationRequest
 	 *            not <code>null</code>
 	 * @param privateKey
 	 *            may be <code>null</code>
-	 * @return {@link CertificationRequest} from the given {@link JcaPKCS10CertificationRequest}
+	 * @return {@link CertificationRequestAndPrivateKey} from the given {@link JcaPKCS10CertificationRequest}
 	 * @throws RuntimeException
 	 *             if public key extraction fails with {@link InvalidKeyException} or {@link NoSuchAlgorithmException}
 	 * @see KeyPairValidator#matches(PrivateKey, PublicKey)
 	 */
-	public static CertificationRequest of(JcaPKCS10CertificationRequest request, PrivateKey privateKey)
+	public static CertificationRequestAndPrivateKey of(JcaPKCS10CertificationRequest request, PrivateKey privateKey)
 	{
 		Objects.requireNonNull(request, "request");
 
-		return new CertificationRequest(request, privateKey);
+		return new CertificationRequestAndPrivateKey(request, privateKey);
 	}
 
 	/**
@@ -510,32 +578,55 @@ public class CertificationRequest
 	 *            not <code>null</code>, no privateKey
 	 * @param privateKey
 	 *            may be <code>null</code>
-	 * @return {@link CertificationRequest} from the given {@link JcaPKCS10CertificationRequest}
+	 * @return {@link CertificationRequestAndPrivateKey} from the given {@link JcaPKCS10CertificationRequest}
 	 * @throws RuntimeException
 	 *             if public key extraction fails with {@link InvalidKeyException} or {@link NoSuchAlgorithmException}
 	 * @see KeyPairValidator#matches(PrivateKey, PublicKey)
 	 */
-	public static CertificationRequest of(CertificationRequest request, PrivateKey privateKey)
+	public static CertificationRequestAndPrivateKey of(CertificationRequest request, PrivateKey privateKey)
 	{
 		Objects.requireNonNull(request, "request");
-		if (request.getPrivateKey().isPresent())
-			throw new IllegalArgumentException("request.privateKey present");
-
-		return new CertificationRequest(request.request, privateKey);
+		return new CertificationRequestAndPrivateKey(request.request, privateKey);
 	}
 
-	private final PrivateKey privateKey;
+	public static final class CertificationRequestAndPrivateKey extends CertificationRequest
+	{
+		private final PrivateKey privateKey;
+
+		private CertificationRequestAndPrivateKey(JcaPKCS10CertificationRequest request, PrivateKey privateKey)
+		{
+			super(request);
+
+			this.privateKey = Objects.requireNonNull(privateKey, "privateKey");
+		}
+
+		/**
+		 * @return {@link Optional#isEmpty()} if created from {@link JcaPKCS10CertificationRequest} without
+		 *         {@link PrivateKey}
+		 */
+		public PrivateKey getPrivateKey()
+		{
+			return privateKey;
+		}
+
+		/**
+		 * @return {@link KeyPair}.privateKey may be <code>null</code>
+		 */
+		public KeyPair getKeyPair()
+		{
+			return new KeyPair(getPublicKey(), getPrivateKey());
+		}
+	}
+
 	private final JcaPKCS10CertificationRequest request;
 
-	private CertificationRequest(JcaPKCS10CertificationRequest request, PrivateKey privateKey)
+	protected CertificationRequest(JcaPKCS10CertificationRequest request)
 	{
 		Objects.requireNonNull(request, "request");
 		Objects.requireNonNull(request.getSubject(), "request.subject");
 		Objects.requireNonNull(getPublicKey(request), "request.publicKey");
-		// privateKey may be null
 
 		this.request = request;
-		this.privateKey = privateKey;
 	}
 
 	private PublicKey getPublicKey(JcaPKCS10CertificationRequest request)
@@ -561,15 +652,6 @@ public class CertificationRequest
 	}
 
 	/**
-	 * @return {@link Optional#isEmpty()} if created from {@link JcaPKCS10CertificationRequest} without
-	 *         {@link PrivateKey}
-	 */
-	public Optional<PrivateKey> getPrivateKey()
-	{
-		return Optional.ofNullable(privateKey);
-	}
-
-	/**
 	 * @return {@link PublicKey} from the {@link JcaPKCS10CertificationRequest}
 	 * @throws RuntimeException
 	 *             if public key extraction fails with {@link InvalidKeyException} or {@link NoSuchAlgorithmException}
@@ -577,32 +659,5 @@ public class CertificationRequest
 	public PublicKey getPublicKey()
 	{
 		return getPublicKey(request);
-	}
-
-	/**
-	 * @return {@link KeyPair}.privateKey may be <code>null</code>
-	 */
-	public KeyPair getKeyPair()
-	{
-		return new KeyPair(getPublicKey(), getPrivateKey().orElse(null));
-	}
-
-	@Override
-	public int hashCode()
-	{
-		return Objects.hash(request);
-	}
-
-	@Override
-	public boolean equals(Object obj)
-	{
-		if (this == obj)
-			return true;
-		if (obj == null)
-			return false;
-		if (getClass() != obj.getClass())
-			return false;
-		CertificationRequest other = (CertificationRequest) obj;
-		return Objects.equals(request, other.request);
 	}
 }
