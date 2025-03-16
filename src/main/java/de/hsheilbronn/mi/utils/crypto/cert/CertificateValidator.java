@@ -47,7 +47,7 @@ public final class CertificateValidator
 		return ew ->
 		{
 			logger.warn("Certificate '{}', valid until {} UTC, will expire in {} day{}!",
-					ew.certificate.getSubjectX500Principal().getName().toString(),
+					ew.certificate.getSubjectX500Principal().getName(),
 					ew.certificateNotAfter.format(DateTimeFormatter.ISO_LOCAL_DATE_TIME), ew.daysToExpiry,
 					ew.daysToExpiry != 1 ? "s" : "");
 		};
