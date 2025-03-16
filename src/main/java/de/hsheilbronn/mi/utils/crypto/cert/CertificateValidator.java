@@ -165,8 +165,9 @@ public final class CertificateValidator
 		try
 		{
 			// digitalSignature && keyEncipherment && client authentication
-			return certificate.getKeyUsage()[0] && certificate.getKeyUsage()[2] && certificate.getExtendedKeyUsage()
-					.contains(CertificateAuthority.ExtendedKeyUsage.CLIENT_AUTH.toKeyPurposeId().getId());
+			return certificate.getKeyUsage() != null && certificate.getKeyUsage()[0] && certificate.getKeyUsage()[2]
+					&& certificate.getExtendedKeyUsage()
+							.contains(CertificateAuthority.ExtendedKeyUsage.CLIENT_AUTH.toKeyPurposeId().getId());
 		}
 		catch (CertificateParsingException e)
 		{
@@ -181,8 +182,9 @@ public final class CertificateValidator
 		try
 		{
 			// digitalSignature && keyEncipherment && client authentication
-			return certificate.getKeyUsage()[0] && certificate.getKeyUsage()[2] && certificate.getExtendedKeyUsage()
-					.contains(CertificateAuthority.ExtendedKeyUsage.SERVER_AUTH.toKeyPurposeId().getId());
+			return certificate.getKeyUsage() != null && certificate.getKeyUsage()[0] && certificate.getKeyUsage()[2]
+					&& certificate.getExtendedKeyUsage()
+							.contains(CertificateAuthority.ExtendedKeyUsage.SERVER_AUTH.toKeyPurposeId().getId());
 		}
 		catch (CertificateParsingException e)
 		{

@@ -136,7 +136,7 @@ public class KeyStoreCreatorTest
 		final CertificateAuthority ca = CertificateAuthority
 				.builderSha256Rsa3072("DE", null, null, null, null, "JUnit Test CA").build();
 		final CertificationRequestAndPrivateKey req = CertificationRequest
-				.builder(ca, "DE", null, null, null, null, "JUnit Test Client").generateKeyPair().signRequest();
+				.builder(ca, "DE", null, null, null, null, "JUnit Test Client").generateKeyPair().build();
 		final X509Certificate certificate = ca.signClientCertificate(req);
 		final PrivateKey key = req.getPrivateKey();
 		final char[] password = "password".toCharArray();

@@ -103,7 +103,7 @@ public class CertificationRequestTest
 		assertNotNull(builder.getKeyPair());
 
 		CertificationRequestAndPrivateKey request = builder.setEmail(email).addDnsName(dnsName1).addDnsName(dnsName2)
-				.signRequest();
+				.build();
 
 		assertNotNull(request);
 		assertNotNull(request.getPrivateKey());

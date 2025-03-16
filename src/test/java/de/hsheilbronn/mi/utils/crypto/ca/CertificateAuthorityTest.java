@@ -23,6 +23,7 @@ import de.hsheilbronn.mi.utils.crypto.ca.CertificationRequest.CertificationReque
 import de.hsheilbronn.mi.utils.crypto.ca.CertificationRequest.CertificationRequestBuilder;
 import de.hsheilbronn.mi.utils.crypto.ca.CertificationRequest.CertificationRequestBuilderKeyPair;
 import de.hsheilbronn.mi.utils.crypto.ca.CertificationRequest.CertificationRequestBuilderKeyPairGenerator;
+import de.hsheilbronn.mi.utils.crypto.cert.CertificateFormatter;
 
 public class CertificateAuthorityTest
 {
@@ -39,7 +40,7 @@ public class CertificateAuthorityTest
 		assertNotNull(ca.getCertificate());
 		assertNotNull(ca.initializeKeyPairGenerator());
 
-		logger.debug("RSA3072-CA certificate:\n{}", ca.getCertificate().toString());
+		logger.debug("RSA3072-CA certificate:\n{}", CertificateFormatter.toOpenSslStyleText(ca.getCertificate()));
 
 		X509Certificate clientCert = testSignClientCertificate(ca);
 		X509Certificate smimeCert = testSignSmimeCertificate(ca);
@@ -62,7 +63,7 @@ public class CertificateAuthorityTest
 		assertNotNull(ca.getCertificate());
 		assertNotNull(ca.initializeKeyPairGenerator());
 
-		logger.debug("RSA4096-CA certificate:\n{}", ca.getCertificate().toString());
+		logger.debug("RSA4096-CA certificate:\n{}", CertificateFormatter.toOpenSslStyleText(ca.getCertificate()));
 
 		X509Certificate clientCert = testSignClientCertificate(ca);
 		X509Certificate smimeCert = testSignSmimeCertificate(ca);
@@ -86,7 +87,7 @@ public class CertificateAuthorityTest
 		assertNotNull(ca.getCertificate());
 		assertNotNull(ca.initializeKeyPairGenerator());
 
-		logger.debug("secp384r1-CA certificate:\n{}", ca.getCertificate().toString());
+		logger.debug("secp384r1-CA certificate:\n{}", CertificateFormatter.toOpenSslStyleText(ca.getCertificate()));
 
 		X509Certificate clientCert = testSignClientCertificate(ca);
 		X509Certificate smimeCert = testSignSmimeCertificate(ca);
@@ -110,7 +111,7 @@ public class CertificateAuthorityTest
 		assertNotNull(ca.getCertificate());
 		assertNotNull(ca.initializeKeyPairGenerator());
 
-		logger.debug("secp521r1-CA certificate:\n{}", ca.getCertificate().toString());
+		logger.debug("secp521r1-CA certificate:\n{}", CertificateFormatter.toOpenSslStyleText(ca.getCertificate()));
 
 		X509Certificate clientCert = testSignClientCertificate(ca);
 		X509Certificate smimeCert = testSignSmimeCertificate(ca);
@@ -134,7 +135,7 @@ public class CertificateAuthorityTest
 		assertNotNull(ca.getCertificate());
 		assertNotNull(ca.initializeKeyPairGenerator());
 
-		logger.debug("secp521r1-CA certificate:\n{}", ca.getCertificate().toString());
+		logger.debug("secp521r1-CA certificate:\n{}", CertificateFormatter.toOpenSslStyleText(ca.getCertificate()));
 
 		CertificationRequestBuilderKeyPairGenerator clientServerIssuingCaRequestBuilderForKeyGenerator = CertificationRequest
 				.builder(ca, "DE", null, null, null, null, "secp521r1-Client-Server-Issuing-CA");
@@ -145,8 +146,7 @@ public class CertificateAuthorityTest
 		assertNotNull(clientServerIssuingCaRequestBuilder);
 		assertNotNull(clientServerIssuingCaRequestBuilder.getKeyPair());
 
-		CertificationRequestAndPrivateKey clientServerIssuingCaRequest = clientServerIssuingCaRequestBuilder
-				.signRequest();
+		CertificationRequestAndPrivateKey clientServerIssuingCaRequest = clientServerIssuingCaRequestBuilder.build();
 		checkRequest(clientServerIssuingCaRequest);
 
 		CertificationRequestBuilderKeyPairGenerator clientSmimeIssuingCaRequestBuilderForKeyGenerator = CertificationRequest
@@ -158,8 +158,7 @@ public class CertificateAuthorityTest
 		assertNotNull(clientSmimeIssuingCaRequestBuilder);
 		assertNotNull(clientSmimeIssuingCaRequestBuilder.getKeyPair());
 
-		CertificationRequestAndPrivateKey clientSmimeIssuingCaRequest = clientSmimeIssuingCaRequestBuilder
-				.signRequest();
+		CertificationRequestAndPrivateKey clientSmimeIssuingCaRequest = clientSmimeIssuingCaRequestBuilder.build();
 		checkRequest(clientSmimeIssuingCaRequest);
 
 		X509Certificate clientServerIssuingCaCertificate = ca
@@ -173,11 +172,11 @@ public class CertificateAuthorityTest
 		CertificateAuthority clientServerIssuingCa = testInitCaFromExisting(clientServerIssuingCaCertificate,
 				clientServerIssuingCaRequest.getPrivateKey());
 		logger.debug("secp521r1-Client-Server-Issuing-CA certificate:\n{}",
-				clientServerIssuingCa.getCertificate().toString());
+				CertificateFormatter.toOpenSslStyleText(clientServerIssuingCa.getCertificate()));
 		CertificateAuthority clientSmimeIssuingCa = testInitCaFromExisting(clientSmimeIssuingCaCertificate,
 				clientSmimeIssuingCaRequest.getPrivateKey());
 		logger.debug("secp521r1-Client-Server-Issuing-CA certificate:\n{}",
-				clientSmimeIssuingCa.getCertificate().toString());
+				CertificateFormatter.toOpenSslStyleText(clientSmimeIssuingCa.getCertificate()));
 
 		X509Certificate clientCert = testSignClientCertificate(clientServerIssuingCa);
 		X509Certificate smimeCert = testSignSmimeCertificate(clientSmimeIssuingCa);
@@ -209,7 +208,7 @@ public class CertificateAuthorityTest
 		assertNotNull(ca.getCertificate());
 		assertNotNull(ca.initializeKeyPairGenerator());
 
-		logger.debug("ed25519-CA certificate:\n{}", ca.getCertificate().toString());
+		logger.debug("ed25519-CA certificate:\n{}", CertificateFormatter.toOpenSslStyleText(ca.getCertificate()));
 
 		X509Certificate clientCert = testSignClientCertificate(ca);
 		X509Certificate smimeCert = testSignSmimeCertificate(ca);
@@ -232,7 +231,7 @@ public class CertificateAuthorityTest
 		assertNotNull(ca.getCertificate());
 		assertNotNull(ca.initializeKeyPairGenerator());
 
-		logger.debug("ed448-CA certificate:\n{}", ca.getCertificate().toString());
+		logger.debug("ed448-CA certificate:\n{}", CertificateFormatter.toOpenSslStyleText(ca.getCertificate()));
 
 		X509Certificate clientCert = testSignClientCertificate(ca);
 		X509Certificate smimeCert = testSignSmimeCertificate(ca);
@@ -256,13 +255,13 @@ public class CertificateAuthorityTest
 
 		builder.setEmail("email@test.com");
 
-		CertificationRequestAndPrivateKey request = builder.signRequest();
+		CertificationRequestAndPrivateKey request = builder.build();
 		checkRequest(request);
 
 		X509Certificate certificate = ca.signClientCertificate(request);
 		assertNotNull(certificate);
 
-		logger.debug("Client certificate:\n{}", certificate.toString());
+		logger.debug("Client certificate:\n{}", CertificateFormatter.toOpenSslStyleText(certificate));
 
 		return certificate;
 	}
@@ -285,13 +284,13 @@ public class CertificateAuthorityTest
 
 		builder.setEmail("email@test.com");
 
-		CertificationRequestAndPrivateKey request = builder.signRequest();
+		CertificationRequestAndPrivateKey request = builder.build();
 		checkRequest(request);
 
 		X509Certificate certificate = ca.signSmimeCertificate(request);
 		assertNotNull(certificate);
 
-		logger.debug("S/MIME certificate:\n{}", certificate.toString());
+		logger.debug("S/MIME certificate:\n{}", CertificateFormatter.toOpenSslStyleText(certificate));
 
 		return certificate;
 	}
@@ -309,7 +308,7 @@ public class CertificateAuthorityTest
 		builder.setEmail("email@test.com");
 		builder.addDnsName("localhost");
 
-		CertificationRequestAndPrivateKey request = builder.signRequest();
+		CertificationRequestAndPrivateKey request = builder.build();
 		checkRequest(request);
 		List<GeneralName> names = CertificateAuthority.getSubjectAlternativeNames(request.getRequest());
 		assertNotNull(names);
@@ -318,7 +317,7 @@ public class CertificateAuthorityTest
 		X509Certificate certificate = ca.signServerCertificate(request);
 		assertNotNull(certificate);
 
-		logger.debug("Server certificate:\n{}", certificate.toString());
+		logger.debug("Server certificate:\n{}", CertificateFormatter.toOpenSslStyleText(certificate));
 
 		return certificate;
 	}

@@ -13,7 +13,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import de.hsheilbronn.mi.utils.crypto.cert.CertificateFormatter;
-import de.hsheilbronn.mi.utils.crypto.cert.CertificateFormatter.SubjectFormat;
+import de.hsheilbronn.mi.utils.crypto.cert.CertificateFormatter.X500PrincipalFormat;
 
 public final class KeyStoreFormatter
 {
@@ -25,11 +25,12 @@ public final class KeyStoreFormatter
 	{
 	}
 
-	public static Map<String, List<String>> getSubjectsFromCertificateChains(KeyStore keyStore, SubjectFormat format)
+	public static Map<String, List<String>> toSubjectsFromCertificateChains(KeyStore keyStore,
+			X500PrincipalFormat format)
 	{
 		try
 		{
-			return Collections.list(keyStore.aliases()).stream().map(getSubjectsFromCertificateChain(keyStore, format))
+			return Collections.list(keyStore.aliases()).stream().map(toSubjectsFromCertificateChain(keyStore, format))
 					.filter(aR -> !aR.result.isEmpty())
 					.collect(Collectors.toUnmodifiableMap(AliasAndResult::alias, AliasAndResult::result));
 		}
@@ -39,8 +40,8 @@ public final class KeyStoreFormatter
 		}
 	}
 
-	private static Function<String, AliasAndResult<List<String>>> getSubjectsFromCertificateChain(KeyStore keyStore,
-			SubjectFormat format)
+	private static Function<String, AliasAndResult<List<String>>> toSubjectsFromCertificateChain(KeyStore keyStore,
+			X500PrincipalFormat format)
 	{
 		return alias ->
 		{
@@ -49,8 +50,7 @@ public final class KeyStoreFormatter
 				Certificate[] certificates = keyStore.getCertificateChain(alias);
 				List<String> subjects = certificates == null ? List.of()
 						: Arrays.stream(keyStore.getCertificateChain(alias)).filter(c -> c instanceof X509Certificate)
-								.map(c -> (X509Certificate) c)
-								.map(x -> CertificateFormatter.getSubjectFromCertificate(x, format))
+								.map(c -> (X509Certificate) c).map(CertificateFormatter.toSubjectName(format))
 								.filter(Objects::nonNull).toList();
 
 				return new AliasAndResult<List<String>>(alias, subjects);
@@ -62,11 +62,11 @@ public final class KeyStoreFormatter
 		};
 	}
 
-	public static Map<String, String> getSubjectsFromCertificates(KeyStore keyStore, SubjectFormat format)
+	public static Map<String, String> toSubjectsFromCertificates(KeyStore keyStore, X500PrincipalFormat format)
 	{
 		try
 		{
-			return Collections.list(keyStore.aliases()).stream().map(getSubjectFromCertificate(keyStore, format))
+			return Collections.list(keyStore.aliases()).stream().map(toSubjectFromCertificate(keyStore, format))
 					.filter(aR -> aR.result != null)
 					.collect(Collectors.toUnmodifiableMap(AliasAndResult::alias, AliasAndResult::result));
 		}
@@ -76,8 +76,8 @@ public final class KeyStoreFormatter
 		}
 	}
 
-	private static Function<String, AliasAndResult<String>> getSubjectFromCertificate(KeyStore keyStore,
-			SubjectFormat format)
+	private static Function<String, AliasAndResult<String>> toSubjectFromCertificate(KeyStore keyStore,
+			X500PrincipalFormat format)
 	{
 		return alias ->
 		{
@@ -85,7 +85,7 @@ public final class KeyStoreFormatter
 			{
 				Certificate certificate = keyStore.getCertificate(alias);
 				String subject = certificate instanceof X509Certificate x
-						? CertificateFormatter.getSubjectFromCertificate(x, format)
+						? CertificateFormatter.toSubjectName(x, format)
 						: null;
 				return new AliasAndResult<String>(alias, subject);
 			}

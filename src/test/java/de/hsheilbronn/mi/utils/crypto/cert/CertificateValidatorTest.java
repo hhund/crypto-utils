@@ -32,7 +32,7 @@ public class CertificateValidatorTest
 	static
 	{
 		CertificationRequestAndPrivateKey issuingCaRequest = CertificationRequest
-				.builder(rootCa, "DE", null, null, null, null, "JUnit Issuing CA").generateKeyPair().signRequest();
+				.builder(rootCa, "DE", null, null, null, null, "JUnit Issuing CA").generateKeyPair().build();
 		X509Certificate issuingCaCertificate = rootCa.signClientServerIssuingCaCertificate(issuingCaRequest);
 
 		issuingCa = CertificateAuthority.existingCa(issuingCaCertificate, issuingCaRequest.getPrivateKey());
@@ -42,7 +42,7 @@ public class CertificateValidatorTest
 	static
 	{
 		CertificationRequestAndPrivateKey request = CertificationRequest
-				.builder(issuingCa, "DE", null, null, null, null, "JUnit Test Client").generateKeyPair().signRequest();
+				.builder(issuingCa, "DE", null, null, null, null, "JUnit Test Client").generateKeyPair().build();
 		clientCertificate = issuingCa.signClientCertificate(request);
 	}
 
@@ -50,7 +50,7 @@ public class CertificateValidatorTest
 	static
 	{
 		CertificationRequestAndPrivateKey request = CertificationRequest
-				.builder(issuingCa, "DE", null, null, null, null, "junit.test.server").generateKeyPair().signRequest();
+				.builder(issuingCa, "DE", null, null, null, null, "junit.test.server").generateKeyPair().build();
 		serverCertificate = issuingCa.signServerCertificate(request);
 	}
 
@@ -92,7 +92,7 @@ public class CertificateValidatorTest
 	void vaildateClientCertificateExpired() throws Exception
 	{
 		CertificationRequestAndPrivateKey request = CertificationRequest
-				.builder(rootCa, "DE", null, null, null, null, "JUnit Test Client").generateKeyPair().signRequest();
+				.builder(rootCa, "DE", null, null, null, null, "JUnit Test Client").generateKeyPair().build();
 		X509Certificate expiredClientCertificate = issuingCa.signClientCertificate(request, Duration.ZERO);
 
 		Thread.sleep(Duration.ofMillis(10));
@@ -114,7 +114,7 @@ public class CertificateValidatorTest
 	void vaildateServerCertificateExpired() throws Exception
 	{
 		CertificationRequestAndPrivateKey request = CertificationRequest
-				.builder(rootCa, "DE", null, null, null, null, "junit.test.server").generateKeyPair().signRequest();
+				.builder(rootCa, "DE", null, null, null, null, "junit.test.server").generateKeyPair().build();
 		X509Certificate expiredServerCertificate = issuingCa.signServerCertificate(request, Duration.ZERO);
 
 		Thread.sleep(Duration.ofMillis(10));
@@ -202,7 +202,7 @@ public class CertificateValidatorTest
 	void scheduleExpiryWarning() throws Exception
 	{
 		CertificationRequestAndPrivateKey request = CertificationRequest
-				.builder(rootCa, "DE", null, null, null, null, "junit.test.server").generateKeyPair().signRequest();
+				.builder(rootCa, "DE", null, null, null, null, "junit.test.server").generateKeyPair().build();
 		X509Certificate serverCertificate = issuingCa.signServerCertificate(request, Duration.ofDays(10));
 
 		ScheduledFuture<Void> f = CertificateValidator.scheduleExpiryWarning(Executors.newScheduledThreadPool(1),

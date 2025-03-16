@@ -13,7 +13,7 @@ import java.util.Map;
 import org.junit.jupiter.api.Test;
 
 import de.hsheilbronn.mi.utils.crypto.ca.CertificateAuthority;
-import de.hsheilbronn.mi.utils.crypto.cert.CertificateFormatter.SubjectFormat;
+import de.hsheilbronn.mi.utils.crypto.cert.CertificateFormatter.X500PrincipalFormat;
 import de.hsheilbronn.mi.utils.crypto.io.PemReader;
 
 public class KeyStoreFormatterTest
@@ -24,7 +24,7 @@ public class KeyStoreFormatterTest
 		List<X509Certificate> certificates = PemReader.readCertificates(Paths.get("src/test/resources/dfn_chain.pem"));
 		KeyStore keyStore = KeyStoreCreator.jksForTrustedCertificates(certificates);
 
-		Map<String, String> subjects = KeyStoreFormatter.getSubjectsFromCertificates(keyStore, SubjectFormat.RFC2253);
+		Map<String, String> subjects = KeyStoreFormatter.toSubjectsFromCertificates(keyStore, X500PrincipalFormat.RFC2253);
 		assertNotNull(subjects);
 		assertEquals(3, subjects.size());
 
@@ -41,8 +41,8 @@ public class KeyStoreFormatterTest
 				subjects.get(
 						"cn=dfn-verein certification authority 2,ou=dfn-pki,o=verein zur foerderung eines deutschen forschungsnetzes e. v.,c=de"));
 
-		Map<String, List<String>> chains = KeyStoreFormatter.getSubjectsFromCertificateChains(keyStore,
-				SubjectFormat.RFC2253);
+		Map<String, List<String>> chains = KeyStoreFormatter.toSubjectsFromCertificateChains(keyStore,
+				X500PrincipalFormat.RFC2253);
 		assertTrue(chains.isEmpty());
 	}
 
@@ -54,8 +54,8 @@ public class KeyStoreFormatterTest
 		KeyStore keyStore = KeyStoreCreator.jksForPrivateKeyAndCertificateChain(ca.getKeyPair().getPrivate(),
 				"password".toCharArray(), ca.getCertificate());
 
-		Map<String, List<String>> subjects = KeyStoreFormatter.getSubjectsFromCertificateChains(keyStore,
-				SubjectFormat.RFC1779);
+		Map<String, List<String>> subjects = KeyStoreFormatter.toSubjectsFromCertificateChains(keyStore,
+				X500PrincipalFormat.RFC1779);
 		assertNotNull(subjects);
 		assertEquals(1, subjects.size());
 		assertEquals(1, subjects.get("cn=junit test ca,c=de").size());

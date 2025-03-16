@@ -195,7 +195,7 @@ public class PemWriterReaderTest
 	private CertificationRequestAndPrivateKey createRequest()
 	{
 		return CertificationRequest.builder(ca, "DE", null, null, null, null, "JUnit Test Client").generateKeyPair()
-				.signRequest();
+				.build();
 	}
 
 	@Test

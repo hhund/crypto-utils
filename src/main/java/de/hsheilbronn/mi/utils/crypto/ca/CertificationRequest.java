@@ -479,7 +479,7 @@ public class CertificationRequest
 			return this;
 		}
 
-		public CertificationRequestAndPrivateKey signRequest()
+		public CertificationRequestAndPrivateKey build()
 		{
 			JcaPKCS10CertificationRequest request = toJcaPKCS10CertificationRequest(contentSignerBuilder, keyPair, name,
 					email, dnsNames);
