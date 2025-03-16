@@ -139,24 +139,25 @@ public class CertificateFormatter
 			SubjectPublicKeyInfo subjectPublicKeyInfo, PublicKey publicKey)
 	{
 		if (publicKey instanceof RSAPublicKey rsa)
-			getSubjectPublicKeyInfoRsa(b, prefix, subjectPublicKeyInfo, rsa);
-		else if (publicKey instanceof ECPublicKey ec)
-			getSubjectPublicKeyInfoEc(b, prefix, subjectPublicKeyInfo, ec);
+			getSubjectPublicKeyInfoRsa(b, prefix, rsa);
+		else if (publicKey instanceof ECPublicKey)
+			getSubjectPublicKeyInfoEc(b, prefix, subjectPublicKeyInfo);
 		else if (publicKey instanceof EdECPublicKey ed)
 			getSubjectPublicKeyInfoEd(b, prefix, subjectPublicKeyInfo, ed);
 	}
 
-	private static void getSubjectPublicKeyInfoRsa(StringBuilder b, String prefix,
-			SubjectPublicKeyInfo subjectPublicKeyInfo, RSAPublicKey rsaPublicKey)
+	private static void getSubjectPublicKeyInfoRsa(StringBuilder b, String prefix, RSAPublicKey rsaPublicKey)
 	{
 		b.append(prefix);
 		b.append("    Public-Key: (");
 		b.append(rsaPublicKey.getModulus().bitLength());
 		b.append(" bit)");
 		b.append('\n');
+
 		b.append(prefix);
 		b.append("    Modulus:");
 		b.append('\n');
+
 		toLines(b, prefix + "        ", HexFormat.ofDelimiter(":").formatHex(rsaPublicKey.getModulus().toByteArray()),
 				45);
 		b.append('\n');
@@ -165,7 +166,7 @@ public class CertificateFormatter
 	}
 
 	private static void getSubjectPublicKeyInfoEc(StringBuilder b, String prefix,
-			SubjectPublicKeyInfo subjectPublicKeyInfo, ECPublicKey ec)
+			SubjectPublicKeyInfo subjectPublicKeyInfo)
 	{
 		int keyLength = getKeyLength(subjectPublicKeyInfo.getAlgorithm().getParameters());
 		if (keyLength > 0)
@@ -210,6 +211,7 @@ public class CertificateFormatter
 		b.append(ed.getParams().getName());
 		b.append(" Public-Key: ");
 		b.append('\n');
+
 		b.append(prefix);
 		b.append("    pub:");
 		b.append('\n');
