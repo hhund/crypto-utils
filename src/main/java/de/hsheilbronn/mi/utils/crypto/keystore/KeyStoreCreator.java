@@ -126,7 +126,6 @@ public final class KeyStoreCreator
 	 */
 	public static KeyStore jksForTrustedCertificates(X509Certificate... certificates)
 	{
-
 		return forTrustedCertificates(KEY_STORE_TYPE_JKS, certificates);
 	}
 
