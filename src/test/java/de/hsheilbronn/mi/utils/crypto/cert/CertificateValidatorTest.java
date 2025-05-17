@@ -3,12 +3,14 @@ package de.hsheilbronn.mi.utils.crypto.cert;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertThrowsExactly;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.security.KeyStore;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.time.Duration;
+import java.util.Collection;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
@@ -55,15 +57,15 @@ public class CertificateValidatorTest
 	}
 
 	@Test
-	void vaildateClientCertificate() throws Exception
+	void validateClientCertificate() throws Exception
 	{
 		KeyStore rootCaTrustStore = KeyStoreCreator.jksForTrustedCertificates(rootCa.getCertificate());
-		CertificateValidator.vaildateClientCertificate(rootCaTrustStore,
+		CertificateValidator.validateClientCertificate(rootCaTrustStore,
 				new X509Certificate[] { clientCertificate, issuingCa.getCertificate() });
 
 		KeyStore issuingCaTrustStore = KeyStoreCreator.jksForTrustedCertificates(rootCa.getCertificate(),
 				issuingCa.getCertificate());
-		CertificateValidator.vaildateClientCertificate(issuingCaTrustStore,
+		CertificateValidator.validateClientCertificate(issuingCaTrustStore,
 				new X509Certificate[] { clientCertificate });
 
 		assertFalse(CertificateValidator.isCertificateExpired(clientCertificate));
@@ -72,15 +74,15 @@ public class CertificateValidatorTest
 	}
 
 	@Test
-	void vaildateServerCertificate() throws Exception
+	void validateServerCertificate() throws Exception
 	{
 		KeyStore rootCaTrustStore = KeyStoreCreator.jksForTrustedCertificates(rootCa.getCertificate());
-		CertificateValidator.vaildateServerCertificate(rootCaTrustStore,
+		CertificateValidator.validateServerCertificate(rootCaTrustStore,
 				new X509Certificate[] { serverCertificate, issuingCa.getCertificate() });
 
 		KeyStore issuingCaTrustStore = KeyStoreCreator.jksForTrustedCertificates(rootCa.getCertificate(),
 				issuingCa.getCertificate());
-		CertificateValidator.vaildateServerCertificate(issuingCaTrustStore,
+		CertificateValidator.validateServerCertificate(issuingCaTrustStore,
 				new X509Certificate[] { serverCertificate });
 
 		assertFalse(CertificateValidator.isCertificateExpired(serverCertificate));
@@ -89,7 +91,7 @@ public class CertificateValidatorTest
 	}
 
 	@Test
-	void vaildateClientCertificateExpired() throws Exception
+	void validateClientCertificateExpired() throws Exception
 	{
 		CertificationRequestAndPrivateKey request = CertificationRequest
 				.builder(rootCa, "DE", null, null, null, null, "JUnit Test Client").generateKeyPair().build();
@@ -103,7 +105,7 @@ public class CertificateValidatorTest
 				issuingCa.getCertificate());
 
 		CertificateException ex = assertThrows(CertificateException.class, () -> CertificateValidator
-				.vaildateClientCertificate(trustStore, new X509Certificate[] { expiredClientCertificate }));
+				.validateClientCertificate(trustStore, new X509Certificate[] { expiredClientCertificate }));
 
 		assertEquals(
 				"PKIX path validation failed: java.security.cert.CertPathValidatorException: validity check failed",
@@ -111,7 +113,7 @@ public class CertificateValidatorTest
 	}
 
 	@Test
-	void vaildateServerCertificateExpired() throws Exception
+	void validateServerCertificateExpired() throws Exception
 	{
 		CertificationRequestAndPrivateKey request = CertificationRequest
 				.builder(rootCa, "DE", null, null, null, null, "junit.test.server").generateKeyPair().build();
@@ -125,7 +127,7 @@ public class CertificateValidatorTest
 				issuingCa.getCertificate());
 
 		CertificateException ex = assertThrows(CertificateException.class, () -> CertificateValidator
-				.vaildateClientCertificate(trustStore, new X509Certificate[] { expiredServerCertificate }));
+				.validateClientCertificate(trustStore, new X509Certificate[] { expiredServerCertificate }));
 
 		assertEquals(
 				"PKIX path validation failed: java.security.cert.CertPathValidatorException: validity check failed",
@@ -133,7 +135,7 @@ public class CertificateValidatorTest
 	}
 
 	@Test
-	void vaildateClientCertificateOtherCa() throws Exception
+	void validateClientCertificateOtherCa() throws Exception
 	{
 		CertificateAuthority rootCa2 = CertificateAuthority
 				.builderEd25519("DE", null, null, null, null, "JUnit Root CA 2").build();
@@ -143,7 +145,7 @@ public class CertificateValidatorTest
 		assertFalse(CertificateValidator.isCertificateExpired(clientCertificate));
 
 		CertificateException ex = assertThrows(CertificateException.class,
-				() -> CertificateValidator.vaildateClientCertificate(trustStore,
+				() -> CertificateValidator.validateClientCertificate(trustStore,
 						new X509Certificate[] { clientCertificate, issuingCa.getCertificate() }));
 
 		assertEquals(
@@ -152,7 +154,7 @@ public class CertificateValidatorTest
 	}
 
 	@Test
-	void vaildateServerCertificateOtherCa() throws Exception
+	void validateServerCertificateOtherCa() throws Exception
 	{
 		CertificateAuthority rootCa2 = CertificateAuthority
 				.builderEd25519("DE", null, null, null, null, "JUnit Root CA 2").build();
@@ -162,7 +164,7 @@ public class CertificateValidatorTest
 		assertFalse(CertificateValidator.isCertificateExpired(serverCertificate));
 
 		CertificateException ex = assertThrows(CertificateException.class,
-				() -> CertificateValidator.vaildateServerCertificate(trustStore,
+				() -> CertificateValidator.validateServerCertificate(trustStore,
 						new X509Certificate[] { serverCertificate, issuingCa.getCertificate() }));
 
 		assertEquals(
@@ -171,28 +173,28 @@ public class CertificateValidatorTest
 	}
 
 	@Test
-	void vaildateClientCertificateWithServerCertificate() throws Exception
+	void validateClientCertificateWithServerCertificate() throws Exception
 	{
 		KeyStore trustStore = KeyStoreCreator.jksForTrustedCertificates(rootCa.getCertificate());
 
 		assertFalse(CertificateValidator.isCertificateExpired(serverCertificate));
 
 		CertificateException ex = assertThrows(CertificateException.class,
-				() -> CertificateValidator.vaildateClientCertificate(trustStore,
+				() -> CertificateValidator.validateClientCertificate(trustStore,
 						new X509Certificate[] { serverCertificate, issuingCa.getCertificate() }));
 
 		assertEquals("Extended key usage does not permit use for TLS client authentication", ex.getMessage());
 	}
 
 	@Test
-	void vaildateServerCertificateWithClientCertificate() throws Exception
+	void validateServerCertificateWithClientCertificate() throws Exception
 	{
 		KeyStore trustStore = KeyStoreCreator.jksForTrustedCertificates(rootCa.getCertificate());
 
 		assertFalse(CertificateValidator.isCertificateExpired(clientCertificate));
 
 		CertificateException ex = assertThrows(CertificateException.class,
-				() -> CertificateValidator.vaildateServerCertificate(trustStore,
+				() -> CertificateValidator.validateServerCertificate(trustStore,
 						new X509Certificate[] { clientCertificate, issuingCa.getCertificate() }));
 
 		assertEquals("Extended key usage does not permit use for TLS server authentication", ex.getMessage());
@@ -209,5 +211,23 @@ public class CertificateValidatorTest
 				Duration.ofDays(20), serverCertificate, CertificateValidator.loggerConsumer(logger));
 
 		f.get(1, TimeUnit.MINUTES);
+	}
+
+	@Test
+	void testServerCertificateNull() throws Exception
+	{
+		assertThrowsExactly(NullPointerException.class,
+				() -> CertificateValidator.validateServerCertificate(null, (Collection<X509Certificate>) null));
+		assertThrowsExactly(IllegalArgumentException.class,
+				() -> CertificateValidator.validateServerCertificate(null, (X509Certificate[]) null));
+	}
+
+	@Test
+	void testClientCertificateNull() throws Exception
+	{
+		assertThrowsExactly(NullPointerException.class,
+				() -> CertificateValidator.validateClientCertificate(null, (Collection<X509Certificate>) null));
+		assertThrowsExactly(IllegalArgumentException.class,
+				() -> CertificateValidator.validateClientCertificate(null, (X509Certificate[]) null));
 	}
 }

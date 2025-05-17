@@ -103,13 +103,57 @@ public final class CertificateValidator
 				.isAfter(ZonedDateTime.ofInstant(certificate.getNotAfter().toInstant(), ZoneOffset.UTC));
 	}
 
+	/**
+	 * @param trustStore
+	 *            <code>null</code> for default trust store
+	 * @param certificateChain
+	 *            not <code>null</code>
+	 * @throws CertificateException
+	 * @deprecated use {@link #validateClientCertificate(KeyStore, Collection)}
+	 */
+	@Deprecated
 	public static void vaildateClientCertificate(KeyStore trustStore,
 			Collection<? extends X509Certificate> certificateChain) throws CertificateException
 	{
-		vaildateClientCertificate(trustStore, certificateChain.toArray(X509Certificate[]::new));
+		validateClientCertificate(trustStore, certificateChain);
 	}
 
+	/**
+	 * @param trustStore
+	 *            <code>null</code> for default trust store
+	 * @param certificateChain
+	 *            not <code>null</code>
+	 * @throws CertificateException
+	 */
+	public static void validateClientCertificate(KeyStore trustStore,
+			Collection<? extends X509Certificate> certificateChain) throws CertificateException
+	{
+		validateClientCertificate(trustStore, certificateChain.toArray(X509Certificate[]::new));
+	}
+
+	/**
+	 * @param trustStore
+	 *            <code>null</code> for default trust store
+	 * @param certificateChain
+	 *            not <code>null</code>, not zero length
+	 * @throws CertificateException
+	 * @deprecated use {@link #validateClientCertificate(KeyStore, X509Certificate...)}
+	 */
+	@Deprecated
 	public static void vaildateClientCertificate(KeyStore trustStore, X509Certificate... certificateChain)
+			throws CertificateException
+	{
+		validateClientCertificate(trustStore, certificateChain);
+	}
+
+	/**
+	 * @param trustStore
+	 *            <code>null</code> for default trust store
+	 * @param certificateChain
+	 *            not <code>null</code>, not zero length
+	 * @throws CertificateException
+	 */
+	public static void validateClientCertificate(KeyStore trustStore, X509Certificate... certificateChain)
 			throws CertificateException
 	{
 		try
@@ -123,13 +167,57 @@ public final class CertificateValidator
 		}
 	}
 
+	/**
+	 * @param trustStore
+	 *            <code>null</code> for default trust store
+	 * @param certificateChain
+	 *            not <code>null</code>
+	 * @throws CertificateException
+	 * @deprecated use {@link #validateServerCertificate(KeyStore, Collection)}
+	 */
+	@Deprecated
 	public static void vaildateServerCertificate(KeyStore trustStore,
 			Collection<? extends X509Certificate> certificateChain) throws CertificateException
 	{
-		vaildateServerCertificate(trustStore, certificateChain.toArray(X509Certificate[]::new));
+		validateServerCertificate(trustStore, certificateChain);
 	}
 
+	/**
+	 * @param trustStore
+	 *            <code>null</code> for default trust store
+	 * @param certificateChain
+	 *            not <code>null</code>
+	 * @throws CertificateException
+	 */
+	public static void validateServerCertificate(KeyStore trustStore,
+			Collection<? extends X509Certificate> certificateChain) throws CertificateException
+	{
+		validateServerCertificate(trustStore, certificateChain.toArray(X509Certificate[]::new));
+	}
+
+	/**
+	 * @param trustStore
+	 *            <code>null</code> for default trust store
+	 * @param certificateChain
+	 *            not <code>null</code>, not zero length
+	 * @throws CertificateException
+	 * @deprecated use {@link #validateServerCertificate(KeyStore, X509Certificate...)}
+	 */
+	@Deprecated
 	public static void vaildateServerCertificate(KeyStore trustStore, X509Certificate... certificateChain)
+			throws CertificateException
+	{
+		validateServerCertificate(trustStore, certificateChain);
+	}
+
+	/**
+	 * @param trustStore
+	 *            <code>null</code> for default trust store
+	 * @param certificateChain
+	 *            not <code>null</code>, not zero length
+	 * @throws CertificateException
+	 */
+	public static void validateServerCertificate(KeyStore trustStore, X509Certificate... certificateChain)
 			throws CertificateException
 	{
 		try
@@ -158,6 +246,12 @@ public final class CertificateValidator
 		}
 	}
 
+	/**
+	 * @param certificate
+	 *            not <code>null</code>
+	 * @return <code>true</code> if the given <b>certificate</b> has key usage extension with digitalSignature and
+	 *         keyEncipherment as well as extended key usage extension TLS Web Client Authentication.
+	 */
 	public static boolean isClientCertificate(X509Certificate certificate)
 	{
 		Objects.requireNonNull(certificate, "certificate");
@@ -175,6 +269,12 @@ public final class CertificateValidator
 		}
 	}
 
+	/**
+	 * @param certificate
+	 *            not <code>null</code>
+	 * @return <code>true</code> if the given <b>certificate</b> has key usage extension with digitalSignature and
+	 *         keyEncipherment as well as extended key usage extension TLS Web Server Authentication.
+	 */
 	public static boolean isServerCertificate(X509Certificate certificate)
 	{
 		Objects.requireNonNull(certificate, "certificate");
