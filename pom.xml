@@ -3,7 +3,7 @@
 
 	<groupId>de.hs-heilbronn.mi</groupId>
 	<artifactId>crypto-utils</artifactId>
-	<version>5.2.0-SNAPSHOT</version>
+	<version>5.2.0</version>
 
 	<name>crypto-utils</name>
 	<description>Utility library for reading and writing X509 certificates as well as reading, writing and generating RSA and EC keys. Also provides a simple certificate authority implementation and RSA-KEM AES GCM based on BouncyCastle as well as a ECDH-KEM AES GCM implementation based on JEP 452.</description>
