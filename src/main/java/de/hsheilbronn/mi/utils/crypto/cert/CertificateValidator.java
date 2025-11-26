@@ -158,7 +158,7 @@ public final class CertificateValidator
 	{
 		try
 		{
-			createTrustManager(trustStore).checkClientTrusted(certificateChain, "RSA");
+			createTrustManager(trustStore).checkClientTrusted(certificateChain, "UNKNOWN");
 		}
 		catch (CertificateException e)
 		{
@@ -222,7 +222,7 @@ public final class CertificateValidator
 	{
 		try
 		{
-			createTrustManager(trustStore).checkServerTrusted(certificateChain, "RSA");
+			createTrustManager(trustStore).checkServerTrusted(certificateChain, "UNKNOWN");
 		}
 		catch (CertificateException e)
 		{
