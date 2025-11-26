@@ -8,6 +8,6 @@ Utility library for reading and writing X509 certificates as well as reading, wr
 <dependency>
     <groupId>de.hs-heilbronn.mi</groupId>
     <artifactId>crypto-utils</artifactId>
-    <version>5.2.0</version>
+    <version>5.2.1</version>
 </dependency>
 ```
