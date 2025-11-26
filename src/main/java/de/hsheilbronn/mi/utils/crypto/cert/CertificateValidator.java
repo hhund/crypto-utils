@@ -249,8 +249,8 @@ public final class CertificateValidator
 	/**
 	 * @param certificate
 	 *            not <code>null</code>
-	 * @return <code>true</code> if the given <b>certificate</b> has key usage extension with digitalSignature and
-	 *         keyEncipherment as well as extended key usage extension TLS Web Client Authentication.
+	 * @return <code>true</code> if the given <b>certificate</b> has key usage extension with digitalSignature as well
+	 *         as extended key usage extension TLS Web Client Authentication.
 	 */
 	public static boolean isClientCertificate(X509Certificate certificate)
 	{
@@ -258,8 +258,8 @@ public final class CertificateValidator
 
 		try
 		{
-			// digitalSignature && keyEncipherment && client authentication
-			return certificate.getKeyUsage() != null && certificate.getKeyUsage()[0] && certificate.getKeyUsage()[2]
+			// digitalSignature && client authentication
+			return certificate.getKeyUsage() != null && certificate.getKeyUsage()[0]
 					&& certificate.getExtendedKeyUsage()
 							.contains(CertificateAuthority.ExtendedKeyUsage.CLIENT_AUTH.toKeyPurposeId().getId());
 		}
@@ -272,8 +272,8 @@ public final class CertificateValidator
 	/**
 	 * @param certificate
 	 *            not <code>null</code>
-	 * @return <code>true</code> if the given <b>certificate</b> has key usage extension with digitalSignature and
-	 *         keyEncipherment as well as extended key usage extension TLS Web Server Authentication.
+	 * @return <code>true</code> if the given <b>certificate</b> has key usage extension with digitalSignature as well
+	 *         as extended key usage extension TLS Web Server Authentication.
 	 */
 	public static boolean isServerCertificate(X509Certificate certificate)
 	{
@@ -281,8 +281,8 @@ public final class CertificateValidator
 
 		try
 		{
-			// digitalSignature && keyEncipherment && client authentication
-			return certificate.getKeyUsage() != null && certificate.getKeyUsage()[0] && certificate.getKeyUsage()[2]
+			// digitalSignature && client authentication
+			return certificate.getKeyUsage() != null && certificate.getKeyUsage()[0]
 					&& certificate.getExtendedKeyUsage()
 							.contains(CertificateAuthority.ExtendedKeyUsage.SERVER_AUTH.toKeyPurposeId().getId());
 		}
