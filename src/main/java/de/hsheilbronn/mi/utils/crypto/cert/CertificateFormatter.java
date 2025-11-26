@@ -477,7 +477,7 @@ public class CertificateFormatter
 		{
 			b.append(prefix);
 			b.append("    ");
-			b.append(HexFormat.ofDelimiter(":").formatHex(aki.getKeyIdentifier()));
+			b.append(HexFormat.ofDelimiter(":").formatHex(aki.getKeyIdentifierOctets()));
 			b.append('\n');
 		}
 	}
