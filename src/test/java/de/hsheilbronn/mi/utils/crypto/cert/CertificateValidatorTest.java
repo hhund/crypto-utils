@@ -10,16 +10,22 @@ import java.security.KeyStore;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.time.Duration;
+import java.time.Period;
 import java.util.Collection;
+import java.util.Set;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Function;
 
+import org.bouncycastle.asn1.x509.BasicConstraints;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import de.hsheilbronn.mi.utils.crypto.ca.CertificateAuthority;
+import de.hsheilbronn.mi.utils.crypto.ca.CertificateAuthority.ExtendedKeyUsage;
+import de.hsheilbronn.mi.utils.crypto.ca.CertificateAuthority.KeyUsage;
 import de.hsheilbronn.mi.utils.crypto.ca.CertificationRequest;
 import de.hsheilbronn.mi.utils.crypto.ca.CertificationRequest.CertificationRequestAndPrivateKey;
 import de.hsheilbronn.mi.utils.crypto.keystore.KeyStoreCreator;
@@ -41,19 +47,29 @@ public class CertificateValidatorTest
 	}
 
 	private static final X509Certificate clientCertificate;
+	private static final X509Certificate clientCertificateNoKeyEncipherment;
 	static
 	{
 		CertificationRequestAndPrivateKey request = CertificationRequest
 				.builder(issuingCa, "DE", null, null, null, null, "JUnit Test Client").generateKeyPair().build();
+
 		clientCertificate = issuingCa.signClientCertificate(request);
+		clientCertificateNoKeyEncipherment = issuingCa.signCertificate(request, Set.of(KeyUsage.DIGITAL_SIGNATURE),
+				ExtendedKeyUsage.CLIENT_AUTH.asEnumSet(), new BasicConstraints(false), Period.ofDays(1),
+				Function.identity(), Function.identity());
 	}
 
 	private static final X509Certificate serverCertificate;
+	private static final X509Certificate serverCertificateNoKeyEncipherment;
 	static
 	{
 		CertificationRequestAndPrivateKey request = CertificationRequest
 				.builder(issuingCa, "DE", null, null, null, null, "junit.test.server").generateKeyPair().build();
+
 		serverCertificate = issuingCa.signServerCertificate(request);
+		serverCertificateNoKeyEncipherment = issuingCa.signCertificate(request, Set.of(KeyUsage.DIGITAL_SIGNATURE),
+				ExtendedKeyUsage.SERVER_AUTH.asEnumSet(), new BasicConstraints(false), Period.ofDays(1),
+				Function.identity(), Function.identity());
 	}
 
 	@Test
@@ -74,6 +90,23 @@ public class CertificateValidatorTest
 	}
 
 	@Test
+	void validateClientCertificateNoKeyEncipherment() throws Exception
+	{
+		KeyStore rootCaTrustStore = KeyStoreCreator.jksForTrustedCertificates(rootCa.getCertificate());
+		CertificateValidator.validateClientCertificate(rootCaTrustStore,
+				new X509Certificate[] { clientCertificateNoKeyEncipherment, issuingCa.getCertificate() });
+
+		KeyStore issuingCaTrustStore = KeyStoreCreator.jksForTrustedCertificates(rootCa.getCertificate(),
+				issuingCa.getCertificate());
+		CertificateValidator.validateClientCertificate(issuingCaTrustStore,
+				new X509Certificate[] { clientCertificateNoKeyEncipherment });
+
+		assertFalse(CertificateValidator.isCertificateExpired(clientCertificateNoKeyEncipherment));
+		assertTrue(CertificateValidator.isClientCertificate(clientCertificateNoKeyEncipherment));
+		assertFalse(CertificateValidator.isServerCertificate(clientCertificateNoKeyEncipherment));
+	}
+
+	@Test
 	void validateServerCertificate() throws Exception
 	{
 		KeyStore rootCaTrustStore = KeyStoreCreator.jksForTrustedCertificates(rootCa.getCertificate());
@@ -88,6 +121,23 @@ public class CertificateValidatorTest
 		assertFalse(CertificateValidator.isCertificateExpired(serverCertificate));
 		assertFalse(CertificateValidator.isClientCertificate(serverCertificate));
 		assertTrue(CertificateValidator.isServerCertificate(serverCertificate));
+	}
+
+	@Test
+	void validateServerCertificateNoKeyEncipherment() throws Exception
+	{
+		KeyStore rootCaTrustStore = KeyStoreCreator.jksForTrustedCertificates(rootCa.getCertificate());
+		CertificateValidator.validateServerCertificate(rootCaTrustStore,
+				new X509Certificate[] { serverCertificateNoKeyEncipherment, issuingCa.getCertificate() });
+
+		KeyStore issuingCaTrustStore = KeyStoreCreator.jksForTrustedCertificates(rootCa.getCertificate(),
+				issuingCa.getCertificate());
+		CertificateValidator.validateServerCertificate(issuingCaTrustStore,
+				new X509Certificate[] { serverCertificateNoKeyEncipherment });
+
+		assertFalse(CertificateValidator.isCertificateExpired(serverCertificateNoKeyEncipherment));
+		assertFalse(CertificateValidator.isClientCertificate(serverCertificateNoKeyEncipherment));
+		assertTrue(CertificateValidator.isServerCertificate(serverCertificateNoKeyEncipherment));
 	}
 
 	@Test
