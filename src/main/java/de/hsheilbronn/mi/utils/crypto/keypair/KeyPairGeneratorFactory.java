@@ -140,7 +140,7 @@ public class KeyPairGeneratorFactory
 
 	/**
 	 * @param keySize
-	 *            <code>>= 1204, % 1024 == 0</code>
+	 *            <code>>= 1024, % 1024 == 0</code>
 	 * @return RSA {@link KeyPairGeneratorFactory} for {@link CertificateAuthority}
 	 */
 	public static KeyPairGeneratorFactory rsa(int keySize)
