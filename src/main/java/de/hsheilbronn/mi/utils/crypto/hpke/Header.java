@@ -138,7 +138,7 @@ public class Header
 
 	public int getChunkLength()
 	{
-		return chunkLength.length();
+		return chunkLength.getLength();
 	}
 
 	public static Header from(InputStream stream, PreSharedKeyProvider pskProvider) throws KeyNotFoundException, IOException
