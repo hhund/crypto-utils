@@ -37,7 +37,7 @@ public enum ChunkLength
 		if (value.length != 1)
 			throw new IllegalArgumentException("value.length != 1");
 
-		int exponent = ByteEncoding.os2ip(value);
+		int exponent = (int) ByteEncoding.os2ip(value);
 
 		return switch (exponent)
 		{

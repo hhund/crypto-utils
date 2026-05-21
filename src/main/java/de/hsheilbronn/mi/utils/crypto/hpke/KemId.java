@@ -136,7 +136,7 @@ public enum KemId
 		if (value.length != 2)
 			throw new IllegalArgumentException("value.length != 2");
 
-		int kemId = ByteEncoding.os2ip(value);
+		long kemId = ByteEncoding.os2ip(value);
 
 		if (DHKEM_P256_HKDF_SHA256.id == kemId)
 			return DHKEM_P256_HKDF_SHA256;

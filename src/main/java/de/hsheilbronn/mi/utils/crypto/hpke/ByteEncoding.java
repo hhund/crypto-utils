@@ -11,22 +11,32 @@ public final class ByteEncoding
 	{
 	}
 
+	/**
+	 * @param value
+	 *            >= 0 and <= 255
+	 * @return encoded value
+	 * @throws IllegalArgumentException
+	 *             if <b>value</b> &lt; 0 or > 255
+	 */
 	public static byte[] i2osp1(int value)
 	{
-		Objects.requireNonNull(value, "value");
-
-		if (value >= 256)
-			throw new IllegalArgumentException("value >= 256");
+		if (value < 0 || value > 0xFF)
+			throw new IllegalArgumentException("value < 0 || value > 255");
 
 		return new byte[] { (byte) value };
 	}
 
+	/**
+	 * @param value
+	 *            >= 0 and <= 65535
+	 * @return encoded value
+	 * @throws IllegalArgumentException
+	 *             if <b>value</b> &lt; 0 or > 65535
+	 */
 	public static byte[] i2osp2(int value)
 	{
-		Objects.requireNonNull(value, "value");
-
-		if (value >= 65_535)
-			throw new IllegalArgumentException("value >= 65535");
+		if (value < 0 || value > 0xFFFF)
+			throw new IllegalArgumentException("value < 0 || value > 65535");
 
 		byte[] output = new byte[2];
 		output[0] = (byte) (value >>> 8);
@@ -34,18 +44,22 @@ public final class ByteEncoding
 		return output;
 	}
 
-	public static int os2ip(byte[] input)
+	/**
+	 * @param input
+	 *            not <code>null</code>, length &lt; 1 or > 4
+	 * @return decoded value
+	 * @throw {@link IllegalArgumentException} if <b>input</b> length &lt; 1 or > 4
+	 */
+	public static long os2ip(byte[] input)
 	{
 		Objects.requireNonNull(input, "input");
 
-		if (input.length > 4)
-			throw new IllegalArgumentException("input.length > 4");
-		if (input.length == 0)
-			return 0;
+		if (input.length < 1 || input.length > 4)
+			throw new IllegalArgumentException("input.length < 1 || input.length > 4");
 
-		int value = 0;
+		long value = 0;
 		for (int j = 0; j < input.length; j++)
-			value |= (input[j] & 0xff) << (8 * (input.length - 1 - j));
+			value |= ((long) input[j] & 0xff) << (8 * (input.length - 1 - j));
 		return value;
 	}
 
@@ -56,16 +70,35 @@ public final class ByteEncoding
 		return out.toByteArray();
 	}
 
-
+	/**
+	 * @param expected
+	 *            >= 0
+	 * @param actual
+	 * @throws IllegalArgumentException
+	 *             if <b>expected</b> &lt; 0
+	 * @throws IOException
+	 *             if <b>actual</b> &lt; <b>expected</b>
+	 */
 	public static void expectRead(int expected, int actual) throws IOException
 	{
+		if (expected < 0)
+			throw new IllegalArgumentException("expected < 0");
+
 		if (actual < expected)
 			throw new IOException("Truncated stream");
 	}
 
+	/**
+	 * @param value
+	 * @throws IOException
+	 *             if <b>value</b> &lt;0 or >255
+	 */
 	public static void throwIfTruncated(int value) throws IOException
 	{
 		if (value < 0)
 			throw new IOException("Truncated stream");
+
+		if (value > 0xFF)
+			throw new IOException("value > 255");
 	}
 }

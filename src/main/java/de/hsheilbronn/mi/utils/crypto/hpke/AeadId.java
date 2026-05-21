@@ -124,7 +124,7 @@ public enum AeadId
 		if (value.length != 2)
 			throw new IllegalArgumentException("value.length != 2");
 
-		int aeadId = ByteEncoding.os2ip(value);
+		long aeadId = ByteEncoding.os2ip(value);
 
 		if (AES_128_GCM.id == aeadId)
 			return AES_128_GCM;

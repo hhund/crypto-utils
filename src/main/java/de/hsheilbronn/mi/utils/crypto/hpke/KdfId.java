@@ -44,7 +44,7 @@ public enum KdfId
 		if (value.length != 2)
 			throw new IllegalArgumentException("value.length != 2");
 
-		int kdfId = ByteEncoding.os2ip(value);
+		long kdfId = ByteEncoding.os2ip(value);
 
 		if (HKDF_SHA256.id == kdfId)
 			return HKDF_SHA256;
