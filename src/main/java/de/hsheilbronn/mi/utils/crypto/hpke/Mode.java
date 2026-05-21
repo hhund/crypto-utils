@@ -56,7 +56,7 @@ public final class Mode
 	 * @throws KeyNotFoundException
 	 *             if the <b>pskProvider</b> has no key for <b>pskId</b>
 	 */
-	public static Mode psk(byte[] pskId, PskProvider pskProvider) throws KeyNotFoundException
+	public static Mode psk(byte[] pskId, PreSharedKeyProvider pskProvider) throws KeyNotFoundException
 	{
 		Objects.requireNonNull(pskId, "pskId");
 		if (pskId.length <= 0)
@@ -131,7 +131,7 @@ public final class Mode
 	 * @throws KeyNotFoundException
 	 *             if no PSK could be found for the given <b>pskId</b>
 	 */
-	public static Mode from(byte value, byte[] pskId, PskProvider pskProvider) throws KeyNotFoundException
+	public static Mode from(byte value, byte[] pskId, PreSharedKeyProvider pskProvider) throws KeyNotFoundException
 	{
 		Objects.requireNonNull(pskProvider, "pskProvider");
 

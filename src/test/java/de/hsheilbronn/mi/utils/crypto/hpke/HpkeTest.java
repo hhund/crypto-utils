@@ -39,7 +39,7 @@ public class HpkeTest
 			"Generic");
 	private static final byte[] RECEIVER_KEY_ID = Sha256
 			.digest("Test Receiver Key ID".getBytes(StandardCharsets.US_ASCII));
-	private static final PskProvider PSK_PROVIDER = _ -> PSK;
+	private static final PreSharedKeyProvider PSK_PROVIDER = _ -> PSK;
 
 	private static final Hpke hpke = new Hpke(PSK_PROVIDER);
 
@@ -52,7 +52,6 @@ public class HpkeTest
 					.of("Version " + header.getVersion(), "Mode " + header.getMode(), header.getKemId().name(),
 							header.getKdfId().name(), header.getAeadId().name(), header.getChunkLength() + " KiB")
 					.collect(Collectors.joining(", "));
-
 		}
 
 		Arguments toArguments(String plainText)

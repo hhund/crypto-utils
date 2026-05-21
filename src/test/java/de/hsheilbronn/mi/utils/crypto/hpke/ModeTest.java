@@ -8,8 +8,6 @@ import static org.junit.jupiter.api.Assertions.assertThrowsExactly;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.nio.charset.StandardCharsets;
-import java.util.HexFormat;
-import java.util.Map;
 import java.util.stream.Stream;
 
 import javax.crypto.SecretKey;
@@ -27,6 +25,7 @@ public class ModeTest
 	private static final byte[] PSK_ID = Sha256.digest("Test PSK Identifier".getBytes(StandardCharsets.US_ASCII));
 	private static final SecretKey PSK = new SecretKeySpec(new byte[] { 'T', 'e', 's', 't', ' ', 'P', 'S', 'K' },
 			"Generic");
+	private static final PreSharedKeyProvider PSK_PROVIDER = PreSharedKeyProvider.of(PSK_ID, PSK);
 
 	@Test
 	void testPskFactoryMethods() throws Exception
@@ -37,7 +36,7 @@ public class ModeTest
 		assertThrowsExactly(NullPointerException.class, () -> Mode.psk(null, PSK));
 		assertThrowsExactly(NullPointerException.class, () -> Mode.psk(null, _ -> PSK));
 		assertThrowsExactly(NullPointerException.class, () -> Mode.psk(PSK_ID, (SecretKey) null));
-		assertThrowsExactly(NullPointerException.class, () -> Mode.psk(PSK_ID, (PskProvider) null));
+		assertThrowsExactly(NullPointerException.class, () -> Mode.psk(PSK_ID, (PreSharedKeyProvider) null));
 
 		IllegalArgumentException e = assertThrowsExactly(IllegalArgumentException.class,
 				() -> Mode.psk(new byte[0], PSK));
@@ -99,33 +98,31 @@ public class ModeTest
 
 	private static Stream<Arguments> forTestFrom()
 	{
-		return Stream.of(Arguments.of(Mode.base(), 0x00, null, (PskProvider) _ -> null),
-				Arguments.of(Mode.psk(PSK_ID, PSK), 0x01, PSK_ID, (PskProvider) _ -> PSK));
+		return Stream.of(Arguments.of(Mode.base(), 0x00, null, (PreSharedKeyProvider) _ -> null),
+				Arguments.of(Mode.psk(PSK_ID, PSK), 0x01, PSK_ID, PSK_PROVIDER));
 	}
 
 	@ParameterizedTest
 	@MethodSource("forTestFrom")
-	void testFrom(Mode expected, int id, byte[] pskId, PskProvider pskProvider) throws Exception
+	void testFrom(Mode expected, int id, byte[] pskId, PreSharedKeyProvider pskProvider) throws Exception
 	{
 		assertEquals(expected, Mode.from((byte) id, pskId, pskProvider));
 	}
 
 	private static Stream<Arguments> forTestFromInvalid()
 	{
-		return Stream.of(
-				Arguments.of(0xFF, PSK_ID, (PskProvider) _ -> PSK, IllegalArgumentException.class,
-						"Mode not supported"),
-				Arguments.of(Mode.PSK_VALUE, PSK_ID, PskProvider.fromMap(Map.of()), KeyNotFoundException.class,
-						"No PSK with ID " + HexFormat.of().formatHex(PSK_ID)),
-				Arguments.of(Mode.PSK_VALUE, null, (PskProvider) _ -> PSK, NullPointerException.class, "pskId"),
-				Arguments.of(Mode.PSK_VALUE, new byte[0], (PskProvider) _ -> PSK, IllegalArgumentException.class,
+		return Stream.of(Arguments.of(0xFF, PSK_ID, PSK_PROVIDER, IllegalArgumentException.class, "Mode not supported"),
+				Arguments.of(Mode.PSK_VALUE, PSK_ID, PreSharedKeyProvider.of(), KeyNotFoundException.class,
+						KeyProvider.notFound("PSK", PSK_ID).getMessage()),
+				Arguments.of(Mode.PSK_VALUE, null, PSK_PROVIDER, NullPointerException.class, "pskId"),
+				Arguments.of(Mode.PSK_VALUE, new byte[0], PSK_PROVIDER, IllegalArgumentException.class,
 						"pskId.length <= " + Header.PSK_ID_LENGTH));
 	}
 
 	@ParameterizedTest
 	@MethodSource("forTestFromInvalid")
-	void testFromInvalid(int invalid, byte[] pskId, PskProvider pskProvider, Class<? extends Exception> exceptionClass,
-			String exceptionMessage) throws Exception
+	void testFromInvalid(int invalid, byte[] pskId, PreSharedKeyProvider pskProvider,
+			Class<? extends Exception> exceptionClass, String exceptionMessage) throws Exception
 	{
 		Exception exception = assertThrowsExactly(exceptionClass, () -> Mode.from((byte) invalid, pskId, pskProvider));
 		assertEquals(exceptionMessage, exception.getMessage());

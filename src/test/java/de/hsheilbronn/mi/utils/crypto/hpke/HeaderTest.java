@@ -50,7 +50,7 @@ public class HeaderTest
 			KdfId.HKDF_SHA512.getIdAsI2osp2Bytes(), AeadId.ChaCha20Poly1305.getIdAsI2osp2Bytes(),
 			ChunkLength.MiB_1.getExponentAsI2osp1Byte(), RECEIVER_KEY_IDENTIFIER, PSK_ID);
 
-	private static final PskProvider pskProvider = pskId ->
+	private static final PreSharedKeyProvider pskProvider = pskId ->
 	{
 		if (Arrays.equals(PSK_ID, pskId))
 			return PSK;

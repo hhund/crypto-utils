@@ -39,15 +39,15 @@ public class Hpke
 {
 	private static final SecureRandom SECURE_RANDOM = new SecureRandom();
 
-	private final PskProvider pskProvider;
+	private final PreSharedKeyProvider pskProvider;
 	private final SecureRandom secureRandom;
 
-	public Hpke(PskProvider pskProvider)
+	public Hpke(PreSharedKeyProvider pskProvider)
 	{
 		this(pskProvider, SECURE_RANDOM);
 	}
 
-	public Hpke(PskProvider pskProvider, SecureRandom secureRandom)
+	public Hpke(PreSharedKeyProvider pskProvider, SecureRandom secureRandom)
 	{
 		this.pskProvider = Objects.requireNonNull(pskProvider, "pskProvider");
 		this.secureRandom = Objects.requireNonNull(secureRandom, "secureRandom");

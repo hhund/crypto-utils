@@ -141,7 +141,7 @@ public class Header
 		return chunkLength.length();
 	}
 
-	public static Header from(InputStream stream, PskProvider pskProvider) throws KeyNotFoundException, IOException
+	public static Header from(InputStream stream, PreSharedKeyProvider pskProvider) throws KeyNotFoundException, IOException
 	{
 		Objects.requireNonNull(stream, "stream");
 		Objects.requireNonNull(pskProvider, "pskProvider");
@@ -184,7 +184,7 @@ public class Header
 		}
 	}
 
-	public static Header from(byte[] value, PskProvider pskProvider) throws KeyNotFoundException
+	public static Header from(byte[] value, PreSharedKeyProvider pskProvider) throws KeyNotFoundException
 	{
 		Objects.requireNonNull(value, "value");
 		if (value.length < HEADER_LENGHT)
@@ -222,7 +222,7 @@ public class Header
 		return toHeader(pskProvider, versionValue, modeValue, buffer);
 	}
 
-	private static Header toHeader(PskProvider pskProvider, byte versionValue, byte modeValue, ByteBuffer buffer)
+	private static Header toHeader(PreSharedKeyProvider pskProvider, byte versionValue, byte modeValue, ByteBuffer buffer)
 			throws KeyNotFoundException
 	{
 		byte[] kemIdValue = new byte[2];
