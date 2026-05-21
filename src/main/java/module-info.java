@@ -7,6 +7,7 @@ module de.hsheilbronn.mi.utils.crypto
 	exports de.hsheilbronn.mi.utils.crypto.ca;
 	exports de.hsheilbronn.mi.utils.crypto.cert;
 	exports de.hsheilbronn.mi.utils.crypto.context;
+	exports de.hsheilbronn.mi.utils.crypto.hpke;
 	exports de.hsheilbronn.mi.utils.crypto.io;
 	exports de.hsheilbronn.mi.utils.crypto.kem;
 	exports de.hsheilbronn.mi.utils.crypto.keypair;
