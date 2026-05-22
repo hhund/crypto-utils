@@ -29,8 +29,8 @@ public enum ChunkLength
 
 		long exponent = ByteEncoding.os2ip(value);
 
-		if (exponent > ChunkLength.values().length)
-			new IllegalArgumentException("Chunk length exponent not supported");
+		if (exponent > ChunkLength.values().length - 1)
+			throw new IllegalArgumentException("Chunk length exponent not supported");
 
 		return ChunkLength.values()[(int) exponent];
 	}

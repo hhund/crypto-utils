@@ -42,11 +42,31 @@ public class Hpke
 	private final PreSharedKeyProvider pskProvider;
 	private final SecureRandom secureRandom;
 
+	/**
+	 * Uses {@link PreSharedKeyProvider#of()} and {@link #SECURE_RANDOM}.
+	 */
+	public Hpke()
+	{
+		this(PreSharedKeyProvider.of(), SECURE_RANDOM);
+	}
+
+	/**
+	 * Uses {@link #SECURE_RANDOM}.
+	 * 
+	 * @param pskProvider
+	 *            not <code>null</code>
+	 */
 	public Hpke(PreSharedKeyProvider pskProvider)
 	{
 		this(pskProvider, SECURE_RANDOM);
 	}
 
+	/**
+	 * @param pskProvider
+	 *            not <code>null</code>
+	 * @param secureRandom
+	 *            not <code>null</code>
+	 */
 	public Hpke(PreSharedKeyProvider pskProvider, SecureRandom secureRandom)
 	{
 		this.pskProvider = Objects.requireNonNull(pskProvider, "pskProvider");
@@ -59,6 +79,25 @@ public class Hpke
 				header.getCanonical());
 	}
 
+	/**
+	 * Encrypts the given plain-text into chunks using the wire-format configure with the given <b>header</b>.<br>
+	 * <br>
+	 * For an empty <b>plainText</b> stream a single encrypted chunk will be emitted.
+	 * 
+	 * @param header
+	 *            not <code>null</code>
+	 * @param plainText
+	 *            not <code>null</code>
+	 * @param publicKey
+	 *            not <code>null</code>
+	 * @return crypt-text
+	 * @throws IOException
+	 * @throws NoSuchAlgorithmException
+	 * @throws InvalidKeyException
+	 * @throws NoSuchPaddingException
+	 * @throws InvalidAlgorithmParameterException
+	 * @throws GeneralSecurityException
+	 */
 	public InputStream encrypt(Header header, InputStream plainText, PublicKey publicKey)
 			throws IOException, NoSuchAlgorithmException, InvalidKeyException, NoSuchPaddingException,
 			InvalidAlgorithmParameterException, GeneralSecurityException
@@ -90,6 +129,26 @@ public class Hpke
 				SequenceInputStreamForRuntimeIOException.of(chunks))));
 	}
 
+	/**
+	 * Encrypts the given plain-text into chunks using the wire-format configure with the given <b>header</b>.<br>
+	 * <br>
+	 * For an empty <b>plainText</b> stream a single encrypted chunk will be emitted.
+	 * 
+	 * @param header
+	 *            not <code>null</code>
+	 * @param plainText
+	 *            not <code>null</code>
+	 * @param publicKey
+	 *            not <code>null</code>
+	 * @param out
+	 *            not <code>null</code>
+	 * @throws IOException
+	 * @throws NoSuchAlgorithmException
+	 * @throws InvalidKeyException
+	 * @throws NoSuchPaddingException
+	 * @throws InvalidAlgorithmParameterException
+	 * @throws GeneralSecurityException
+	 */
 	public void encrypt(Header header, InputStream plainText, PublicKey publicKey, OutputStream out)
 			throws IOException, NoSuchAlgorithmException, InvalidKeyException, NoSuchPaddingException,
 			InvalidAlgorithmParameterException, GeneralSecurityException
@@ -99,6 +158,23 @@ public class Hpke
 		encrypt(header, plainText, publicKey).transferTo(out);
 	}
 
+	/**
+	 * Decrypted chunks are emitted as soon as they are successfully decrypted while a later chunk may fail decryption.
+	 * 
+	 * @param encrypted
+	 *            not <code>null</code>
+	 * @param privateKey
+	 *            not <code>null</code>
+	 * @return plain-text
+	 * @throws IOException
+	 * @throws NoSuchAlgorithmException
+	 * @throws InvalidKeyException
+	 * @throws DecapsulateException
+	 * @throws NoSuchPaddingException
+	 * @throws InvalidAlgorithmParameterException
+	 * @throws GeneralSecurityException
+	 * @throws KeyNotFoundException
+	 */
 	public final InputStream decrypt(InputStream encrypted, PrivateKey privateKey)
 			throws IOException, NoSuchAlgorithmException, InvalidKeyException, DecapsulateException,
 			NoSuchPaddingException, InvalidAlgorithmParameterException, GeneralSecurityException, KeyNotFoundException
@@ -106,6 +182,23 @@ public class Hpke
 		return decrypt(encrypted, _ -> privateKey);
 	}
 
+	/**
+	 * Decrypted chunks are emitted as soon as they are successfully decrypted while a later chunk may fail decryption.
+	 * 
+	 * @param encrypted
+	 *            not <code>null</code>
+	 * @param receiverKeyProvider
+	 *            not <code>null</code>
+	 * @return plain text
+	 * @throws IOException
+	 * @throws NoSuchAlgorithmException
+	 * @throws InvalidKeyException
+	 * @throws DecapsulateException
+	 * @throws NoSuchPaddingException
+	 * @throws InvalidAlgorithmParameterException
+	 * @throws GeneralSecurityException
+	 * @throws KeyNotFoundException
+	 */
 	public final InputStream decrypt(InputStream encrypted, ReceiverKeyProvider receiverKeyProvider)
 			throws IOException, NoSuchAlgorithmException, InvalidKeyException, DecapsulateException,
 			NoSuchPaddingException, InvalidAlgorithmParameterException, GeneralSecurityException, KeyNotFoundException

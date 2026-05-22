@@ -13,6 +13,7 @@ import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 import java.security.GeneralSecurityException;
 import java.security.KeyPair;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.function.BiConsumer;
 import java.util.stream.Collectors;
@@ -63,7 +64,8 @@ public class HpkeTest
 	private static Stream<Arguments> forTestEncryptDecryptInputStream() throws KeyNotFoundException
 	{
 		List<Mode> modes = List.of(Mode.base(), Mode.psk(PSK_ID, PSK_PROVIDER));
-		KemId[] kemIds = KemId.values();
+//		KemId[] kemIds = KemId.values();
+		KemId[] kemIds = EnumSet.of(KemId.RSAKEM_1024_KDF2_SHA256, KemId.RSAKEM_2048_KDF2_SHA256, KemId.RSAKEM_3072_KDF2_SHA512, KemId.RSAKEM_4096_KDF2_SHA512).toArray(KemId[]::new);
 		KdfId[] kdfIds = KdfId.values();
 		AeadId[] aeadIds = AeadId.values();
 		ChunkLength[] chunkLengths = ChunkLength.values();

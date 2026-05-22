@@ -2,6 +2,7 @@ package de.hsheilbronn.mi.utils.crypto.hpke;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrowsExactly;
 
 import java.util.EnumSet;
 
@@ -33,5 +34,18 @@ public class ChunkLengthTest
 			int expectedLength = (int) (ChunkLength.BASE * Math.pow(2, i));
 			assertEquals(expectedLength, values[i].getLength());
 		}
+	}
+
+	@Test
+	void testFromInvalid() throws Exception
+	{
+		IllegalArgumentException e = assertThrowsExactly(IllegalArgumentException.class,
+				() -> ChunkLength.from(new byte[0]));
+		assertEquals("value.length != 1", e.getMessage());
+		e = assertThrowsExactly(IllegalArgumentException.class,
+				() -> ChunkLength.from(new byte[] { (byte) ChunkLength.values().length }));
+		assertEquals("Chunk length exponent not supported", e.getMessage());
+		e = assertThrowsExactly(IllegalArgumentException.class, () -> ChunkLength.from(new byte[] { (byte) 0xFF }));
+		assertEquals("Chunk length exponent not supported", e.getMessage());
 	}
 }

@@ -75,7 +75,7 @@ public final class Mode
 
 	public byte[] getPskId()
 	{
-		return pskId;
+		return pskId.clone();
 	}
 
 	@Override
@@ -124,7 +124,8 @@ public final class Mode
 	 * @param value
 	 *            <code>0x00</code> or <code>0x01</code>
 	 * @param pskId
-	 *            <code>null</code> if <b>mode</b> = <code>0x00</code> else not <code>null</code> and length > 0
+	 *            <code>null</code> if <b>mode</b> = <code>0x00</code> else not <code>null</code> and length =
+	 *            {@value Header#PSK_ID_LENGTH}
 	 * @param pskProvider
 	 *            not <code>null</code>
 	 * @return HPKE mode
@@ -140,8 +141,8 @@ public final class Mode
 		else if (PSK_VALUE == value)
 		{
 			Objects.requireNonNull(pskId, "pskId");
-			if (pskId.length < Header.PSK_ID_LENGTH)
-				throw new IllegalArgumentException("pskId.length <= " + Header.PSK_ID_LENGTH);
+			if (pskId.length != Header.PSK_ID_LENGTH)
+				throw new IllegalArgumentException("pskId.length != " + Header.PSK_ID_LENGTH);
 			return Mode.psk(pskId, pskProvider.retrieve(pskId));
 		}
 		else

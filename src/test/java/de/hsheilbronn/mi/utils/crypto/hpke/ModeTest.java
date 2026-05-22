@@ -116,7 +116,7 @@ public class ModeTest
 						KeyProvider.notFound("PSK", PSK_ID).getMessage()),
 				Arguments.of(Mode.PSK_VALUE, null, PSK_PROVIDER, NullPointerException.class, "pskId"),
 				Arguments.of(Mode.PSK_VALUE, new byte[0], PSK_PROVIDER, IllegalArgumentException.class,
-						"pskId.length <= " + Header.PSK_ID_LENGTH));
+						"pskId.length != " + Header.PSK_ID_LENGTH));
 	}
 
 	@ParameterizedTest

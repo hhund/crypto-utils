@@ -194,7 +194,7 @@ public class HeaderTest
 				Arguments.of(concat(Header.MAGIC, Version.V1.getValueAsI2osp1Byte(), Mode.base().getValueAsI2osp1Byte(),
 						KemId.DHKEM_X25519_HKDF_SHA256.getIdAsI2osp2Bytes(), KdfId.HKDF_SHA256.getIdAsI2osp2Bytes(),
 						AeadId.AES_128_GCM.getIdAsI2osp2Bytes(), ChunkLength.KiB_1.getExponentAsI2osp1Byte()),
-						"value.length < " + Header.HEADER_LENGHT),
+						"value.length < " + Header.HEADER_LENGTH),
 				Arguments.of(
 						concat("12345".getBytes(StandardCharsets.US_ASCII), Version.V1.getValueAsI2osp1Byte(),
 								Mode.base().getValueAsI2osp1Byte(), KemId.DHKEM_X25519_HKDF_SHA256.getIdAsI2osp2Bytes(),
@@ -210,12 +210,12 @@ public class HeaderTest
 								KemId.DHKEM_X25519_HKDF_SHA256.getIdAsI2osp2Bytes(),
 								KdfId.HKDF_SHA256.getIdAsI2osp2Bytes(), AeadId.AES_128_GCM.getIdAsI2osp2Bytes(),
 								ChunkLength.KiB_1.getExponentAsI2osp1Byte(), RECEIVER_KEY_IDENTIFIER, new byte[1]),
-						"Mode 0x00: value.length != " + Header.HEADER_LENGHT),
+						"Mode 0x00: value.length != " + Header.HEADER_LENGTH),
 				Arguments.of(concat(Header.MAGIC, Version.V1.getValueAsI2osp1Byte(),
 						Mode.psk(PSK_ID, PSK).getValueAsI2osp1Byte(), KemId.DHKEM_P521_HKDF_SHA512.getIdAsI2osp2Bytes(),
 						KdfId.HKDF_SHA512.getIdAsI2osp2Bytes(), AeadId.ChaCha20Poly1305.getIdAsI2osp2Bytes(),
 						ChunkLength.KiB_1.getExponentAsI2osp1Byte(), RECEIVER_KEY_IDENTIFIER, PSK_ID, new byte[1]),
-						"Mode 0x01: value.length != " + (Header.HEADER_LENGHT + Header.PSK_ID_LENGTH)),
+						"Mode 0x01: value.length != " + (Header.HEADER_LENGTH + Header.PSK_ID_LENGTH)),
 				Arguments.of(
 						concat(Header.MAGIC, Version.V1.getValueAsI2osp1Byte(), new byte[] { (byte) 0xFF },
 								KemId.DHKEM_X25519_HKDF_SHA256.getIdAsI2osp2Bytes(),

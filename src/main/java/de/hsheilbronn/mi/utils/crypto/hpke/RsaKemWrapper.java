@@ -5,22 +5,26 @@ import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.security.SecureRandom;
-import java.security.interfaces.RSAPrivateKey;
 import java.security.interfaces.RSAPublicKey;
 import java.util.function.Supplier;
 
+import javax.crypto.BadPaddingException;
+import javax.crypto.Cipher;
 import javax.crypto.DecapsulateException;
+import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.KEM.Encapsulated;
+import javax.crypto.NoSuchPaddingException;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
 
+import org.bouncycastle.crypto.DataLengthException;
 import org.bouncycastle.crypto.DerivationFunction;
 import org.bouncycastle.crypto.SecretWithEncapsulation;
 import org.bouncycastle.crypto.digests.SHA256Digest;
 import org.bouncycastle.crypto.digests.SHA512Digest;
 import org.bouncycastle.crypto.generators.KDF2BytesGenerator;
-import org.bouncycastle.crypto.kems.RSAKEMExtractor;
 import org.bouncycastle.crypto.kems.RSAKEMGenerator;
+import org.bouncycastle.crypto.params.KDFParameters;
 import org.bouncycastle.crypto.params.RSAKeyParameters;
 
 public class RsaKemWrapper extends AbstractKemWrapper implements KemWrapper
@@ -63,14 +67,24 @@ public class RsaKemWrapper extends AbstractKemWrapper implements KemWrapper
 	protected SecretKey doGetSecretKey(PrivateKey privateKey, byte[] encapsulation, int sharedSecretLength)
 			throws NoSuchAlgorithmException, InvalidKeyException, DecapsulateException
 	{
-		RSAPrivateKey rsaPrivateKey = (RSAPrivateKey) privateKey;
+		try
+		{
+			Cipher cipher = Cipher.getInstance("RSA/ECB/NoPadding");
+			cipher.init(Cipher.DECRYPT_MODE, privateKey);
+			byte[] z = cipher.doFinal(encapsulation);
 
-		RSAKeyParameters rsaKeyParameters = new RSAKeyParameters(true, rsaPrivateKey.getModulus(),
-				rsaPrivateKey.getPrivateExponent());
+			DerivationFunction kdf = derivationFunctionFactory.get();
+			kdf.init(new KDFParameters(z, null));
 
-		RSAKEMExtractor decapsulator = new RSAKEMExtractor(rsaKeyParameters, sharedSecretLength,
-				derivationFunctionFactory.get());
+			byte[] secret = new byte[sharedSecretLength];
+			kdf.generateBytes(secret, 0, secret.length);
 
-		return new SecretKeySpec(decapsulator.extractSecret(encapsulation), SHARED_SECRET_KEY_ALGORITHM);
+			return new SecretKeySpec(secret, SHARED_SECRET_KEY_ALGORITHM);
+		}
+		catch (InvalidKeyException | DataLengthException | NoSuchAlgorithmException | NoSuchPaddingException
+				| IllegalBlockSizeException | BadPaddingException | IllegalArgumentException e)
+		{
+			throw new DecapsulateException(e.getMessage(), e);
+		}
 	}
 }

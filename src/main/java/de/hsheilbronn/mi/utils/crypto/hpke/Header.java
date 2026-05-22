@@ -5,6 +5,7 @@ import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.Objects;
+import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * The wire-format header is defined with fixed length and fixed order:<br>
@@ -23,7 +24,7 @@ public class Header
 	public static final byte[] MAGIC = new byte[] { 'H', 'P', 'K', 'E', 'F' };
 
 	public static final int RECEIVER_KEY_ID_LENGTH = 32;
-	public static final int HEADER_LENGHT = RECEIVER_KEY_ID_LENGTH + 14;
+	public static final int HEADER_LENGTH = RECEIVER_KEY_ID_LENGTH + 14;
 	public static final int PSK_ID_LENGTH = 32;
 
 	private final Version version;
@@ -35,7 +36,7 @@ public class Header
 	private final ChunkLength chunkLength;
 	private final byte[] receiverKeyId;
 
-	private byte[] canonical;
+	private final AtomicReference<byte[]> canonical = new AtomicReference<>();
 
 	/**
 	 * @param version
@@ -82,15 +83,19 @@ public class Header
 
 	public byte[] getCanonical()
 	{
-		if (canonical == null)
-			canonical = toCanonical();
-
-		return canonical;
+		byte[] c = canonical.get();
+		if (c != null)
+			return c;
+		else
+		{
+			canonical.compareAndSet(c, toCanonical());
+			return canonical.get();
+		}
 	}
 
 	private byte[] toCanonical()
 	{
-		ByteBuffer buffer = ByteBuffer.allocate(HEADER_LENGHT + (mode.isPsk() ? PSK_ID_LENGTH : 0));
+		ByteBuffer buffer = ByteBuffer.allocate(HEADER_LENGTH + (mode.isPsk() ? PSK_ID_LENGTH : 0));
 		buffer.put(MAGIC);
 		buffer.put(version.getValueAsI2osp1Byte());
 		buffer.put(mode.getValueAsI2osp1Byte());
@@ -133,7 +138,7 @@ public class Header
 
 	public byte[] getReceiverKeyId()
 	{
-		return receiverKeyId;
+		return receiverKeyId.clone();
 	}
 
 	public int getChunkLength()
@@ -141,13 +146,14 @@ public class Header
 		return chunkLength.getLength();
 	}
 
-	public static Header from(InputStream stream, PreSharedKeyProvider pskProvider) throws KeyNotFoundException, IOException
+	public static Header from(InputStream stream, PreSharedKeyProvider pskProvider)
+			throws KeyNotFoundException, IOException
 	{
 		Objects.requireNonNull(stream, "stream");
 		Objects.requireNonNull(pskProvider, "pskProvider");
 
-		byte[] magicValue = new byte[MAGIC.length];
-		ByteEncoding.expectRead(MAGIC.length, stream.read(magicValue));
+		byte[] magicValue = stream.readNBytes(MAGIC.length);
+		ByteEncoding.expectRead(MAGIC.length, magicValue.length);
 
 		if (!Arrays.equals(MAGIC, magicValue))
 			throw new IOException("Magic value not supported");
@@ -163,14 +169,14 @@ public class Header
 
 		int remainingHeaderLength;
 		if (Mode.BASE_VALUE == (byte) modeValue)
-			remainingHeaderLength = HEADER_LENGHT - (MAGIC.length + 2);
+			remainingHeaderLength = HEADER_LENGTH - (MAGIC.length + 2);
 		else if (Mode.PSK_VALUE == (byte) modeValue)
-			remainingHeaderLength = HEADER_LENGHT + PSK_ID_LENGTH - (MAGIC.length + 2);
+			remainingHeaderLength = HEADER_LENGTH + PSK_ID_LENGTH - (MAGIC.length + 2);
 		else
 			throw new IOException("Mode not supported");
 
-		byte[] remainingHeader = new byte[remainingHeaderLength];
-		ByteEncoding.expectRead(remainingHeaderLength, stream.read(remainingHeader));
+		byte[] remainingHeader = stream.readNBytes(remainingHeaderLength);
+		ByteEncoding.expectRead(remainingHeaderLength, remainingHeader.length);
 
 		ByteBuffer buffer = ByteBuffer.wrap(remainingHeader);
 
@@ -187,8 +193,8 @@ public class Header
 	public static Header from(byte[] value, PreSharedKeyProvider pskProvider) throws KeyNotFoundException
 	{
 		Objects.requireNonNull(value, "value");
-		if (value.length < HEADER_LENGHT)
-			throw new IllegalArgumentException("value.length < " + HEADER_LENGHT);
+		if (value.length < HEADER_LENGTH)
+			throw new IllegalArgumentException("value.length < " + HEADER_LENGTH);
 		Objects.requireNonNull(pskProvider, "pskProvider");
 
 		ByteBuffer buffer = ByteBuffer.wrap(value);
@@ -208,13 +214,13 @@ public class Header
 
 		if (Mode.BASE_VALUE == modeValue)
 		{
-			if (value.length != HEADER_LENGHT)
-				throw new IllegalArgumentException("Mode 0x00: value.length != " + HEADER_LENGHT);
+			if (value.length != HEADER_LENGTH)
+				throw new IllegalArgumentException("Mode 0x00: value.length != " + HEADER_LENGTH);
 		}
 		else if (Mode.PSK_VALUE == modeValue)
 		{
-			if (value.length != (HEADER_LENGHT + PSK_ID_LENGTH))
-				throw new IllegalArgumentException("Mode 0x01: value.length != " + (HEADER_LENGHT + PSK_ID_LENGTH));
+			if (value.length != (HEADER_LENGTH + PSK_ID_LENGTH))
+				throw new IllegalArgumentException("Mode 0x01: value.length != " + (HEADER_LENGTH + PSK_ID_LENGTH));
 		}
 		else
 			throw new IllegalArgumentException("Mode not supported");
@@ -222,8 +228,8 @@ public class Header
 		return toHeader(pskProvider, versionValue, modeValue, buffer);
 	}
 
-	private static Header toHeader(PreSharedKeyProvider pskProvider, byte versionValue, byte modeValue, ByteBuffer buffer)
-			throws KeyNotFoundException
+	private static Header toHeader(PreSharedKeyProvider pskProvider, byte versionValue, byte modeValue,
+			ByteBuffer buffer) throws KeyNotFoundException
 	{
 		byte[] kemIdValue = new byte[2];
 		byte[] kdfIdValue = new byte[2];

@@ -80,17 +80,17 @@ public enum KemId
 	private final int id;
 	private final int sharedSecretLength;
 	private final int encapsulationLength;
-	private final Function<KemId, KemWrapper> KemWrapperFactory;
+	private final Function<KemId, KemWrapper> kemWrapperFactory;
 	private final Predicate<AsymmetricKey> keySupported;
 	private final KeyPairGeneratorFactory keyPairGeneratorFactory;
 
-	KemId(int id, int sharedSecretLength, int encapsulationLength, Function<KemId, KemWrapper> KemWrapperFactory,
+	KemId(int id, int sharedSecretLength, int encapsulationLength, Function<KemId, KemWrapper> kemWrapperFactory,
 			Predicate<AsymmetricKey> keySupported, KeyPairGeneratorFactory keyPairGeneratorFactory)
 	{
 		this.id = id;
 		this.sharedSecretLength = sharedSecretLength;
 		this.encapsulationLength = encapsulationLength;
-		this.KemWrapperFactory = KemWrapperFactory;
+		this.kemWrapperFactory = kemWrapperFactory;
 		this.keySupported = keySupported;
 		this.keyPairGeneratorFactory = keyPairGeneratorFactory;
 	}
@@ -115,9 +115,9 @@ public enum KemId
 		return encapsulationLength;
 	}
 
-	public KemWrapper toKem() throws NoSuchAlgorithmException
+	public KemWrapper toKem()
 	{
-		return KemWrapperFactory.apply(this);
+		return kemWrapperFactory.apply(this);
 	}
 
 	public boolean isKeySupported(AsymmetricKey key)

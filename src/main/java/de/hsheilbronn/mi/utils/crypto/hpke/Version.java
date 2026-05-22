@@ -23,9 +23,9 @@ public enum Version
 
 	public static Version from(byte value)
 	{
-		int kemId = value & 0xFF;
+		int version = value & 0xFF;
 
-		if (V1.value == kemId)
+		if (V1.value == version)
 			return V1;
 		else
 			throw new IllegalArgumentException("Version not supported");

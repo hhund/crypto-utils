@@ -13,7 +13,7 @@ public final class ByteEncoding
 
 	/**
 	 * @param value
-	 *            >= 0 and <= 255
+	 *            >= 0 and &lt;= 255
 	 * @return encoded value
 	 * @throws IllegalArgumentException
 	 *             if <b>value</b> &lt; 0 or > 255
@@ -28,7 +28,7 @@ public final class ByteEncoding
 
 	/**
 	 * @param value
-	 *            >= 0 and <= 65535
+	 *            >= 0 and &lt;= 65535
 	 * @return encoded value
 	 * @throws IllegalArgumentException
 	 *             if <b>value</b> &lt; 0 or > 65535
@@ -48,7 +48,8 @@ public final class ByteEncoding
 	 * @param input
 	 *            not <code>null</code>, length &lt; 1 or > 4
 	 * @return decoded value
-	 * @throw {@link IllegalArgumentException} if <b>input</b> length &lt; 1 or > 4
+	 * @throws IllegalArgumentException
+	 *             if <b>input</b> length &lt; 1 or > 4
 	 */
 	public static long os2ip(byte[] input)
 	{
