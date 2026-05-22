@@ -6,6 +6,11 @@ public final class RuntimeIOException extends RuntimeException
 {
 	private static final long serialVersionUID = 1L;
 
+	public RuntimeIOException(String message)
+	{
+		super(message);
+	}
+
 	public RuntimeIOException(IOException cause)
 	{
 		super(cause);
@@ -14,6 +19,9 @@ public final class RuntimeIOException extends RuntimeException
 	@Override
 	public synchronized IOException getCause()
 	{
-		return (IOException) super.getCause();
+		if (super.getCause() != null)
+			return (IOException) super.getCause();
+		else
+			return new IOException(getMessage());
 	}
 }

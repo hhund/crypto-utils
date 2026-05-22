@@ -8,7 +8,26 @@ import java.util.Enumeration;
 
 public final class SequenceInputStreamForRuntimeIOException extends SequenceInputStream
 {
-	public SequenceInputStreamForRuntimeIOException(Enumeration<? extends InputStream> e)
+	public static final SequenceInputStream of(ChunkedInputStreamEnumeration enumeration) throws IOException
+	{
+		try
+		{
+			return new SequenceInputStreamForRuntimeIOException(enumeration);
+		}
+		catch (RuntimeIOException e)
+		{
+			throw e.getCause();
+		}
+	}
+
+	/**
+	 * @param e
+	 *            not <code>null</code>
+	 * @throws RuntimeIOException
+	 *             if errors occur during the peek operation of the {@link SequenceInputStream} constructor an thus
+	 *             reading of the first element
+	 */
+	private SequenceInputStreamForRuntimeIOException(Enumeration<? extends InputStream> e)
 	{
 		super(e);
 	}

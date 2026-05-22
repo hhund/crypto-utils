@@ -26,7 +26,7 @@ import de.hsheilbronn.mi.utils.crypto.hpke.KeySchedule.Result;
 
 /**
  * RFC 9180 Hybrid Public Key Encryption implementation with support for modes 0 and 1. The encryption produces a
- * [header][encapsulation][chunk0]...[chunkN] wire-format.<br>
+ * [header][encapsulation][chunk0]...[chunkN] wire-format (not defined in RFC 9180).<br>
  * <br>
  * Chunks 1 to n-1 have a fixed length. The final chunk may be shorter. Supported chunk lengths are defined in
  * {@link ChunkLength}.<br>
@@ -75,27 +75,19 @@ public class Hpke
 
 		ChunkedInputStreamEnumeration chunks = new ChunkedInputStreamEnumeration(header.getChunkLength(),
 				keyScheduleResult.baseNonce(), plainText,
-				(byte[] iv, byte[] sequence, boolean finished, byte[] currentChunk) ->
+				(byte[] iv, byte[] sequence, boolean finished, byte[] chunk) ->
 				{
 					header.getAeadId().initEncryptionCipher(cipher, keyScheduleResult.key(), iv);
 
 					cipher.updateAAD(createAAD(header, sequence, finished));
-					byte[] encrypted = cipher.doFinal(currentChunk);
+					byte[] encrypted = cipher.doFinal(chunk);
 
 					return new ByteArrayInputStream(encrypted);
 				});
 
-		try
-		{
-			return new SequenceInputStream(
-					Collections.enumeration(List.of(new ByteArrayInputStream(header.getCanonical()),
-							new ByteArrayInputStream(encapsulated.encapsulation()),
-							new SequenceInputStreamForRuntimeIOException(chunks))));
-		}
-		catch (RuntimeIOException e)
-		{
-			throw (IOException) e.getCause();
-		}
+		return new SequenceInputStream(Collections.enumeration(List.of(new ByteArrayInputStream(header.getCanonical()),
+				new ByteArrayInputStream(encapsulated.encapsulation()),
+				SequenceInputStreamForRuntimeIOException.of(chunks))));
 	}
 
 	public void encrypt(Header header, InputStream plainText, PublicKey publicKey, OutputStream out)
@@ -137,24 +129,17 @@ public class Hpke
 		ChunkedInputStreamEnumeration chunks = new ChunkedInputStreamEnumeration(
 				header.getChunkLength() + (header.getAeadId().getAuthenticationTagLengthBits() / 8),
 				keyScheduleResult.baseNonce(), encrypted,
-				(byte[] iv, byte[] sequence, boolean finished, byte[] currentChunk) ->
+				(byte[] iv, byte[] sequence, boolean finished, byte[] chunk) ->
 				{
 					header.getAeadId().initDecryptionCipher(cipher, keyScheduleResult.key(), iv);
 
 					cipher.updateAAD(createAAD(header, sequence, finished));
-					byte[] decrypted = cipher.doFinal(currentChunk);
+					byte[] decrypted = cipher.doFinal(chunk);
 
 					return new ByteArrayInputStream(decrypted);
 				});
 
-		try
-		{
-			return new SequenceInputStreamForRuntimeIOException(chunks);
-		}
-		catch (RuntimeIOException e)
-		{
-			throw (IOException) e.getCause();
-		}
+		return SequenceInputStreamForRuntimeIOException.of(chunks);
 	}
 
 	private byte[] createAAD(Header header, byte[] sequence, boolean finished)
