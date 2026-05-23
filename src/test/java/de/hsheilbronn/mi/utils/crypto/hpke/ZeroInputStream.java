@@ -52,4 +52,10 @@ public final class ZeroInputStream extends InputStream
 		long remaining = size - position;
 		return remaining > Integer.MAX_VALUE ? Integer.MAX_VALUE : (int) remaining;
 	}
+
+	@Override
+	public void close() throws IOException
+	{
+		// nothing to do
+	}
 }

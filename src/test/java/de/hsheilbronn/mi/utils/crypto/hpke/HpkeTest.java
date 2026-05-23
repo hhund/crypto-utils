@@ -64,8 +64,8 @@ public class HpkeTest
 	private static Stream<Arguments> forTestEncryptDecryptInputStream() throws KeyNotFoundException
 	{
 		List<Mode> modes = List.of(Mode.base(), Mode.psk(PSK_ID, PSK_PROVIDER));
-//		KemId[] kemIds = KemId.values();
-		KemId[] kemIds = EnumSet.of(KemId.RSAKEM_1024_KDF2_SHA256, KemId.RSAKEM_2048_KDF2_SHA256, KemId.RSAKEM_3072_KDF2_SHA512, KemId.RSAKEM_4096_KDF2_SHA512).toArray(KemId[]::new);
+		KemId[] kemIds = EnumSet.of(KemId.RSAKEM_1024_KDF2_SHA256, KemId.RSAKEM_2048_KDF2_SHA256,
+				KemId.RSAKEM_3072_KDF2_SHA512, KemId.RSAKEM_4096_KDF2_SHA512).toArray(KemId[]::new);
 		KdfId[] kdfIds = KdfId.values();
 		AeadId[] aeadIds = AeadId.values();
 		ChunkLength[] chunkLengths = ChunkLength.values();
@@ -185,7 +185,6 @@ public class HpkeTest
 			throws Exception
 	{
 		ByteArrayOutputStream encrypted = new ByteArrayOutputStream();
-
 		hpke.encrypt(headerAndKeyPair.header(), new ZeroInputStream(TWO_KIB), headerAndKeyPair.keyPair().getPublic(),
 				encrypted);
 
