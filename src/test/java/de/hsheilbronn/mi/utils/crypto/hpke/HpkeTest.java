@@ -198,7 +198,7 @@ public class HpkeTest
 				hpke.decrypt(new ByteArrayInputStream(encryptedBytes, 0, encryptedBytes.length - i),
 						headerAndKeyPair.keyPair().getPrivate(), OutputStream.nullOutputStream());
 
-				assertEquals(i, 0); // only not truncated stream ok
+				assertEquals(0, i); // only not truncated stream ok
 			}
 			catch (IOException e)
 			{
