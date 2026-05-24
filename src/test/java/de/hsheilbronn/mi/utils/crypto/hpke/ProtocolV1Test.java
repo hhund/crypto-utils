@@ -16,9 +16,6 @@ import java.util.HexFormat;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
-import javax.crypto.SecretKey;
-import javax.crypto.spec.SecretKeySpec;
-
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.function.Executable;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -32,13 +29,8 @@ public class ProtocolV1Test
 	private static final Logger logger = LoggerFactory.getLogger(ProtocolV1Test.class);
 
 	private static final byte[] PSK_ID = Sha256.digest("Test PSK Identifier".getBytes(StandardCharsets.US_ASCII));
-	private static final SecretKey PSK = new SecretKeySpec(new byte[] { 'T', 'e', 's', 't', ' ', 'P', 'S', 'K' },
-			"Generic");
-	private static final PreSharedKeyProvider PSK_PROVIDER = PreSharedKeyProvider.of(PSK_ID, PSK);
-
 	private static final byte[] RECEIVER_KEY_IDENTIFIER = Sha256
 			.digest("Test Receiver Key Identifier".getBytes(StandardCharsets.US_ASCII));
-	private static final ReceiverPrivateKeyProvider RECEIVER_PRIVATE_KEY_PROVIDER = ReceiverPrivateKeyProvider.of();
 
 	private static final ProtocolV1 V1_BASE = new ProtocolV1(Mode.base(), KemId.DHKEM_X25519_HKDF_SHA256,
 			KdfId.HKDF_SHA256, AeadId.AES_128_GCM, ChunkLength.KiB_1, RECEIVER_KEY_IDENTIFIER);
@@ -145,8 +137,7 @@ public class ProtocolV1Test
 
 		assertArrayEquals(expected, header);
 
-		ProtocolV1 readProtocol = ProtocolV1.from(new ByteArrayInputStream(expected), PSK_PROVIDER,
-				RECEIVER_PRIVATE_KEY_PROVIDER);
+		ProtocolV1 readProtocol = ProtocolV1.from(new ByteArrayInputStream(expected));
 
 		assertEquals(protocol.getAeadId(), readProtocol.getAeadId());
 		assertEquals(protocol.getChunkLength(), readProtocol.getChunkLength());
@@ -215,7 +206,7 @@ public class ProtocolV1Test
 	void testReadInvalidHeadersFromStream(byte[] invalid, String exceptionMessage) throws Exception
 	{
 		Exception exception = assertThrowsExactly(IOException.class,
-				() -> ProtocolV1.from(new ByteArrayInputStream(invalid), PSK_PROVIDER, RECEIVER_PRIVATE_KEY_PROVIDER));
+				() -> ProtocolV1.from(new ByteArrayInputStream(invalid)));
 		assertEquals(exceptionMessage, exception.getMessage());
 	}
 

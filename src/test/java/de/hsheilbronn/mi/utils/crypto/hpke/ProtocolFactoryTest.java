@@ -77,8 +77,7 @@ public class ProtocolFactoryTest
 		}
 
 		@Override
-		public TestProtocol read(InputStream stream, PreSharedKeyProvider preSharedKeyProvider,
-				ReceiverPrivateKeyProvider receiverPrivateKeyProvider) throws IOException
+		public TestProtocol read(InputStream stream) throws IOException
 		{
 			return new TestProtocol();
 		}

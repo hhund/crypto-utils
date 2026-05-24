@@ -20,8 +20,7 @@ public class ProtocolFactory
 	{
 		int getVersion();
 
-		P read(InputStream source, PreSharedKeyProvider preSharedKeyProvider,
-				ReceiverPrivateKeyProvider receiverKeyProvider) throws IOException;
+		P read(InputStream source) throws IOException;
 
 		Class<P> getType();
 
@@ -37,10 +36,9 @@ public class ProtocolFactory
 		}
 
 		@Override
-		public ProtocolV1 read(InputStream source, PreSharedKeyProvider preSharedKeyProvider,
-				ReceiverPrivateKeyProvider receiverKeyProvider) throws IOException
+		public ProtocolV1 read(InputStream source) throws IOException
 		{
-			return ProtocolV1.from(source, preSharedKeyProvider, receiverKeyProvider);
+			return ProtocolV1.from(source);
 		}
 
 		@Override
@@ -106,7 +104,7 @@ public class ProtocolFactory
 		Optional<ProtocolSerializer<? extends Protocol>> deserializer = protocolSerializers.stream()
 				.filter(s -> s.getVersion() == version).findFirst();
 		if (deserializer.isPresent())
-			return deserializer.get().read(source, preSharedKeyProvider, receiverPrivateKeyProvider);
+			return deserializer.get().read(source);
 		else
 			throw new IOException("Protocol not supported");
 	}

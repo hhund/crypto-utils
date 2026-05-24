@@ -80,8 +80,7 @@ public class ProtocolV1 implements Protocol
 		this.receiverKeyId = receiverKeyId;
 	}
 
-	public static ProtocolV1 from(InputStream source, PreSharedKeyProvider preSharedKeyProvider,
-			ReceiverPrivateKeyProvider receiverPrivateKeyProvider) throws IOException
+	public static ProtocolV1 from(InputStream source) throws IOException
 	{
 		int modeValue = source.read();
 		ByteEncoding.throwIfTruncated(modeValue);
