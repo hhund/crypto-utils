@@ -51,7 +51,7 @@ public class RsaKemWrapperTest
 		assertEquals("KemId " + kemId.name() + " not supported", e.getMessage());
 	}
 
-	private static Stream<Arguments> rsaKemVariants()
+	private static Stream<Arguments> kemVariants()
 	{
 		KDF2BytesGenerator kdf2Sha256 = new KDF2BytesGenerator(new SHA256Digest());
 		KDF2BytesGenerator kdf2Sha512 = new KDF2BytesGenerator(new SHA512Digest());
@@ -68,7 +68,7 @@ public class RsaKemWrapperTest
 	}
 
 	@ParameterizedTest
-	@MethodSource("rsaKemVariants")
+	@MethodSource("kemVariants")
 	void testAgainstBouncyCastleImplementation(KemId kemId, KeyPair keyPair, DerivationFunction kdf) throws Exception
 	{
 		RsaKemWrapper w = new RsaKemWrapper(kemId);
@@ -115,7 +115,7 @@ public class RsaKemWrapperTest
 	}
 
 	@ParameterizedTest
-	@MethodSource("rsaKemVariants")
+	@MethodSource("kemVariants")
 	void testTruncatedEnc(KemId kemId, KeyPair keyPair, DerivationFunction kdf) throws Exception
 	{
 		RsaKemWrapper w = new RsaKemWrapper(kemId);
@@ -139,7 +139,7 @@ public class RsaKemWrapperTest
 				w.getSharedSecret(keyPair.getPrivate(), Arrays.copyOfRange(encapsulation, 0, encapsulation.length - i));
 				assertEquals(0, i); // only not truncated stream ok
 			}
-			catch (DecapsulateException e)
+			catch (IllegalArgumentException e)
 			{
 				assertEquals("encapsulation.length not " + kemId.getEncapsulationLength(), e.getMessage());
 			}
@@ -147,7 +147,7 @@ public class RsaKemWrapperTest
 	}
 
 	@ParameterizedTest
-	@MethodSource("rsaKemVariants")
+	@MethodSource("kemVariants")
 	void testModifiedEnc(KemId kemId, KeyPair keyPair, DerivationFunction kdf) throws Exception
 	{
 		RsaKemWrapper w = new RsaKemWrapper(kemId);
@@ -164,9 +164,12 @@ public class RsaKemWrapperTest
 		assertNotNull(encapsulation);
 		assertEquals(kemId.getEncapsulationLength(), encapsulation.length);
 
-		encapsulation[0] ^= 0x01;
-		SecretKey sharedSecret = w.getSharedSecret(keyPair.getPrivate(), encapsulation);
+		for (int i = 0; i < encapsulation.length; i++)
+		{
+			encapsulation[i] ^= 0x01;
+			SecretKey sharedSecret = w.getSharedSecret(keyPair.getPrivate(), encapsulation);
 
-		assertNotSame(sKey, sharedSecret);
+			assertNotSame(sKey, sharedSecret);
+		}
 	}
 }

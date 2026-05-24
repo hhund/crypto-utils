@@ -32,12 +32,14 @@ public abstract class AbstractKemWrapper implements KemWrapper
 		if (encapsulated.encapsulation().length != kemId.getEncapsulationLength())
 			throw new IllegalStateException("encapsulation.length not " + kemId.getEncapsulationLength());
 
+		if (encapsulated.key().getEncoded().length != kemId.getSharedSecretLength())
+			throw new IllegalStateException("sharedSecret.length not " + kemId.getSharedSecretLength());
+
 		return encapsulated;
 	}
 
 	protected abstract Encapsulated doGetEncapsulated(PublicKey publicKey, SecureRandom secureRandom,
 			int sharedSecretLength) throws NoSuchAlgorithmException, InvalidKeyException;
-
 
 	@Override
 	public final SecretKey getSharedSecret(PrivateKey privateKey, byte[] encapsulation)
@@ -47,7 +49,7 @@ public abstract class AbstractKemWrapper implements KemWrapper
 			throw new IllegalArgumentException("privateKey not supported");
 
 		if (encapsulation.length != kemId.getEncapsulationLength())
-			throw new DecapsulateException("encapsulation.length not " + kemId.getEncapsulationLength());
+			throw new IllegalArgumentException("encapsulation.length not " + kemId.getEncapsulationLength());
 
 		SecretKey sharedSecret = doGetSecretKey(privateKey, encapsulation, kemId.getSharedSecretLength());
 
