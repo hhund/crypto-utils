@@ -3,9 +3,6 @@ package de.hsheilbronn.mi.utils.crypto.hpke;
 import java.util.Arrays;
 import java.util.Objects;
 
-import javax.crypto.SecretKey;
-import javax.crypto.spec.HKDFParameterSpec.Builder;
-
 public final class Mode
 {
 	public static final int BASE_VALUE = 0x00;
@@ -13,13 +10,11 @@ public final class Mode
 
 	private final int value;
 	private final byte[] pskId;
-	private final SecretKey psk;
 
-	protected Mode(int value, byte[] pskId, SecretKey psk)
+	protected Mode(int value, byte[] pskId)
 	{
 		this.value = value;
 		this.pskId = pskId;
-		this.psk = psk;
 	}
 
 	/**
@@ -27,45 +22,21 @@ public final class Mode
 	 */
 	public static Mode base()
 	{
-		return new Mode(BASE_VALUE, new byte[0], null);
+		return new Mode(BASE_VALUE, new byte[0]);
 	}
 
 	/**
 	 * @param pskId
 	 *            not <code>null</code>, pskId.length > 0
-	 * @param psk
-	 *            not <code>null</code>
 	 * @return mode 1
 	 */
-	public static Mode psk(byte[] pskId, SecretKey psk)
+	public static Mode psk(byte[] pskId)
 	{
 		Objects.requireNonNull(pskId, "pskId");
 		if (pskId.length <= 0)
 			throw new IllegalArgumentException("pskId.length <= 0");
-		Objects.requireNonNull(psk, "psk");
 
-		return new Mode(PSK_VALUE, pskId, psk);
-	}
-
-	/**
-	 * @param pskId
-	 *            not <code>null</code>, pskId.length > 0
-	 * @param pskProvider
-	 *            not <code>null</code>
-	 * @return mode 1
-	 * @throws KeyNotFoundException
-	 *             if the <b>pskProvider</b> has no key for <b>pskId</b>
-	 */
-	public static Mode psk(byte[] pskId, PreSharedKeyProvider pskProvider) throws KeyNotFoundException
-	{
-		Objects.requireNonNull(pskId, "pskId");
-		if (pskId.length <= 0)
-			throw new IllegalArgumentException("pskId.length <= 0");
-		Objects.requireNonNull(pskProvider, "pskProvider");
-
-		SecretKey psk = pskProvider.retrieve(pskId);
-
-		return new Mode(PSK_VALUE, pskId, psk);
+		return new Mode(PSK_VALUE, pskId);
 	}
 
 	public byte[] getValueAsI2osp1Byte()
@@ -83,8 +54,8 @@ public final class Mode
 	{
 		final int prime = 31;
 		int result = 1;
-		result = prime * result + Arrays.hashCode(pskId);
 		result = prime * result + Objects.hash(value);
+		result = prime * result + Arrays.hashCode(pskId);
 		return result;
 	}
 
@@ -98,21 +69,13 @@ public final class Mode
 		if (getClass() != obj.getClass())
 			return false;
 		Mode other = (Mode) obj;
-		return Arrays.equals(pskId, other.pskId) && value == other.value;
+		return value == other.value && Arrays.equals(pskId, other.pskId);
 	}
 
 	@Override
 	public String toString()
 	{
 		return Integer.toString(value);
-	}
-
-	public Builder withPsk(Builder secretXSpecBuilder)
-	{
-		if (psk != null)
-			return secretXSpecBuilder.addIKM(psk);
-		else
-			return secretXSpecBuilder;
 	}
 
 	public boolean isPsk()
@@ -124,27 +87,15 @@ public final class Mode
 	 * @param value
 	 *            <code>0x00</code> or <code>0x01</code>
 	 * @param pskId
-	 *            <code>null</code> if <b>mode</b> = <code>0x00</code> else not <code>null</code> and length =
-	 *            {@value Header#PSK_ID_LENGTH}
-	 * @param pskProvider
-	 *            not <code>null</code>
+	 *            <code>null</code> if <b>mode</b> = <code>0x00</code> else not <code>null</code> and length > 0
 	 * @return HPKE mode
-	 * @throws KeyNotFoundException
-	 *             if no PSK could be found for the given <b>pskId</b>
 	 */
-	public static Mode from(byte value, byte[] pskId, PreSharedKeyProvider pskProvider) throws KeyNotFoundException
+	public static Mode from(byte value, byte[] pskId) throws IllegalArgumentException
 	{
-		Objects.requireNonNull(pskProvider, "pskProvider");
-
 		if (BASE_VALUE == value)
 			return Mode.base();
 		else if (PSK_VALUE == value)
-		{
-			Objects.requireNonNull(pskId, "pskId");
-			if (pskId.length != Header.PSK_ID_LENGTH)
-				throw new IllegalArgumentException("pskId.length != " + Header.PSK_ID_LENGTH);
-			return Mode.psk(pskId, pskProvider.retrieve(pskId));
-		}
+			return Mode.psk(pskId);
 		else
 			throw new IllegalArgumentException("Mode not supported");
 	}

@@ -21,7 +21,7 @@ public final class ByteEncoding
 	public static byte[] i2osp1(int value)
 	{
 		if (value < 0 || value > 0xFF)
-			throw new IllegalArgumentException("value < 0 || value > 255");
+			throw new IllegalArgumentException("value < 0 or value > 255");
 
 		return new byte[] { (byte) value };
 	}
@@ -36,7 +36,7 @@ public final class ByteEncoding
 	public static byte[] i2osp2(int value)
 	{
 		if (value < 0 || value > 0xFFFF)
-			throw new IllegalArgumentException("value < 0 || value > 65535");
+			throw new IllegalArgumentException("value < 0 or value > 65535");
 
 		byte[] output = new byte[2];
 		output[0] = (byte) (value >>> 8);
@@ -56,7 +56,7 @@ public final class ByteEncoding
 		Objects.requireNonNull(input, "input");
 
 		if (input.length < 1 || input.length > 4)
-			throw new IllegalArgumentException("input.length < 1 || input.length > 4");
+			throw new IllegalArgumentException("input.length < 1 or input.length > 4");
 
 		long value = 0;
 		for (int j = 0; j < input.length; j++)

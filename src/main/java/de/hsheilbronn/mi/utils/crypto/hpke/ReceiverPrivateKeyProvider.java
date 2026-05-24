@@ -8,19 +8,19 @@ import java.util.function.Function;
  * {@link Function} to retrieve the receiver {@link PrivateKey} for a given <b>receiverKeyId</b>
  */
 @FunctionalInterface
-public interface ReceiverKeyProvider extends KeyProvider<PrivateKey>
+public interface ReceiverPrivateKeyProvider extends KeyProvider<PrivateKey>
 {
-	static ReceiverKeyProvider of()
+	static ReceiverPrivateKeyProvider of()
 	{
 		return KeyProvider.<PrivateKey> of(RECEIVER_KEY_ID)::retrieve;
 	}
 
-	static ReceiverKeyProvider of(byte[] pskId, PrivateKey psk)
+	static ReceiverPrivateKeyProvider of(byte[] receiverKeyId, PrivateKey receiverKey)
 	{
-		return KeyProvider.of(RECEIVER_KEY_ID, pskId, psk)::retrieve;
+		return KeyProvider.of(RECEIVER_KEY_ID, receiverKeyId, receiverKey)::retrieve;
 	}
 
-	static ReceiverKeyProvider of(Map<byte[], PrivateKey> map)
+	static ReceiverPrivateKeyProvider of(Map<byte[], PrivateKey> map)
 	{
 		return KeyProvider.of(RECEIVER_KEY_ID, map)::retrieve;
 	}

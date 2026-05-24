@@ -39,8 +39,8 @@ public class AeadIdTest
 	private static Stream<Arguments> forTestFromInvalid()
 	{
 		return Stream.of(Arguments.of(null, NullPointerException.class, "value"),
-				Arguments.of(new byte[0], IllegalArgumentException.class, "value.length != 2"),
-				Arguments.of(new byte[1], IllegalArgumentException.class, "value.length != 2"),
+				Arguments.of(new byte[0], IllegalArgumentException.class, "value.length not 2"),
+				Arguments.of(new byte[1], IllegalArgumentException.class, "value.length not 2"),
 				Arguments.of(new byte[2], IllegalArgumentException.class, "AeadId not supported"));
 	}
 
@@ -114,6 +114,9 @@ public class AeadIdTest
 		assertNotNull(cipher.getIV());
 		assertArrayEquals(iv, cipher.getIV());
 		assertEquals(cipherParameterAlgorithmName, cipher.getParameters().getAlgorithm());
+		IllegalArgumentException e = assertThrowsExactly(IllegalArgumentException.class,
+				() -> aeadId.initEncryptionCipher(cipher, secretKey, new byte[0]));
+		assertEquals("iv.length not " + aeadId.getIvLength(), e.getMessage());
 
 		cipherAlgorithmParametersEvaluator.evaluate(cipher.getParameters(), expectedAuthTagLengthBits, iv);
 
@@ -121,6 +124,9 @@ public class AeadIdTest
 		assertNotNull(cipher.getIV());
 		assertArrayEquals(iv, cipher.getIV());
 		assertEquals(cipherParameterAlgorithmName, cipher.getParameters().getAlgorithm());
+		e = assertThrowsExactly(IllegalArgumentException.class,
+				() -> aeadId.initDecryptionCipher(cipher, secretKey, new byte[0]));
+		assertEquals("iv.length not " + aeadId.getIvLength(), e.getMessage());
 
 		cipherAlgorithmParametersEvaluator.evaluate(cipher.getParameters(), expectedAuthTagLengthBits, iv);
 	}

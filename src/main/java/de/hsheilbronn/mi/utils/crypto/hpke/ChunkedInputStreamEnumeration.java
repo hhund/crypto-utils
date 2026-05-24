@@ -83,8 +83,8 @@ public class ChunkedInputStreamEnumeration implements Enumeration<InputStream>
 	{
 		ensureInitialized();
 
-		// nextChunk == null && noElementEmittedYet -> source empty, emit empty final chunk
-		// nextChunk == null && !noElementEmittedYet -> true end-of-stream
+		// nextChunk == null && noElementEmitted -> source empty, emit empty final chunk
+		// nextChunk == null && !noElementEmitted -> true end-of-stream
 
 		return nextChunk != null || noElementEmitted;
 	}
@@ -188,7 +188,6 @@ public class ChunkedInputStreamEnumeration implements Enumeration<InputStream>
 				e.addSuppressed(closeE);
 			}
 
-			// throw new RuntimeIOException(e);
 			pendingException = new RuntimeIOException(e);
 		}
 	}

@@ -25,58 +25,63 @@ import javax.crypto.SecretKey;
 import de.hsheilbronn.mi.utils.crypto.hpke.KeySchedule.Result;
 
 /**
- * RFC 9180 Hybrid Public Key Encryption implementation with support for modes 0 and 1. The encryption produces a
- * [header][encapsulation][chunk0]...[chunkN] wire-format (not defined in RFC 9180).<br>
+ * <a href="https://www.rfc-editor.org/info/rfc9180">RFC 9180 Hybrid Public Key Encryption</a> implementation with
+ * support for modes 0 and 1. The encryption produces a wire-format not defined in RFC 9180 for use in the encryption of
+ * large files.<br>
  * <br>
- * Chunks 1 to n-1 have a fixed length. The final chunk may be shorter. Supported chunk lengths are defined in
- * {@link ChunkLength}.<br>
+ * The general wire-format is defined as: <code>[header][encapsulation][chunk0]...[chunkN]</code><br>
  * <br>
- * The header format is defined in {@link Header}. Lengths of the encapsulation are define by the RFC, see
- * {@link KemId}. <br>
- * The AAD tag is defined as: [header][sequence, 12 bytes][final-chunk-flag, 1 byte].
+ * The header format is specified in classes implementing {@link Protocol}. Lengths of the encapsulation are define by
+ * the RFC, see {@link KemId}.<br>
+ * <br>
+ * Chunks 1 to n-1 have a fixed length. The final chunk may be shorter. The chunk length is defined via
+ * {@link Protocol#getChunkLength()}.<br>
+ * <br>
+ * The RFC 9180 key-schedule is implemented by {@link KeySchedule}, with additional "info" supplied to the schedule by
+ * {@link Protocol#getKdfInfo()}.<br>
+ * <br>
+ * Additional authenticated data per chunk is defined by the sequence number and a one byte boolean flag for the final
+ * chunk, see {@link #createAad(byte[], boolean)}.
  */
 public class Hpke
 {
 	private static final SecureRandom SECURE_RANDOM = new SecureRandom();
 
-	private final PreSharedKeyProvider pskProvider;
+	private final ProtocolFactory protocolFactory;
 	private final SecureRandom secureRandom;
-
-	/**
-	 * Uses {@link PreSharedKeyProvider#of()} and {@link #SECURE_RANDOM}.
-	 */
-	public Hpke()
-	{
-		this(PreSharedKeyProvider.of(), SECURE_RANDOM);
-	}
 
 	/**
 	 * Uses {@link #SECURE_RANDOM}.
 	 * 
-	 * @param pskProvider
+	 * @param protocolFactory
 	 *            not <code>null</code>
 	 */
-	public Hpke(PreSharedKeyProvider pskProvider)
+	public Hpke(ProtocolFactory protocolFactory)
 	{
-		this(pskProvider, SECURE_RANDOM);
+		this(protocolFactory, SECURE_RANDOM);
 	}
 
 	/**
-	 * @param pskProvider
+	 * @param protocolFactory
 	 *            not <code>null</code>
 	 * @param secureRandom
 	 *            not <code>null</code>
 	 */
-	public Hpke(PreSharedKeyProvider pskProvider, SecureRandom secureRandom)
+	public Hpke(ProtocolFactory protocolFactory, SecureRandom secureRandom)
 	{
-		this.pskProvider = Objects.requireNonNull(pskProvider, "pskProvider");
+		this.protocolFactory = Objects.requireNonNull(protocolFactory, "protocolFactory");
 		this.secureRandom = Objects.requireNonNull(secureRandom, "secureRandom");
 	}
 
-	protected KeySchedule createKeySchedule(Header header)
+	protected KeySchedule createKeySchedule(Protocol protocol)
 	{
-		return new KeySchedule(header.getMode(), header.getKemId(), header.getKdfId(), header.getAeadId(),
-				header.getCanonical());
+		return new KeySchedule(protocol.getMode(), protocol.getKemId(), protocol.getKdfId(), protocol.getAeadId(),
+				protocol.getKdfInfo(), protocolFactory.getPreSharedKeyProvider());
+	}
+
+	protected byte[] createAad(byte[] sequence, boolean finished)
+	{
+		return ByteEncoding.concat(sequence, ByteEncoding.i2osp1(finished ? 1 : 0));
 	}
 
 	/**
@@ -84,7 +89,7 @@ public class Hpke
 	 * <br>
 	 * For an empty <b>plainText</b> stream a single encrypted chunk will be emitted.
 	 * 
-	 * @param header
+	 * @param protocol
 	 *            not <code>null</code>
 	 * @param plainText
 	 *            not <code>null</code>
@@ -97,36 +102,38 @@ public class Hpke
 	 * @throws NoSuchPaddingException
 	 * @throws InvalidAlgorithmParameterException
 	 * @throws GeneralSecurityException
+	 * @throws KeyNotFoundException
 	 */
-	public InputStream encrypt(Header header, InputStream plainText, PublicKey publicKey)
+	public InputStream encrypt(Protocol protocol, InputStream plainText, PublicKey publicKey)
 			throws IOException, NoSuchAlgorithmException, InvalidKeyException, NoSuchPaddingException,
-			InvalidAlgorithmParameterException, GeneralSecurityException
+			InvalidAlgorithmParameterException, GeneralSecurityException, KeyNotFoundException
 	{
-		Objects.requireNonNull(header, "header");
+		Objects.requireNonNull(protocol, "protocol");
 		Objects.requireNonNull(plainText, "plainText");
 		Objects.requireNonNull(publicKey, "publicKey");
 
-		Encapsulated encapsulated = header.getKemId().toKem().getEncapsulated(publicKey, secureRandom);
+		Encapsulated encapsulated = protocol.getKemId().toKem().getEncapsulated(publicKey, secureRandom);
 
-		Result keyScheduleResult = createKeySchedule(header).executeKeySchedule(encapsulated.key());
+		Result keyScheduleResult = createKeySchedule(protocol).executeKeySchedule(encapsulated.key());
 
-		Cipher cipher = header.getAeadId().toCipher();
+		Cipher cipher = protocol.getAeadId().toCipher();
 
-		ChunkedInputStreamEnumeration chunks = new ChunkedInputStreamEnumeration(header.getChunkLength(),
+		ChunkedInputStreamEnumeration chunks = new ChunkedInputStreamEnumeration(protocol.getChunkLength(),
 				keyScheduleResult.baseNonce(), plainText,
 				(byte[] iv, byte[] sequence, boolean finished, byte[] chunk) ->
 				{
-					header.getAeadId().initEncryptionCipher(cipher, keyScheduleResult.key(), iv);
+					protocol.getAeadId().initEncryptionCipher(cipher, keyScheduleResult.key(), iv);
 
-					cipher.updateAAD(createAAD(header, sequence, finished));
+					cipher.updateAAD(createAad(sequence, finished));
+
 					byte[] encrypted = cipher.doFinal(chunk);
 
 					return new ByteArrayInputStream(encrypted);
 				});
 
-		return new SequenceInputStream(Collections.enumeration(List.of(new ByteArrayInputStream(header.getCanonical()),
-				new ByteArrayInputStream(encapsulated.encapsulation()),
-				SequenceInputStreamForRuntimeIOException.of(chunks))));
+		return new SequenceInputStream(Collections.enumeration(
+				List.of(protocolFactory.write(protocol), new ByteArrayInputStream(encapsulated.encapsulation()),
+						SequenceInputStreamForRuntimeIOException.of(chunks))));
 	}
 
 	/**
@@ -134,7 +141,7 @@ public class Hpke
 	 * <br>
 	 * For an empty <b>plainText</b> stream a single encrypted chunk will be emitted.
 	 * 
-	 * @param header
+	 * @param protocol
 	 *            not <code>null</code>
 	 * @param plainText
 	 *            not <code>null</code>
@@ -148,46 +155,21 @@ public class Hpke
 	 * @throws NoSuchPaddingException
 	 * @throws InvalidAlgorithmParameterException
 	 * @throws GeneralSecurityException
+	 * @throws KeyNotFoundException
 	 */
-	public void encrypt(Header header, InputStream plainText, PublicKey publicKey, OutputStream out)
+	public void encrypt(Protocol protocol, InputStream plainText, PublicKey publicKey, OutputStream out)
 			throws IOException, NoSuchAlgorithmException, InvalidKeyException, NoSuchPaddingException,
-			InvalidAlgorithmParameterException, GeneralSecurityException
+			InvalidAlgorithmParameterException, GeneralSecurityException, KeyNotFoundException
 	{
 		Objects.requireNonNull(out, "out");
 
-		encrypt(header, plainText, publicKey).transferTo(out);
+		encrypt(protocol, plainText, publicKey).transferTo(out);
 	}
 
 	/**
 	 * Decrypted chunks are emitted as soon as they are successfully decrypted while a later chunk may fail decryption.
 	 * 
 	 * @param encrypted
-	 *            not <code>null</code>
-	 * @param privateKey
-	 *            not <code>null</code>
-	 * @return plain-text
-	 * @throws IOException
-	 * @throws NoSuchAlgorithmException
-	 * @throws InvalidKeyException
-	 * @throws DecapsulateException
-	 * @throws NoSuchPaddingException
-	 * @throws InvalidAlgorithmParameterException
-	 * @throws GeneralSecurityException
-	 * @throws KeyNotFoundException
-	 */
-	public final InputStream decrypt(InputStream encrypted, PrivateKey privateKey)
-			throws IOException, NoSuchAlgorithmException, InvalidKeyException, DecapsulateException,
-			NoSuchPaddingException, InvalidAlgorithmParameterException, GeneralSecurityException, KeyNotFoundException
-	{
-		return decrypt(encrypted, _ -> privateKey);
-	}
-
-	/**
-	 * Decrypted chunks are emitted as soon as they are successfully decrypted while a later chunk may fail decryption.
-	 * 
-	 * @param encrypted
-	 *            not <code>null</code>
-	 * @param receiverKeyProvider
 	 *            not <code>null</code>
 	 * @return plain text
 	 * @throws IOException
@@ -199,34 +181,34 @@ public class Hpke
 	 * @throws GeneralSecurityException
 	 * @throws KeyNotFoundException
 	 */
-	public final InputStream decrypt(InputStream encrypted, ReceiverKeyProvider receiverKeyProvider)
+	public final InputStream decrypt(InputStream encrypted)
 			throws IOException, NoSuchAlgorithmException, InvalidKeyException, DecapsulateException,
 			NoSuchPaddingException, InvalidAlgorithmParameterException, GeneralSecurityException, KeyNotFoundException
 	{
 		Objects.requireNonNull(encrypted, "encrypted");
-		Objects.requireNonNull(receiverKeyProvider, "receiverKeyProvider");
 
-		Header header = Header.from(encrypted, pskProvider);
+		Protocol protocol = protocolFactory.read(encrypted);
 
-		PrivateKey privateKey = receiverKeyProvider.retrieve(header.getReceiverKeyId());
+		PrivateKey privateKey = protocolFactory.getReceiverPrivateKeyProvider().retrieve(protocol.getReceiverKeyId());
 
-		byte[] encapsulation = new byte[header.getKemId().getEncapsulationLength()];
-		ByteEncoding.expectRead(header.getKemId().getEncapsulationLength(), encrypted.read(encapsulation));
+		byte[] encapsulation = new byte[protocol.getKemId().getEncapsulationLength()];
+		ByteEncoding.expectRead(protocol.getKemId().getEncapsulationLength(), encrypted.read(encapsulation));
 
-		SecretKey sharedSecret = header.getKemId().toKem().getSharedSecret(privateKey, encapsulation);
+		SecretKey sharedSecret = protocol.getKemId().toKem().getSharedSecret(privateKey, encapsulation);
 
-		Result keyScheduleResult = createKeySchedule(header).executeKeySchedule(sharedSecret);
+		Result keyScheduleResult = createKeySchedule(protocol).executeKeySchedule(sharedSecret);
 
-		Cipher cipher = header.getAeadId().toCipher();
+		Cipher cipher = protocol.getAeadId().toCipher();
 
 		ChunkedInputStreamEnumeration chunks = new ChunkedInputStreamEnumeration(
-				header.getChunkLength() + (header.getAeadId().getAuthenticationTagLengthBits() / 8),
+				protocol.getChunkLength() + (protocol.getAeadId().getAuthenticationTagLengthBits() / 8),
 				keyScheduleResult.baseNonce(), encrypted,
 				(byte[] iv, byte[] sequence, boolean finished, byte[] chunk) ->
 				{
-					header.getAeadId().initDecryptionCipher(cipher, keyScheduleResult.key(), iv);
+					protocol.getAeadId().initDecryptionCipher(cipher, keyScheduleResult.key(), iv);
 
-					cipher.updateAAD(createAAD(header, sequence, finished));
+					cipher.updateAAD(createAad(sequence, finished));
+
 					byte[] decrypted = cipher.doFinal(chunk);
 
 					return new ByteArrayInputStream(decrypted);
@@ -235,24 +217,26 @@ public class Hpke
 		return SequenceInputStreamForRuntimeIOException.of(chunks);
 	}
 
-	private byte[] createAAD(Header header, byte[] sequence, boolean finished)
-	{
-		return ByteEncoding.concat(header.getCanonical(), sequence, ByteEncoding.i2osp1(finished ? 1 : 0));
-	}
-
-	public final void decrypt(InputStream encrypted, PrivateKey privateKey, OutputStream plainText)
+	/**
+	 * Decrypted chunks are emitted as soon as they are successfully decrypted while a later chunk may fail decryption.
+	 * 
+	 * @param encrypted
+	 *            not <code>null</code>
+	 * @param plainText
+	 *            not <code>null</code>
+	 * @throws IOException
+	 * @throws NoSuchAlgorithmException
+	 * @throws InvalidKeyException
+	 * @throws DecapsulateException
+	 * @throws NoSuchPaddingException
+	 * @throws InvalidAlgorithmParameterException
+	 * @throws GeneralSecurityException
+	 * @throws KeyNotFoundException
+	 */
+	public final void decrypt(InputStream encrypted, OutputStream plainText)
 			throws IOException, NoSuchAlgorithmException, InvalidKeyException, DecapsulateException,
 			NoSuchPaddingException, InvalidAlgorithmParameterException, GeneralSecurityException, KeyNotFoundException
 	{
-		decrypt(encrypted, _ -> privateKey, plainText);
-	}
-
-	public final void decrypt(InputStream encrypted, ReceiverKeyProvider receiverKeyProvider, OutputStream plainText)
-			throws IOException, NoSuchAlgorithmException, InvalidKeyException, DecapsulateException,
-			NoSuchPaddingException, InvalidAlgorithmParameterException, GeneralSecurityException, KeyNotFoundException
-	{
-		Objects.requireNonNull(plainText, "plainText");
-
-		decrypt(encrypted, receiverKeyProvider).transferTo(plainText);
+		decrypt(encrypted).transferTo(plainText);
 	}
 }

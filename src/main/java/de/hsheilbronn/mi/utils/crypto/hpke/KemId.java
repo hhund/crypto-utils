@@ -130,11 +130,11 @@ public enum KemId
 		return keyPairGeneratorFactory;
 	}
 
-	public static KemId from(byte[] value)
+	public static KemId from(byte[] value) throws IllegalArgumentException
 	{
 		Objects.requireNonNull(value, "value");
 		if (value.length != 2)
-			throw new IllegalArgumentException("value.length != 2");
+			throw new IllegalArgumentException("value.length not 2");
 
 		long kemId = ByteEncoding.os2ip(value);
 

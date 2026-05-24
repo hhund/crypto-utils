@@ -21,11 +21,11 @@ public enum ChunkLength
 		return ByteEncoding.i2osp1(ordinal());
 	}
 
-	public static ChunkLength from(byte[] value)
+	public static ChunkLength from(byte[] value) throws IllegalArgumentException
 	{
 		Objects.requireNonNull(value, "value");
 		if (value.length != 1)
-			throw new IllegalArgumentException("value.length != 1");
+			throw new IllegalArgumentException("value.length not 1");
 
 		long exponent = ByteEncoding.os2ip(value);
 

@@ -16,9 +16,9 @@ public class ByteEncodingTest
 	{
 		IllegalArgumentException e = assertThrowsExactly(IllegalArgumentException.class,
 				() -> ByteEncoding.i2osp1(Integer.MIN_VALUE));
-		assertEquals("value < 0 || value > 255", e.getMessage());
+		assertEquals("value < 0 or value > 255", e.getMessage());
 		e = assertThrowsExactly(IllegalArgumentException.class, () -> ByteEncoding.i2osp1(-1));
-		assertEquals("value < 0 || value > 255", e.getMessage());
+		assertEquals("value < 0 or value > 255", e.getMessage());
 
 		byte[] b00 = ByteEncoding.i2osp1(0x00);
 		assertArrayEquals(new byte[1], b00);
@@ -28,9 +28,9 @@ public class ByteEncodingTest
 		assertArrayEquals(new byte[] { (byte) 0xFF }, bFF);
 
 		e = assertThrowsExactly(IllegalArgumentException.class, () -> ByteEncoding.i2osp1(0xFF + 1));
-		assertEquals("value < 0 || value > 255", e.getMessage());
+		assertEquals("value < 0 or value > 255", e.getMessage());
 		e = assertThrowsExactly(IllegalArgumentException.class, () -> ByteEncoding.i2osp1(Integer.MAX_VALUE));
-		assertEquals("value < 0 || value > 255", e.getMessage());
+		assertEquals("value < 0 or value > 255", e.getMessage());
 	}
 
 	@Test
@@ -38,9 +38,9 @@ public class ByteEncodingTest
 	{
 		IllegalArgumentException e = assertThrowsExactly(IllegalArgumentException.class,
 				() -> ByteEncoding.i2osp2(Integer.MIN_VALUE));
-		assertEquals("value < 0 || value > 65535", e.getMessage());
+		assertEquals("value < 0 or value > 65535", e.getMessage());
 		e = assertThrowsExactly(IllegalArgumentException.class, () -> ByteEncoding.i2osp2(-1));
-		assertEquals("value < 0 || value > 65535", e.getMessage());
+		assertEquals("value < 0 or value > 65535", e.getMessage());
 
 		byte[] b0000 = ByteEncoding.i2osp2(0x0000);
 		assertArrayEquals(new byte[2], b0000);
@@ -50,9 +50,9 @@ public class ByteEncodingTest
 		assertArrayEquals(new byte[] { (byte) 0xFF, (byte) 0xFF }, bFFFF);
 
 		e = assertThrowsExactly(IllegalArgumentException.class, () -> ByteEncoding.i2osp2(0xFFFF + 1));
-		assertEquals("value < 0 || value > 65535", e.getMessage());
+		assertEquals("value < 0 or value > 65535", e.getMessage());
 		e = assertThrowsExactly(IllegalArgumentException.class, () -> ByteEncoding.i2osp2(Integer.MAX_VALUE));
-		assertEquals("value < 0 || value > 65535", e.getMessage());
+		assertEquals("value < 0 or value > 65535", e.getMessage());
 	}
 
 	@Test
@@ -62,7 +62,7 @@ public class ByteEncodingTest
 
 		IllegalArgumentException e = assertThrowsExactly(IllegalArgumentException.class,
 				() -> ByteEncoding.os2ip(new byte[0]));
-		assertEquals("input.length < 1 || input.length > 4", e.getMessage());
+		assertEquals("input.length < 1 or input.length > 4", e.getMessage());
 
 		long i1_00 = ByteEncoding.os2ip(new byte[1]);
 		assertEquals(0x00, i1_00);
@@ -93,7 +93,7 @@ public class ByteEncodingTest
 		assertEquals(0xFFFFFFFFL, i4_FFFFFFFF);
 
 		e = assertThrowsExactly(IllegalArgumentException.class, () -> ByteEncoding.os2ip(new byte[5]));
-		assertEquals("input.length < 1 || input.length > 4", e.getMessage());
+		assertEquals("input.length < 1 or input.length > 4", e.getMessage());
 	}
 
 	@Test

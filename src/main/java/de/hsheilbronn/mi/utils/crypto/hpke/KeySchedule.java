@@ -7,6 +7,7 @@ import java.util.Objects;
 import javax.crypto.KDF;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.HKDFParameterSpec;
+import javax.crypto.spec.HKDFParameterSpec.Builder;
 import javax.crypto.spec.HKDFParameterSpec.Expand;
 import javax.crypto.spec.HKDFParameterSpec.Extract;
 
@@ -29,23 +30,29 @@ public class KeySchedule
 	private final KdfId kdfId;
 	private final AeadId aeadId;
 	private final byte[] info;
+	private final PreSharedKeyProvider preSharedKeyProvider;
 
-	public KeySchedule(Mode mode, KemId kemId, KdfId kdfId, AeadId aeadId)
-	{
-		this(mode, kemId, kdfId, aeadId, new byte[0]);
-	}
-
-	public KeySchedule(Mode mode, KemId kemId, KdfId kdfId, AeadId aeadId, byte[] info)
+	public KeySchedule(Mode mode, KemId kemId, KdfId kdfId, AeadId aeadId, byte[] info,
+			PreSharedKeyProvider preSharedKeyProvider)
 	{
 		this.mode = Objects.requireNonNull(mode, "mode");
 		this.kemId = Objects.requireNonNull(kemId, "kemId");
 		this.kdfId = Objects.requireNonNull(kdfId, "kdfId");
 		this.aeadId = Objects.requireNonNull(aeadId, "aeadId");
 		this.info = Objects.requireNonNull(info, "info");
+		this.preSharedKeyProvider = Objects.requireNonNull(preSharedKeyProvider, "preSharedKeyProvider");
+	}
+
+	protected Builder withPsk(Builder secretXSpecBuilder) throws KeyNotFoundException
+	{
+		if (mode.isPsk())
+			secretXSpecBuilder.addIKM(preSharedKeyProvider.retrieve(mode.getPskId()));
+
+		return secretXSpecBuilder;
 	}
 
 	public Result executeKeySchedule(SecretKey sharedSecret)
-			throws NoSuchAlgorithmException, InvalidAlgorithmParameterException
+			throws NoSuchAlgorithmException, InvalidAlgorithmParameterException, KeyNotFoundException
 	{
 		byte[] suiteId = ByteEncoding.concat(HPKE, kemId.getIdAsI2osp2Bytes(), kdfId.getIdAsI2osp2Bytes(),
 				aeadId.getIdAsI2osp2Bytes());
@@ -62,7 +69,7 @@ public class KeySchedule
 		byte[] keyScheduleContext = ByteEncoding.concat(mode.getValueAsI2osp1Byte(), pskIdHash, infoHash);
 
 		KDF kdf = kdfId.toKdf();
-		Extract secretXSpec = mode.withPsk(HKDFParameterSpec.ofExtract().addIKM(HPKE_V1).addIKM(suiteId).addIKM(SECRET))
+		Extract secretXSpec = withPsk(HKDFParameterSpec.ofExtract().addIKM(HPKE_V1).addIKM(suiteId).addIKM(SECRET))
 				.addSalt(sharedSecret).extractOnly();
 		SecretKey secretX = kdf.deriveKey("Generic", secretXSpec);
 

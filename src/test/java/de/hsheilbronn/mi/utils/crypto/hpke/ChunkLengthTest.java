@@ -41,7 +41,7 @@ public class ChunkLengthTest
 	{
 		IllegalArgumentException e = assertThrowsExactly(IllegalArgumentException.class,
 				() -> ChunkLength.from(new byte[0]));
-		assertEquals("value.length != 1", e.getMessage());
+		assertEquals("value.length not 1", e.getMessage());
 		e = assertThrowsExactly(IllegalArgumentException.class,
 				() -> ChunkLength.from(new byte[] { (byte) ChunkLength.values().length }));
 		assertEquals("Chunk length exponent not supported", e.getMessage());

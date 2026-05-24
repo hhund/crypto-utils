@@ -348,4 +348,14 @@ public class ChunkedInputStreamEnumerationTest
 			}
 		};
 	}
+
+	@Test
+	void testSequenceLimit() throws Exception
+	{
+		ChunkedInputStreamEnumeration en = new ChunkedInputStreamEnumeration(1, new byte[1],
+				new ByteArrayInputStream(new byte[0xFF + 1]), (_, _, _, _) -> null);
+
+		RuntimeIOException e = assertThrowsExactly(RuntimeIOException.class, () -> Collections.list(en));
+		assertEquals("Message limit reached", e.getMessage());
+	}
 }

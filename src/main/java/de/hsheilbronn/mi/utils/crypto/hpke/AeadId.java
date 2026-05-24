@@ -100,7 +100,7 @@ public enum AeadId
 		Objects.requireNonNull(key, "key");
 		Objects.requireNonNull(iv, "iv");
 		if (ivLength != iv.length)
-			throw new IllegalArgumentException("iv length not " + ivLength);
+			throw new IllegalArgumentException("iv.length not " + ivLength);
 
 		AlgorithmParameterSpec spec = cipherAlgorithmParameterSpecFactory.apply(authenticationTagLengthBits, iv);
 		cipher.init(mode, key, spec);
@@ -118,11 +118,11 @@ public enum AeadId
 		}
 	}
 
-	public static AeadId from(byte[] value)
+	public static AeadId from(byte[] value) throws IllegalArgumentException
 	{
 		Objects.requireNonNull(value, "value");
 		if (value.length != 2)
-			throw new IllegalArgumentException("value.length != 2");
+			throw new IllegalArgumentException("value.length not 2");
 
 		long aeadId = ByteEncoding.os2ip(value);
 

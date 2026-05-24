@@ -38,11 +38,11 @@ public enum KdfId
 		return KDF.getInstance(algorithm);
 	}
 
-	public static KdfId from(byte[] value)
+	public static KdfId from(byte[] value) throws IllegalArgumentException
 	{
 		Objects.requireNonNull(value, "value");
 		if (value.length != 2)
-			throw new IllegalArgumentException("value.length != 2");
+			throw new IllegalArgumentException("value.length not 2");
 
 		long kdfId = ByteEncoding.os2ip(value);
 

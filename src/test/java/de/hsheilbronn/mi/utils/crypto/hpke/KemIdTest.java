@@ -77,8 +77,8 @@ public class KemIdTest
 	private static Stream<Arguments> forTestFromInvalid()
 	{
 		return Stream.of(Arguments.of(null, NullPointerException.class, "value"),
-				Arguments.of(new byte[0], IllegalArgumentException.class, "value.length != 2"),
-				Arguments.of(new byte[1], IllegalArgumentException.class, "value.length != 2"),
+				Arguments.of(new byte[0], IllegalArgumentException.class, "value.length not 2"),
+				Arguments.of(new byte[1], IllegalArgumentException.class, "value.length not 2"),
 				Arguments.of(new byte[2], IllegalArgumentException.class, "KemId not supported"));
 	}
 

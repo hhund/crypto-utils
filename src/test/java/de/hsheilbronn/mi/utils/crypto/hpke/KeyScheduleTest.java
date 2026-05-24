@@ -99,6 +99,7 @@ public class KeyScheduleTest
 	private static final byte[] PSK_ID = HexFormat.of().parseHex("456e6e796e20447572696e206172616e204d6f726961");
 	private static final SecretKey PSK = new SecretKeySpec(
 			HexFormat.of().parseHex("0247fd33b913760fa1fa51e1892d9f307fbe65eb171e8132c2af18555a738b82"), "Generic");
+	private static final PreSharedKeyProvider PSK_PROVIDER = PreSharedKeyProvider.of(PSK_ID, PSK);
 
 	private static final Rfc9180TestData A11 = Rfc9180TestData.withX25519("A.1.1", Mode.base(),
 			KemId.DHKEM_X25519_HKDF_SHA256, KdfId.HKDF_SHA256, AeadId.AES_128_GCM,
@@ -106,7 +107,7 @@ public class KeyScheduleTest
 			"37fda3567bdbd628e88668c3c8d7e97d1d1253b6d4ea6d44c150f741f1bf4431",
 			"fe0e18c9f024ce43799ae393c7e8fe8fce9d218875e8227b0187c04e7d2ea1fc", //
 			"4531685d41d65f03dc48f6b8302c05b0", "56d890e5accaaf011cff4b7d");
-	private static final Rfc9180TestData A12 = Rfc9180TestData.withX25519("A.1.2", Mode.psk(PSK_ID, PSK),
+	private static final Rfc9180TestData A12 = Rfc9180TestData.withX25519("A.1.2", Mode.psk(PSK_ID),
 			KemId.DHKEM_X25519_HKDF_SHA256, KdfId.HKDF_SHA256, AeadId.AES_128_GCM,
 			"c5eb01eb457fe6c6f57577c5413b931550a162c71a03ac8d196babbd4e5ce0fd",
 			"0ad0950d9fb9588e59690b74f1237ecdf1d775cd60be2eca57af5a4b0471c91b",
@@ -119,7 +120,7 @@ public class KeyScheduleTest
 			"1afa08d3dec047a643885163f1180476fa7ddb54c6a8029ea33f95796bf2ac4a",
 			"0bbe78490412b4bbea4812666f7916932b828bba79942424abb65244930d69a7",
 			"ad2744de8e17f4ebba575b3f5f5a8fa1f69c2a07f6e7500bc60ca6e3e3ec1c91", "5c4d98150661b848853b547f");
-	private static final Rfc9180TestData A22 = Rfc9180TestData.withX25519("A.2.2", Mode.psk(PSK_ID, PSK),
+	private static final Rfc9180TestData A22 = Rfc9180TestData.withX25519("A.2.2", Mode.psk(PSK_ID),
 			KemId.DHKEM_X25519_HKDF_SHA256, KdfId.HKDF_SHA256, AeadId.ChaCha20Poly1305,
 			"77d114e0212be51cb1d76fa99dd41cfd4d0166b08caa09074430a6c59ef17879",
 			"2261299c3f40a9afc133b969a97f05e95be2c514e54f3de26cbe5644ac735b04",
@@ -133,7 +134,7 @@ public class KeyScheduleTest
 					+ "ac98536d7b61a1af4b78e5b7f951c0900be863c403ce65c9bfcb9382657222d18c4",
 			"c0d26aeab536609a572b07695d933b589dcf363ff9d93c93adea537aeabb8cb8", //
 			"868c066ef58aae6dc589b6cfdd18f97e", "4e0bc5018beba4bf004cca59");
-	private static final Rfc9180TestData A32 = Rfc9180TestData.withSecp256r1("A.3.2", Mode.psk(PSK_ID, PSK),
+	private static final Rfc9180TestData A32 = Rfc9180TestData.withSecp256r1("A.3.2", Mode.psk(PSK_ID),
 			KemId.DHKEM_P256_HKDF_SHA256, KdfId.HKDF_SHA256, AeadId.AES_128_GCM,
 			"438d8bcef33b89e0e9ae5eb0957c353c25a94584b0dd59c991372a75b43cb661",
 			"04305d35563527bce037773d79a13deabed0e8e7cde61eecee403496959e89e"
@@ -148,7 +149,7 @@ public class KeyScheduleTest
 					+ "5565c6897888070070c1579db1f86aaa56deb8297e64db7e8924e72866f9a472580",
 			"02f584736390fc93f5b4ad039826a3fa08e9911bd1215a3db8e8791ba533cafd", //
 			"090ca96e5f8aa02b69fac360da50ddf9", "9c995e621bf9a20c5ca45546");
-	private static final Rfc9180TestData A42 = Rfc9180TestData.withSecp256r1("A.4.2", Mode.psk(PSK_ID, PSK),
+	private static final Rfc9180TestData A42 = Rfc9180TestData.withSecp256r1("A.4.2", Mode.psk(PSK_ID),
 			KemId.DHKEM_P256_HKDF_SHA256, KdfId.HKDF_SHA512, AeadId.AES_128_GCM,
 			"bc6f0b5e22429e5ff47d5969003f3cae0f4fec50e23602e880038364f33b8522",
 			"04a307934180ad5287f95525fe5bc6244285d7273c15e061f0f2efb211c3505"
@@ -163,7 +164,7 @@ public class KeyScheduleTest
 					+ "fc1559eac6fb9e3c70cd3193968994e7fe9781aa103f5b50e934b5b2f387e381291",
 			"806520f82ef0b03c823b7fc524b6b55a088f566b9751b89551c170f4113bd850",
 			"a8f45490a92a3b04d1dbf6cf2c3939ad8bfc9bfcb97c04bffe116730c9dfe3fc", "726b4390ed2209809f58c693");
-	private static final Rfc9180TestData A52 = Rfc9180TestData.withSecp256r1("A.5.2", Mode.psk(PSK_ID, PSK),
+	private static final Rfc9180TestData A52 = Rfc9180TestData.withSecp256r1("A.5.2", Mode.psk(PSK_ID),
 			KemId.DHKEM_P256_HKDF_SHA256, KdfId.HKDF_SHA256, AeadId.ChaCha20Poly1305,
 			"12ecde2c8bc2d5d7ed2219c71f27e3943d92b344174436af833337c557c300b3",
 			"04f336578b72ad7932fe867cc4d2d44a718a318037a0ec271163699cee653fa"
@@ -184,7 +185,7 @@ public class KeyScheduleTest
 					+ "d5e43653336fef33b103c67e7a98add2d3b66e2fda95b5b2a667aa9dac7e59cc1d46" //
 					+ "d30e818",
 			"751e346ce8f0ddb2305c8a2a85c70d5cf559c53093656be636b9406d4d7d1b70", "55ff7a7d739c69f44b25447b");
-	private static final Rfc9180TestData A62 = Rfc9180TestData.withSecp521r1("A.6.2", Mode.psk(PSK_ID, PSK),
+	private static final Rfc9180TestData A62 = Rfc9180TestData.withSecp521r1("A.6.2", Mode.psk(PSK_ID),
 			KemId.DHKEM_P521_HKDF_SHA512, KdfId.HKDF_SHA512, AeadId.AES_256_GCM,
 			"011bafd9c7a52e3e71afbdab0d2f31b03d998a0dc875dd7555c63560e142bd"
 					+ "e264428de03379863b4ec6138f813fa009927dc5d15f62314c56d4e7ff2b485753eb" //
@@ -217,7 +218,7 @@ public class KeyScheduleTest
 		assertArrayEquals(testData.sharedSecret(), sharedSecret.getEncoded());
 
 		KeySchedule keySchedule = new KeySchedule(testData.mode(), testData.kemId(), testData.kdfId(),
-				testData.aeadId(), INFO);
+				testData.aeadId(), INFO, PSK_PROVIDER);
 
 		Result result = keySchedule.executeKeySchedule(sharedSecret);
 		assertNotNull(result);

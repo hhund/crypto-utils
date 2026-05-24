@@ -19,8 +19,6 @@ interface KeyProvider<K extends Key>
 
 	static <K extends Key> KeyProvider<K> of(String type)
 	{
-		assert type != null;
-
 		return i ->
 		{
 			throw notFound(type, i);
@@ -29,7 +27,6 @@ interface KeyProvider<K extends Key>
 
 	static <K extends Key> KeyProvider<K> of(String type, byte[] id, K key)
 	{
-		assert type != null;
 		Objects.requireNonNull(id, "id");
 		Objects.requireNonNull(key, "key");
 
@@ -44,7 +41,6 @@ interface KeyProvider<K extends Key>
 
 	static <K extends Key> KeyProvider<K> of(String type, Map<byte[], K> map)
 	{
-		assert type != null;
 		Objects.requireNonNull(map, "map");
 
 		final Map<ByteBuffer, K> cache = map.entrySet().stream().collect(

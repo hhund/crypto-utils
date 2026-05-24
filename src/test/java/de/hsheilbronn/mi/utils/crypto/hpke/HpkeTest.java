@@ -38,20 +38,19 @@ public class HpkeTest
 	private static final byte[] PSK_ID = Sha256.digest("Test Pre Shared Key ID".getBytes(StandardCharsets.US_ASCII));
 	private static final SecretKey PSK = new SecretKeySpec(new byte[] { 'T', 'e', 's', 't', ' ', 'P', 'S', 'K' },
 			"Generic");
+	private static final PreSharedKeyProvider PRE_SHARED_KEY_PROVIDER = PreSharedKeyProvider.of(PSK_ID, PSK);
+
 	private static final byte[] RECEIVER_KEY_ID = Sha256
 			.digest("Test Receiver Key ID".getBytes(StandardCharsets.US_ASCII));
-	private static final PreSharedKeyProvider PSK_PROVIDER = _ -> PSK;
 
-	private static final Hpke hpke = new Hpke(PSK_PROVIDER);
-
-	private static record HeaderAndKeyPair(Header header, KeyPair keyPair)
+	private static record HeaderAndKeyPair(ProtocolV1 header, KeyPair keyPair)
 	{
 		@Override
 		public final String toString()
 		{
 			return Stream
-					.of("Version " + header.getVersion(), "Mode " + header.getMode(), header.getKemId().name(),
-							header.getKdfId().name(), header.getAeadId().name(), header.getChunkLength() + " KiB")
+					.of("Mode " + header.getMode(), header.getKemId().name(), header.getKdfId().name(),
+							header.getAeadId().name(), header.getChunkLength() + " KiB")
 					.collect(Collectors.joining(", "));
 		}
 
@@ -63,7 +62,7 @@ public class HpkeTest
 
 	private static Stream<Arguments> forTestEncryptDecryptInputStream() throws KeyNotFoundException
 	{
-		List<Mode> modes = List.of(Mode.base(), Mode.psk(PSK_ID, PSK_PROVIDER));
+		List<Mode> modes = List.of(Mode.base(), Mode.psk(PSK_ID));
 		KemId[] kemIds = EnumSet.of(KemId.RSAKEM_1024_KDF2_SHA256, KemId.RSAKEM_2048_KDF2_SHA256,
 				KemId.RSAKEM_3072_KDF2_SHA512, KemId.RSAKEM_4096_KDF2_SHA512).toArray(KemId[]::new);
 		KdfId[] kdfIds = KdfId.values();
@@ -87,8 +86,9 @@ public class HpkeTest
 						{
 							return Stream.of(plainText0, plainText1).map(plainText ->
 							{
-								return new HeaderAndKeyPair(new Header(Version.V1, mode, kemId, kdfId, aeadId,
-										chunklength, RECEIVER_KEY_ID), keyPair).toArguments(plainText);
+								return new HeaderAndKeyPair(
+										new ProtocolV1(mode, kemId, kdfId, aeadId, chunklength, RECEIVER_KEY_ID),
+										keyPair).toArguments(plainText);
 							});
 						});
 					});
@@ -101,6 +101,9 @@ public class HpkeTest
 	@MethodSource("forTestEncryptDecryptInputStream")
 	void testEncryptDecryptInputStream(HeaderAndKeyPair headerAndKeyPair, String plainText) throws Exception
 	{
+		final Hpke hpke = new Hpke(new ProtocolFactory(PRE_SHARED_KEY_PROVIDER,
+				ReceiverPrivateKeyProvider.of(RECEIVER_KEY_ID, headerAndKeyPair.keyPair().getPrivate())));
+
 		byte[] plainTextBytes = plainText.getBytes(StandardCharsets.UTF_8);
 		byte[] encrypted = hpke.encrypt(headerAndKeyPair.header(), new ByteArrayInputStream(plainTextBytes),
 				headerAndKeyPair.keyPair().getPublic()).readAllBytes();
@@ -108,8 +111,7 @@ public class HpkeTest
 		logger.debug("{}, plaintText: \"{}\" - encrypted.length: {}", headerAndKeyPair.toString(), plainText,
 				encrypted.length);
 
-		InputStream decryptedStream = hpke.decrypt(new ByteArrayInputStream(encrypted),
-				headerAndKeyPair.keyPair().getPrivate());
+		InputStream decryptedStream = hpke.decrypt(new ByteArrayInputStream(encrypted));
 		assertNotNull(decryptedStream);
 
 		byte[] decrypted = decryptedStream.readAllBytes();
@@ -153,9 +155,10 @@ public class HpkeTest
 
 		return Stream.of(AeadId.values()).map(aeadId ->
 		{
-			Header header = new Header(Version.V1, handleException(() -> Mode.psk(PSK_ID, PSK_PROVIDER)),
-					KemId.RSAKEM_1024_KDF2_SHA256, KdfId.HKDF_SHA256, aeadId, ChunkLength.KiB_1, RECEIVER_KEY_ID);
-			KeyPair keyPair = header.getKemId().getKeyPairGeneratorFactory().initialize().generateKeyPair();
+			KemId kemId = KemId.RSAKEM_1024_KDF2_SHA256;
+			KeyPair keyPair = kemId.getKeyPairGeneratorFactory().initialize().generateKeyPair();
+			ProtocolV1 header = new ProtocolV1(handleException(() -> Mode.psk(PSK_ID)), kemId, KdfId.HKDF_SHA256,
+					aeadId, ChunkLength.KiB_1, RECEIVER_KEY_ID);
 			HeaderAndKeyPair hkp = new HeaderAndKeyPair(header, keyPair);
 
 			return Arguments.of(hkp, AeadId.ChaCha20Poly1305.equals(aeadId) ? chaCha20ErrorHandler : aesErrorHandler);
@@ -184,6 +187,9 @@ public class HpkeTest
 	void decryptionTruncatedStreamTest(HeaderAndKeyPair headerAndKeyPair, BiConsumer<Integer, IOException> errorHandler)
 			throws Exception
 	{
+		final Hpke hpke = new Hpke(new ProtocolFactory(PRE_SHARED_KEY_PROVIDER,
+				ReceiverPrivateKeyProvider.of(RECEIVER_KEY_ID, headerAndKeyPair.keyPair().getPrivate())));
+
 		ByteArrayOutputStream encrypted = new ByteArrayOutputStream();
 		hpke.encrypt(headerAndKeyPair.header(), new ZeroInputStream(TWO_KIB), headerAndKeyPair.keyPair().getPublic(),
 				encrypted);
@@ -196,7 +202,7 @@ public class HpkeTest
 			try
 			{
 				hpke.decrypt(new ByteArrayInputStream(encryptedBytes, 0, encryptedBytes.length - i),
-						headerAndKeyPair.keyPair().getPrivate(), OutputStream.nullOutputStream());
+						OutputStream.nullOutputStream());
 
 				assertEquals(0, i); // only not truncated stream ok
 			}
