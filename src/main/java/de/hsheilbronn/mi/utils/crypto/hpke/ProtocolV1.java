@@ -156,26 +156,31 @@ public class ProtocolV1 implements Protocol
 		return buffer.array();
 	}
 
+	@Override
 	public Mode getMode()
 	{
 		return mode;
 	}
 
+	@Override
 	public KemId getKemId()
 	{
 		return kemId;
 	}
 
+	@Override
 	public KdfId getKdfId()
 	{
 		return kdfId;
 	}
 
+	@Override
 	public AeadId getAeadId()
 	{
 		return aeadId;
 	}
 
+	@Override
 	public int getChunkLength()
 	{
 		return chunkLength.getLength();
