@@ -239,6 +239,6 @@ public class ProtocolV1Test
 				AeadId.AES_128_GCM, ChunkLength.KiB_1, RECEIVER_KEY_IDENTIFIER);
 
 		assertNotNull(protocol.getKdfInfo());
-		assertArrayEquals(ProtocolV1.KDF_INFO, protocol.getKdfInfo());
+		assertArrayEquals(new byte[] { 'H', 'P', 'K', 'E', 'F', (byte) 0x01, (byte) 0x00 }, protocol.getKdfInfo());
 	}
 }

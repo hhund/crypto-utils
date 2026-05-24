@@ -18,13 +18,15 @@ import java.util.concurrent.atomic.AtomicReference;
  * [receiver-key-id, 32 bytes]<br>
  * [pre-shared-key-id, 32 bytes] - only if mode = psk<br>
  * <br>
- * Uses "HPKEF" + 0x01 as the KDF info value, see {@link #KDF_INFO}.<br>
+ * Uses ["HPKEF"][0x01][chunkLengthExponent] as KDF info value, see {@link #KDF_INFO}.<br>
  * Supported chunk lengths are defined in {@link ChunkLength}.<br>
  */
 public class ProtocolV1 implements Protocol
 {
 	public static final byte VERSION = (byte) 0x01;
-	public static final byte[] KDF_INFO = new byte[] { 'H', 'P', 'K', 'E', 'F', VERSION };
+
+	// last byte: chunk length exponent
+	private static final byte[] KDF_INFO = new byte[] { 'H', 'P', 'K', 'E', 'F', VERSION, 0 };
 
 	public static final int RECEIVER_KEY_ID_LENGTH = 32;
 	public static final int PRE_SHARED_KEY_ID_LENGTH = 32;
@@ -195,6 +197,9 @@ public class ProtocolV1 implements Protocol
 	@Override
 	public byte[] getKdfInfo()
 	{
-		return KDF_INFO;
+		byte[] kdfInfo = KDF_INFO.clone();
+		kdfInfo[KDF_INFO.length - 1] = chunkLength.getExponentAsI2osp1Byte()[0];
+
+		return kdfInfo;
 	}
 }
