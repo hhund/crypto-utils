@@ -69,12 +69,13 @@ public class RsaKemWrapper extends AbstractKemWrapper implements KemWrapper
 	{
 		try
 		{
+			// no padding to get equivalent operation for: r = c^d mod n
 			Cipher cipher = Cipher.getInstance("RSA/ECB/NoPadding");
 			cipher.init(Cipher.DECRYPT_MODE, privateKey);
-			byte[] z = cipher.doFinal(encapsulation);
+			byte[] r = cipher.doFinal(encapsulation);
 
 			DerivationFunction kdf = derivationFunctionFactory.get();
-			kdf.init(new KDFParameters(z, null));
+			kdf.init(new KDFParameters(r, null));
 
 			byte[] secret = new byte[sharedSecretLength];
 			kdf.generateBytes(secret, 0, secret.length);
