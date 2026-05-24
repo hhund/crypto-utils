@@ -116,7 +116,7 @@ public class RsaKemWrapperTest
 
 	@ParameterizedTest
 	@MethodSource("kemVariants")
-	void testTruncatedEnc(KemId kemId, KeyPair keyPair, DerivationFunction kdf) throws Exception
+	void testTruncatedEnc(KemId kemId, KeyPair keyPair) throws Exception
 	{
 		RsaKemWrapper w = new RsaKemWrapper(kemId);
 		Encapsulated encapsulated = w.getEncapsulated(keyPair.getPublic(), SECURE_RANDOM);
@@ -148,7 +148,7 @@ public class RsaKemWrapperTest
 
 	@ParameterizedTest
 	@MethodSource("kemVariants")
-	void testModifiedEnc(KemId kemId, KeyPair keyPair, DerivationFunction kdf) throws Exception
+	void testModifiedEnc(KemId kemId, KeyPair keyPair) throws Exception
 	{
 		RsaKemWrapper w = new RsaKemWrapper(kemId);
 		Encapsulated encapsulated = w.getEncapsulated(keyPair.getPublic(), SECURE_RANDOM);
