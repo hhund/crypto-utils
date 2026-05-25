@@ -60,13 +60,13 @@ public class AbstractKemWrapperTest
 		KeyPair okKeyPair = kemId.getKeyPairGeneratorFactory().initialize().generateKeyPair();
 
 		assertDoesNotThrow(() -> wrapper.getEncapsulated(okKeyPair.getPublic(), SECURE_RANDOM));
-		IllegalArgumentException e = assertThrowsExactly(IllegalArgumentException.class,
+		KeyNotSupportedException e = assertThrowsExactly(KeyNotSupportedException.class,
 				() -> wrapper.getEncapsulated(notOkKeyPair.getPublic(), SECURE_RANDOM));
 		assertEquals("publicKey not supported", e.getMessage());
 
 		assertDoesNotThrow(
 				() -> wrapper.getSharedSecret(okKeyPair.getPrivate(), new byte[kemId.getEncapsulationLength()]));
-		e = assertThrowsExactly(IllegalArgumentException.class,
+		e = assertThrowsExactly(KeyNotSupportedException.class,
 				() -> wrapper.getSharedSecret(notOkKeyPair.getPrivate(), new byte[kemId.getEncapsulationLength()]));
 		assertEquals("privateKey not supported", e.getMessage());
 	}
@@ -87,7 +87,7 @@ public class AbstractKemWrapperTest
 		assertDoesNotThrow(() -> createTestWrapper(kemId, kemId.getEncapsulationLength(), kemId.getSharedSecretLength())
 				.getSharedSecret(okKeyPair.getPrivate(), new byte[kemId.getEncapsulationLength()]));
 
-		IllegalArgumentException iaE = assertThrowsExactly(IllegalArgumentException.class,
+		IllegalStateException iaE = assertThrowsExactly(IllegalStateException.class,
 				() -> createTestWrapper(kemId, kemId.getEncapsulationLength(), kemId.getSharedSecretLength())
 						.getSharedSecret(okKeyPair.getPrivate(), new byte[0]));
 		assertEquals("encapsulation.length not " + kemId.getEncapsulationLength(), iaE.getMessage());

@@ -103,10 +103,11 @@ public class Hpke
 	 * @throws InvalidAlgorithmParameterException
 	 * @throws GeneralSecurityException
 	 * @throws KeyNotFoundException
+	 * @throws KeyNotSupportedException
 	 */
 	public InputStream encrypt(Protocol protocol, InputStream plainText, PublicKey publicKey)
 			throws IOException, NoSuchAlgorithmException, InvalidKeyException, NoSuchPaddingException,
-			InvalidAlgorithmParameterException, GeneralSecurityException, KeyNotFoundException
+			InvalidAlgorithmParameterException, GeneralSecurityException, KeyNotFoundException, KeyNotSupportedException
 	{
 		Objects.requireNonNull(protocol, "protocol");
 		Objects.requireNonNull(plainText, "plainText");
@@ -118,7 +119,7 @@ public class Hpke
 
 		Cipher cipher = protocol.getAeadId().toCipher();
 
-		ChunkedInputStreamEnumeration chunks = new ChunkedInputStreamEnumeration(protocol.getChunkLength(),
+		ChunkedInputStreamEnumeration chunks = new ChunkedInputStreamEnumeration(protocol.getChunkLength().getLength(),
 				keyScheduleResult.baseNonce(), plainText,
 				(byte[] iv, byte[] sequence, boolean finished, byte[] chunk) ->
 				{
@@ -156,10 +157,11 @@ public class Hpke
 	 * @throws InvalidAlgorithmParameterException
 	 * @throws GeneralSecurityException
 	 * @throws KeyNotFoundException
+	 * @throws KeyNotSupportedException
 	 */
 	public void encrypt(Protocol protocol, InputStream plainText, PublicKey publicKey, OutputStream out)
 			throws IOException, NoSuchAlgorithmException, InvalidKeyException, NoSuchPaddingException,
-			InvalidAlgorithmParameterException, GeneralSecurityException, KeyNotFoundException
+			InvalidAlgorithmParameterException, GeneralSecurityException, KeyNotFoundException, KeyNotSupportedException
 	{
 		Objects.requireNonNull(out, "out");
 
@@ -180,10 +182,11 @@ public class Hpke
 	 * @throws InvalidAlgorithmParameterException
 	 * @throws GeneralSecurityException
 	 * @throws KeyNotFoundException
+	 * @throws KeyNotSupportedException
 	 */
-	public final InputStream decrypt(InputStream encrypted)
-			throws IOException, NoSuchAlgorithmException, InvalidKeyException, DecapsulateException,
-			NoSuchPaddingException, InvalidAlgorithmParameterException, GeneralSecurityException, KeyNotFoundException
+	public final InputStream decrypt(InputStream encrypted) throws IOException, NoSuchAlgorithmException,
+			InvalidKeyException, DecapsulateException, NoSuchPaddingException, InvalidAlgorithmParameterException,
+			GeneralSecurityException, KeyNotFoundException, KeyNotSupportedException
 	{
 		Objects.requireNonNull(encrypted, "encrypted");
 
@@ -201,7 +204,7 @@ public class Hpke
 		Cipher cipher = protocol.getAeadId().toCipher();
 
 		ChunkedInputStreamEnumeration chunks = new ChunkedInputStreamEnumeration(
-				protocol.getChunkLength() + (protocol.getAeadId().getAuthenticationTagLengthBits() / 8),
+				protocol.getChunkLength().getLength() + (protocol.getAeadId().getAuthenticationTagLengthBits() / 8),
 				keyScheduleResult.baseNonce(), encrypted,
 				(byte[] iv, byte[] sequence, boolean finished, byte[] chunk) ->
 				{
@@ -232,10 +235,11 @@ public class Hpke
 	 * @throws InvalidAlgorithmParameterException
 	 * @throws GeneralSecurityException
 	 * @throws KeyNotFoundException
+	 * @throws KeyNotSupportedException
 	 */
-	public final void decrypt(InputStream encrypted, OutputStream plainText)
-			throws IOException, NoSuchAlgorithmException, InvalidKeyException, DecapsulateException,
-			NoSuchPaddingException, InvalidAlgorithmParameterException, GeneralSecurityException, KeyNotFoundException
+	public final void decrypt(InputStream encrypted, OutputStream plainText) throws IOException,
+			NoSuchAlgorithmException, InvalidKeyException, DecapsulateException, NoSuchPaddingException,
+			InvalidAlgorithmParameterException, GeneralSecurityException, KeyNotFoundException, KeyNotSupportedException
 	{
 		decrypt(encrypted).transferTo(plainText);
 	}

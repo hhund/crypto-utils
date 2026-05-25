@@ -78,8 +78,8 @@ public class KeyProviderTest
 		return Stream.of(
 				Arguments.of(PreSharedKeyProvider.of(Map.of(PSK_ID_1, PSK_1, PSK_ID_2, PSK_2)), KeyProvider.PSK,
 						PSK_ID_1, PSK_1, PSK_ID_2, PSK_2),
-				Arguments.of(ReceiverPrivateKeyProvider.of(Map.of(RK_ID_1, RK_1, RK_ID_2, RK_2)), KeyProvider.RECEIVER_KEY_ID,
-						RK_ID_1, RK_1, RK_ID_2, RK_2));
+				Arguments.of(ReceiverPrivateKeyProvider.of(Map.of(RK_ID_1, RK_1, RK_ID_2, RK_2)),
+						KeyProvider.RECEIVER_KEY_ID, RK_ID_1, RK_1, RK_ID_2, RK_2));
 	}
 
 	@ParameterizedTest

@@ -183,9 +183,9 @@ public class ProtocolV1 implements Protocol
 	}
 
 	@Override
-	public int getChunkLength()
+	public ChunkLength getChunkLength()
 	{
-		return chunkLength.getLength();
+		return chunkLength;
 	}
 
 	@Override

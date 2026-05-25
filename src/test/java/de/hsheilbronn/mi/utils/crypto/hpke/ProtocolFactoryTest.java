@@ -50,9 +50,9 @@ public class ProtocolFactoryTest
 		}
 
 		@Override
-		public int getChunkLength()
+		public ChunkLength getChunkLength()
 		{
-			return 0;
+			return null;
 		}
 
 		@Override

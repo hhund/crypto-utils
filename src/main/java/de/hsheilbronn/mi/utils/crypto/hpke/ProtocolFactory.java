@@ -27,7 +27,7 @@ public class ProtocolFactory
 		byte[] write(P protocol);
 	}
 
-	public static final ProtocolSerializer<ProtocolV1> V1_SERIALIZER = new ProtocolSerializer<ProtocolV1>()
+	public static final ProtocolSerializer<ProtocolV1> V1_SERIALIZER = new ProtocolSerializer<>()
 	{
 		@Override
 		public int getVersion()

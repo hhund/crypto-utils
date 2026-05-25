@@ -10,7 +10,7 @@ public interface Protocol
 
 	AeadId getAeadId();
 
-	int getChunkLength();
+	ChunkLength getChunkLength();
 
 	byte[] getReceiverKeyId();
 

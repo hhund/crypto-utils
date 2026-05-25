@@ -7,11 +7,10 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrowsExactly;
 
 import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
-import java.util.Arrays;
+import java.util.EnumSet;
 import java.util.HexFormat;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
@@ -34,14 +33,14 @@ public class ProtocolV1Test
 
 	private static final ProtocolV1 V1_BASE = new ProtocolV1(Mode.base(), KemId.DHKEM_X25519_HKDF_SHA256,
 			KdfId.HKDF_SHA256, AeadId.AES_128_GCM, ChunkLength.KiB_1, RECEIVER_KEY_IDENTIFIER);
-	private static final byte[] V1_BASE_BYTE_ARRAY = concat(Mode.base().getValueAsI2osp1Byte(),
+	private static final byte[] V1_BASE_BYTE_ARRAY = ByteEncoding.concat(Mode.base().getValueAsI2osp1Byte(),
 			KemId.DHKEM_X25519_HKDF_SHA256.getIdAsI2osp2Bytes(), KdfId.HKDF_SHA256.getIdAsI2osp2Bytes(),
 			AeadId.AES_128_GCM.getIdAsI2osp2Bytes(), ChunkLength.KiB_1.getExponentAsI2osp1Byte(),
 			RECEIVER_KEY_IDENTIFIER);
 
 	private static final ProtocolV1 V1_PSK = new ProtocolV1(Mode.psk(PSK_ID), KemId.DHKEM_P521_HKDF_SHA512,
 			KdfId.HKDF_SHA512, AeadId.ChaCha20Poly1305, ChunkLength.MiB_1, RECEIVER_KEY_IDENTIFIER);
-	private static final byte[] V1_PSK_BYTE_ARRAY = concat(Mode.psk(PSK_ID).getValueAsI2osp1Byte(),
+	private static final byte[] V1_PSK_BYTE_ARRAY = ByteEncoding.concat(Mode.psk(PSK_ID).getValueAsI2osp1Byte(),
 			KemId.DHKEM_P521_HKDF_SHA512.getIdAsI2osp2Bytes(), KdfId.HKDF_SHA512.getIdAsI2osp2Bytes(),
 			AeadId.ChaCha20Poly1305.getIdAsI2osp2Bytes(), ChunkLength.MiB_1.getExponentAsI2osp1Byte(),
 			RECEIVER_KEY_IDENTIFIER, PSK_ID);
@@ -112,22 +111,15 @@ public class ProtocolV1Test
 
 	private static Stream<Arguments> forTestWriteReadHeader()
 	{
-		return Stream.of(Arguments.of(V1_BASE, V1_BASE_BYTE_ARRAY, 1 * 1024),
-				Arguments.of(V1_PSK, V1_PSK_BYTE_ARRAY, 1024 * 1024));
-	}
-
-	private static byte[] concat(byte[]... bytes)
-	{
-		ByteArrayOutputStream out = new ByteArrayOutputStream();
-		Arrays.stream(bytes).forEach(out::writeBytes);
-		return out.toByteArray();
+		return Stream.of(Arguments.of(V1_BASE, V1_BASE_BYTE_ARRAY, ChunkLength.KiB_1),
+				Arguments.of(V1_PSK, V1_PSK_BYTE_ARRAY, ChunkLength.MiB_1));
 	}
 
 	@ParameterizedTest
 	@MethodSource("forTestWriteReadHeader")
-	void testWriteReadHeaderStream(ProtocolV1 protocol, byte[] expected, int chunkSize) throws Exception
+	void testWriteReadHeaderStream(ProtocolV1 protocol, byte[] expected, ChunkLength chunkLength) throws Exception
 	{
-		assertEquals(chunkSize, protocol.getChunkLength());
+		assertEquals(chunkLength, protocol.getChunkLength());
 
 		byte[] header = protocol.getCanonicalHeader();
 		assertArrayEquals(header, protocol.getCanonicalHeader());
@@ -151,39 +143,41 @@ public class ProtocolV1Test
 	{
 		return Stream.concat(
 				Stream.of(
-						Arguments.of(concat(Mode.base().getValueAsI2osp1Byte(),
+						Arguments.of(ByteEncoding.concat(Mode.base().getValueAsI2osp1Byte(),
 								KemId.DHKEM_X25519_HKDF_SHA256.getIdAsI2osp2Bytes(),
 								KdfId.HKDF_SHA256.getIdAsI2osp2Bytes(), AeadId.AES_128_GCM.getIdAsI2osp2Bytes(),
 								ChunkLength.KiB_1.getExponentAsI2osp1Byte()), "Truncated stream"),
 						Arguments.of(
-								concat(new byte[] { (byte) 0xFF }, KemId.DHKEM_X25519_HKDF_SHA256.getIdAsI2osp2Bytes(),
+								ByteEncoding.concat(new byte[] { (byte) 0xFF },
+										KemId.DHKEM_X25519_HKDF_SHA256.getIdAsI2osp2Bytes(),
 										KdfId.HKDF_SHA256.getIdAsI2osp2Bytes(), AeadId.AES_128_GCM.getIdAsI2osp2Bytes(),
 										ChunkLength.KiB_1.getExponentAsI2osp1Byte(), RECEIVER_KEY_IDENTIFIER),
 								"Mode not supported"),
 						Arguments.of(
-								concat(Mode.base().getValueAsI2osp1Byte(),
+								ByteEncoding.concat(Mode.base().getValueAsI2osp1Byte(),
 										KemId.DHKEM_X25519_HKDF_SHA256.getIdAsI2osp2Bytes(),
 										KdfId.HKDF_SHA256.getIdAsI2osp2Bytes(), AeadId.AES_128_GCM.getIdAsI2osp2Bytes(),
 										new byte[] { (byte) 0xFF }, RECEIVER_KEY_IDENTIFIER),
 								"Chunk length exponent not supported"),
 						Arguments.of(
-								concat(Mode.base().getValueAsI2osp1Byte(),
+								ByteEncoding.concat(Mode.base().getValueAsI2osp1Byte(),
 										KemId.DHKEM_X25519_HKDF_SHA256.getIdAsI2osp2Bytes(),
 										KdfId.HKDF_SHA256.getIdAsI2osp2Bytes(), AeadId.AES_128_GCM.getIdAsI2osp2Bytes(),
 										new byte[] { (byte) 0x10 }, RECEIVER_KEY_IDENTIFIER),
 								"Chunk length exponent not supported"),
 						Arguments.of(
-								concat(Mode.base().getValueAsI2osp1Byte(), new byte[] { (byte) 0xFF, (byte) 0x00 },
-										KdfId.HKDF_SHA256.getIdAsI2osp2Bytes(), AeadId.AES_128_GCM.getIdAsI2osp2Bytes(),
+								ByteEncoding.concat(Mode.base().getValueAsI2osp1Byte(),
+										new byte[] { (byte) 0xFF, (byte) 0x00 }, KdfId.HKDF_SHA256.getIdAsI2osp2Bytes(),
+										AeadId.AES_128_GCM.getIdAsI2osp2Bytes(),
 										ChunkLength.KiB_1.getExponentAsI2osp1Byte(), RECEIVER_KEY_IDENTIFIER),
 								"KemId not supported"),
-						Arguments.of(concat(Mode.base().getValueAsI2osp1Byte(),
+						Arguments.of(ByteEncoding.concat(Mode.base().getValueAsI2osp1Byte(),
 								KemId.DHKEM_X25519_HKDF_SHA256.getIdAsI2osp2Bytes(),
 								new byte[] { (byte) 0xFF, (byte) 0xFF }, AeadId.AES_128_GCM.getIdAsI2osp2Bytes(),
 								ChunkLength.KiB_1.getExponentAsI2osp1Byte(), RECEIVER_KEY_IDENTIFIER),
 								"KdfId not supported"),
 						Arguments.of(
-								concat(Mode.base().getValueAsI2osp1Byte(),
+								ByteEncoding.concat(Mode.base().getValueAsI2osp1Byte(),
 										KemId.DHKEM_X25519_HKDF_SHA256.getIdAsI2osp2Bytes(),
 										KdfId.HKDF_SHA256.getIdAsI2osp2Bytes(), new byte[] { (byte) 0xFF, (byte) 0xFF },
 										ChunkLength.KiB_1.getExponentAsI2osp1Byte(), RECEIVER_KEY_IDENTIFIER),
@@ -212,24 +206,17 @@ public class ProtocolV1Test
 
 	private static Stream<Arguments> forTestGetChunkSize()
 	{
-		return Stream.of(Arguments.of(1 * 1024, ChunkLength.KiB_1), Arguments.of(2 * 1024, ChunkLength.KiB_2),
-				Arguments.of(4 * 1024, ChunkLength.KiB_4), Arguments.of(8 * 1024, ChunkLength.KiB_8),
-				Arguments.of(16 * 1024, ChunkLength.KiB_16), Arguments.of(32 * 1024, ChunkLength.KiB_32),
-				Arguments.of(64 * 1024, ChunkLength.KiB_64), Arguments.of(128 * 1024, ChunkLength.KiB_128),
-				Arguments.of(256 * 1024, ChunkLength.KiB_256), Arguments.of(512 * 1024, ChunkLength.KiB_512),
-				Arguments.of(1 * 1024 * 1024, ChunkLength.MiB_1), Arguments.of(2 * 1024 * 1024, ChunkLength.MiB_2),
-				Arguments.of(4 * 1024 * 1024, ChunkLength.MiB_4), Arguments.of(8 * 1024 * 1024, ChunkLength.MiB_8),
-				Arguments.of(16 * 1024 * 1024, ChunkLength.MiB_16), Arguments.of(32 * 1024 * 1024, ChunkLength.MiB_32));
+		return EnumSet.allOf(ChunkLength.class).stream().map(Arguments::of);
 	}
 
 	@ParameterizedTest
 	@MethodSource("forTestGetChunkSize")
-	void testGetChunkSize(int expectedChunkSize, ChunkLength chunkLength)
+	void testGetChunkSize(ChunkLength chunkLength)
 	{
 		ProtocolV1 protocol = new ProtocolV1(Mode.base(), KemId.DHKEM_X25519_HKDF_SHA256, KdfId.HKDF_SHA256,
 				AeadId.AES_128_GCM, chunkLength, RECEIVER_KEY_IDENTIFIER);
 
-		assertEquals(expectedChunkSize, protocol.getChunkLength());
+		assertEquals(chunkLength, protocol.getChunkLength());
 	}
 
 	@Test

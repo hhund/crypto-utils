@@ -139,7 +139,7 @@ public class RsaKemWrapperTest
 				w.getSharedSecret(keyPair.getPrivate(), Arrays.copyOfRange(encapsulation, 0, encapsulation.length - i));
 				assertEquals(0, i); // only not truncated stream ok
 			}
-			catch (IllegalArgumentException e)
+			catch (IllegalStateException e)
 			{
 				assertEquals("encapsulation.length not " + kemId.getEncapsulationLength(), e.getMessage());
 			}

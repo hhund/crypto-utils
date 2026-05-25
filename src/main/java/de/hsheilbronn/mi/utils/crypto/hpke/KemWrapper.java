@@ -13,8 +13,8 @@ import javax.crypto.SecretKey;
 public interface KemWrapper
 {
 	Encapsulated getEncapsulated(PublicKey publicKey, SecureRandom secureRandom)
-			throws NoSuchAlgorithmException, InvalidKeyException;
+			throws NoSuchAlgorithmException, InvalidKeyException, KeyNotSupportedException;
 
 	SecretKey getSharedSecret(PrivateKey privateKey, byte[] encapsulation)
-			throws NoSuchAlgorithmException, InvalidKeyException, DecapsulateException;
+			throws NoSuchAlgorithmException, InvalidKeyException, DecapsulateException, KeyNotSupportedException;
 }
