@@ -194,8 +194,8 @@ public class Hpke
 
 		PrivateKey privateKey = protocolFactory.getReceiverPrivateKeyProvider().retrieve(protocol.getReceiverKeyId());
 
-		byte[] encapsulation = new byte[protocol.getKemId().getEncapsulationLength()];
-		ByteEncoding.expectRead(protocol.getKemId().getEncapsulationLength(), encrypted.read(encapsulation));
+		byte[] encapsulation = encrypted.readNBytes(protocol.getKemId().getEncapsulationLength());
+		ByteEncoding.expectRead(protocol.getKemId().getEncapsulationLength(), encapsulation.length);
 
 		SecretKey sharedSecret = protocol.getKemId().toKem().getSharedSecret(privateKey, encapsulation);
 
