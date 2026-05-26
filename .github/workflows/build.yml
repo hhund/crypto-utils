@@ -70,5 +70,5 @@ jobs:
           distribution: 'zulu'
           java-version: 25
           cache: 'maven'
-      - name: Minimal Maven Build
+      - name: Maven Verify
         run: mvn -B -fae verify -Dgpg.skip
