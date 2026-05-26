@@ -84,7 +84,8 @@ public class ModeTest
 	private static Stream<Arguments> forTestFromInvalid()
 	{
 		return Stream.of(Arguments.of(0xFF, PSK_ID, IllegalArgumentException.class, "Mode not supported"),
-				Arguments.of(Mode.PSK_VALUE, null, NullPointerException.class, "pskId"),
+				Arguments.of(Mode.PSK_VALUE, null, IllegalArgumentException.class, "Mode not supported"),
+				Arguments.of(Mode.BASE_VALUE, new byte[0], IllegalArgumentException.class, "Mode not supported"),
 				Arguments.of(Mode.PSK_VALUE, new byte[0], IllegalArgumentException.class, "pskId.length <= 0"));
 	}
 

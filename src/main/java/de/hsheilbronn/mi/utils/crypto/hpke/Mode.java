@@ -87,14 +87,17 @@ public final class Mode
 	 * @param value
 	 *            <code>0x00</code> or <code>0x01</code>
 	 * @param pskId
-	 *            <code>null</code> if <b>mode</b> = <code>0x00</code> else not <code>null</code> and length > 0
+	 *            <code>null</code> if <b>value</b> = <code>0x00</code>, not <code>null</code> and length > 0 if
+	 *            <b>value</b> = <code>0x01</code>
 	 * @return HPKE mode
+	 * @throws IllegalArgumentException
+	 *             given <b>value</b> and <b>pskId</b> combination is unexpected or <b>value</b> is not supported
 	 */
 	public static Mode from(byte value, byte[] pskId) throws IllegalArgumentException
 	{
-		if (BASE_VALUE == value)
+		if (BASE_VALUE == value && pskId == null)
 			return Mode.base();
-		else if (PSK_VALUE == value)
+		else if (PSK_VALUE == value && pskId != null)
 			return Mode.psk(pskId);
 		else
 			throw new IllegalArgumentException("Mode not supported");

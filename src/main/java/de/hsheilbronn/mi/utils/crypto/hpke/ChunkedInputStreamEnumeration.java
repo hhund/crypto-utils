@@ -209,6 +209,6 @@ public class ChunkedInputStreamEnumeration implements Enumeration<InputStream>
 			if (++sequence[i] != 0)
 				return;
 
-		throw new RuntimeIOException("Message limit reached");
+		throw new RuntimeIOException(new IOException("Message limit reached"));
 	}
 }

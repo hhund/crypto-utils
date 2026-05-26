@@ -27,6 +27,16 @@ import org.bouncycastle.crypto.kems.RSAKEMGenerator;
 import org.bouncycastle.crypto.params.KDFParameters;
 import org.bouncycastle.crypto.params.RSAKeyParameters;
 
+/**
+ * Custom KEM implementation for KEM IDs {@link KemId#RSAKEM_1024_KDF2_SHA256}, {@link KemId#RSAKEM_2048_KDF2_SHA256},
+ * {@link KemId#RSAKEM_3072_KDF2_SHA512} and {@link KemId#RSAKEM_4096_KDF2_SHA512}. Not defined in RFC 9180 and thus not
+ * compatible with other RFC 9180 implementations.<br>
+ * <br>
+ * Uses RSA Key Encapsulation Mechanism (RSA-KEM) from ISO 18033-2 via {@link RSAKEMGenerator} for encapsulation and a
+ * raw RSA (<code>r = c^d mod n</code>) operation for decapsulation. The shared secret is derived via
+ * {@link KDF2BytesGenerator} and {@link SHA256Digest} for 1024 and 2048 bit RSA keys, or {@link SHA512Digest} for 3072
+ * and 4096 bit RSA keys.
+ */
 public class RsaKemWrapper extends AbstractKemWrapper implements KemWrapper
 {
 	private static final String SHARED_SECRET_KEY_ALGORITHM = "Generic";

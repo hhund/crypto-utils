@@ -55,7 +55,7 @@ public class HpkeTest
 		{
 			return Stream
 					.of("Mode " + protocol.getMode(), protocol.getKemId().name(), protocol.getKdfId().name(),
-							protocol.getAeadId().name(), protocol.getChunkLength() + " KiB")
+							protocol.getAeadId().name(), protocol.getChunkLength().name())
 					.collect(Collectors.joining(", "));
 		}
 

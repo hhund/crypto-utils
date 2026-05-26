@@ -196,11 +196,11 @@ public class ChunkedInputStreamEnumerationTest
 		assertDoesNotThrow(() -> enumeration.nextElement());
 		assertDoesNotThrow(() -> enumeration.hasMoreElements());
 		RuntimeIOException e = assertThrowsExactly(RuntimeIOException.class, () -> enumeration.nextElement());
-		assertNotNull(e.getCause());
-		assertEquals(readException, e.getCause());
-		assertNotNull(e.getCause().getSuppressed());
-		assertEquals(1, e.getCause().getSuppressed().length);
-		assertEquals(closeException, e.getCause().getSuppressed()[0]);
+		assertNotNull(e.asIOException());
+		assertEquals(readException, e.asIOException());
+		assertNotNull(e.asIOException().getSuppressed());
+		assertEquals(1, e.asIOException().getSuppressed().length);
+		assertEquals(closeException, e.asIOException().getSuppressed()[0]);
 	}
 
 	private static final HexFormat HEX = HexFormat.of();
@@ -356,6 +356,6 @@ public class ChunkedInputStreamEnumerationTest
 				new ByteArrayInputStream(new byte[0xFF + 1]), (_, _, _, _) -> null);
 
 		RuntimeIOException e = assertThrowsExactly(RuntimeIOException.class, () -> Collections.list(en));
-		assertEquals("Message limit reached", e.getMessage());
+		assertEquals("Message limit reached", e.asIOException().getMessage());
 	}
 }

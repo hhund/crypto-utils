@@ -33,17 +33,49 @@ public enum KemId
 	DHKEM_X448_HKDF_SHA512(0x0021, 64, 56, DhKemWrapper::new, isXecKey(NamedParameterSpec.X448),
 			KeyPairGeneratorFactory.x448()),
 
+	/**
+	 * RSA-KEM for 1024 Bit RSA keys. KEM ID <code>0xFF10</code> not defined in RFC 9180 and thus not compatible with
+	 * other RFC 9180 implementations.<br>
+	 * <br>
+	 * <b>Insecure, use only for testing.</b>
+	 * 
+	 * @see RsaKemWrapper
+	 */
 	RSAKEM_1024_KDF2_SHA256(0xFF10, 32, 128, RsaKemWrapper::new, isRsaKey(1024), KeyPairGeneratorFactory.rsa1024()),
 
+	/**
+	 * RSA-KEM for 2048 Bit RSA keys. KEM ID <code>0xFF11</code> not defined in RFC 9180 and thus not compatible with
+	 * other RFC 9180 implementations.<br>
+	 * <br>
+	 * Not recommended for production use.
+	 * 
+	 * @see RsaKemWrapper
+	 */
 	RSAKEM_2048_KDF2_SHA256(0xFF11, 32, 256, RsaKemWrapper::new, isRsaKey(2048), KeyPairGeneratorFactory.rsa2048()),
 
+	/**
+	 * RSA-KEM for 3072 Bit RSA keys. KEM ID <code>0xFF12</code> not defined in RFC 9180 and thus not compatible with
+	 * other RFC 9180 implementations.<br>
+	 * <br>
+	 * Not recommended for production use.
+	 * 
+	 * @see RsaKemWrapper
+	 */
 	RSAKEM_3072_KDF2_SHA512(0xFF12, 64, 384, RsaKemWrapper::new, isRsaKey(3072), KeyPairGeneratorFactory.rsa3072()),
 
+	/**
+	 * RSA-KEM for 4096 Bit RSA keys. KEM ID <code>0xFF13</code> not defined in RFC 9180 and thus not compatible with
+	 * other RFC 9180 implementations.
+	 * 
+	 * @see RsaKemWrapper
+	 */
 	RSAKEM_4096_KDF2_SHA512(0xFF13, 64, 512, RsaKemWrapper::new, isRsaKey(4096), KeyPairGeneratorFactory.rsa4096());
 
 	private static Predicate<AsymmetricKey> isRsaKey(int length)
 	{
-		return key -> key instanceof RSAKey rsaKey && rsaKey.getModulus().bitLength() == length;
+		// Some external providers emit valid RSA moduli that are one bit below the nominal key size
+		return key -> key instanceof RSAKey rsaKey && rsaKey.getModulus().bitLength() >= length - 1
+				&& rsaKey.getModulus().bitLength() <= length;
 	}
 
 	private static Predicate<AsymmetricKey> isXecKey(NamedParameterSpec curve)

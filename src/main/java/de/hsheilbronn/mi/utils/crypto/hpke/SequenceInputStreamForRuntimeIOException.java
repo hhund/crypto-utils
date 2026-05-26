@@ -10,14 +10,7 @@ public final class SequenceInputStreamForRuntimeIOException extends SequenceInpu
 {
 	public static final SequenceInputStream of(ChunkedInputStreamEnumeration enumeration) throws IOException
 	{
-		try
-		{
-			return new SequenceInputStreamForRuntimeIOException(enumeration);
-		}
-		catch (RuntimeIOException e)
-		{
-			throw e.getCause();
-		}
+		return withRuntimeIOException(() -> new SequenceInputStreamForRuntimeIOException(enumeration));
 	}
 
 	/**
@@ -35,39 +28,36 @@ public final class SequenceInputStreamForRuntimeIOException extends SequenceInpu
 	@Override
 	public int read() throws IOException
 	{
-		try
-		{
-			return super.read();
-		}
-		catch (RuntimeIOException e)
-		{
-			throw e.getCause();
-		}
+		return withRuntimeIOException(() -> super.read());
 	}
 
 	@Override
 	public int read(byte[] b, int off, int len) throws IOException
 	{
-		try
-		{
-			return super.read(b, off, len);
-		}
-		catch (RuntimeIOException e)
-		{
-			throw e.getCause();
-		}
+		return withRuntimeIOException(() -> super.read(b, off, len));
 	}
 
 	@Override
 	public long transferTo(OutputStream out) throws IOException
 	{
+		return withRuntimeIOException(() -> super.transferTo(out));
+	}
+
+	@FunctionalInterface
+	private static interface SupplierWithIOException<T>
+	{
+		T get() throws IOException;
+	}
+
+	private static <T> T withRuntimeIOException(SupplierWithIOException<T> withRuntimeIOException) throws IOException
+	{
 		try
 		{
-			return super.transferTo(out);
+			return withRuntimeIOException.get();
 		}
 		catch (RuntimeIOException e)
 		{
-			throw e.getCause();
+			throw e.asIOException();
 		}
 	}
 }

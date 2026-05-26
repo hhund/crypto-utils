@@ -106,16 +106,9 @@ public enum AeadId
 		cipher.init(mode, key, spec);
 	}
 
-	public Cipher toCipher()
+	public Cipher toCipher() throws NoSuchAlgorithmException, NoSuchPaddingException
 	{
-		try
-		{
-			return Cipher.getInstance(cipherAlgorithm);
-		}
-		catch (NoSuchAlgorithmException | NoSuchPaddingException e)
-		{
-			throw new RuntimeException(e);
-		}
+		return Cipher.getInstance(cipherAlgorithm);
 	}
 
 	public static AeadId from(byte[] value) throws IllegalArgumentException
