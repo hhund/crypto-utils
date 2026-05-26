@@ -1,6 +1,8 @@
 package de.hsheilbronn.mi.utils.crypto.hpke;
 
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNotSame;
 import static org.junit.jupiter.api.Assertions.assertThrowsExactly;
@@ -11,6 +13,7 @@ import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
 import java.security.SecureRandom;
 import java.security.interfaces.RSAPrivateKey;
+import java.util.Arrays;
 import java.util.EnumSet;
 import java.util.stream.Stream;
 
@@ -25,7 +28,6 @@ import org.bouncycastle.crypto.digests.SHA512Digest;
 import org.bouncycastle.crypto.generators.KDF2BytesGenerator;
 import org.bouncycastle.crypto.kems.RSAKEMExtractor;
 import org.bouncycastle.crypto.params.RSAKeyParameters;
-import org.bouncycastle.util.Arrays;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -171,5 +173,30 @@ public class RsaKemWrapperTest
 
 			assertNotSame(sKey, sharedSecret);
 		}
+	}
+
+	@ParameterizedTest
+	@MethodSource("kemVariants")
+	void testTwoCallsResultInDifferentEncapsulationsAndKeys(KemId kemId, KeyPair keyPair) throws Exception
+	{
+		RsaKemWrapper w = new RsaKemWrapper(kemId);
+
+		Encapsulated e1 = w.getEncapsulated(keyPair.getPublic(), SECURE_RANDOM);
+		assertNotNull(e1);
+		assertNotNull(e1.encapsulation());
+		assertNotNull(e1.key());
+
+		Encapsulated e2 = w.getEncapsulated(keyPair.getPublic(), SECURE_RANDOM);
+		assertNotNull(e2);
+		assertNotNull(e2.encapsulation());
+		assertNotNull(e2.key());
+
+		assertFalse(Arrays.equals(e1.encapsulation(), e2.encapsulation()));
+		assertFalse(Arrays.equals(e1.key().getEncoded(), e2.key().getEncoded()));
+
+		SecretKey sharedSecret1 = w.getSharedSecret(keyPair.getPrivate(), e1.encapsulation());
+		assertArrayEquals(e1.key().getEncoded(), sharedSecret1.getEncoded());
+		SecretKey sharedSecret2 = w.getSharedSecret(keyPair.getPrivate(), e2.encapsulation());
+		assertArrayEquals(e2.key().getEncoded(), sharedSecret2.getEncoded());
 	}
 }

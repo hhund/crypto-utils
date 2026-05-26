@@ -1,6 +1,8 @@
 package de.hsheilbronn.mi.utils.crypto.hpke;
 
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNotSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -10,6 +12,7 @@ import java.io.IOException;
 import java.security.InvalidKeyException;
 import java.security.KeyPair;
 import java.security.SecureRandom;
+import java.util.Arrays;
 import java.util.EnumSet;
 import java.util.stream.Stream;
 
@@ -17,7 +20,6 @@ import javax.crypto.DecapsulateException;
 import javax.crypto.KEM.Encapsulated;
 import javax.crypto.SecretKey;
 
-import org.bouncycastle.util.Arrays;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -41,7 +43,7 @@ public class DhKemWrapperTest
 		assertEquals("KemId " + kemId.name() + " not supported", e.getMessage());
 	}
 
-	private static Stream<Arguments> forTestTruncatedEnc()
+	private static Stream<Arguments> kemVariants()
 	{
 		return Stream.of(
 				Arguments.of(KemId.DHKEM_P256_HKDF_SHA256,
@@ -57,7 +59,7 @@ public class DhKemWrapperTest
 	}
 
 	@ParameterizedTest
-	@MethodSource("forTestTruncatedEnc")
+	@MethodSource("kemVariants")
 	void testTruncatedEnc(KemId kemId, KeyPair keyPair) throws Exception
 	{
 		DhKemWrapper w = new DhKemWrapper(kemId);
@@ -170,5 +172,30 @@ public class DhKemWrapperTest
 
 			assertNotSame(sKey, sharedSecret);
 		}
+	}
+
+	@ParameterizedTest
+	@MethodSource("kemVariants")
+	void testTwoCallsResultInDifferentEncapsulationsAndKeys(KemId kemId, KeyPair keyPair) throws Exception
+	{
+		DhKemWrapper w = new DhKemWrapper(kemId);
+
+		Encapsulated e1 = w.getEncapsulated(keyPair.getPublic(), SECURE_RANDOM);
+		assertNotNull(e1);
+		assertNotNull(e1.encapsulation());
+		assertNotNull(e1.key());
+
+		Encapsulated e2 = w.getEncapsulated(keyPair.getPublic(), SECURE_RANDOM);
+		assertNotNull(e2);
+		assertNotNull(e2.encapsulation());
+		assertNotNull(e2.key());
+
+		assertFalse(Arrays.equals(e1.encapsulation(), e2.encapsulation()));
+		assertFalse(Arrays.equals(e1.key().getEncoded(), e2.key().getEncoded()));
+
+		SecretKey sharedSecret1 = w.getSharedSecret(keyPair.getPrivate(), e1.encapsulation());
+		assertArrayEquals(e1.key().getEncoded(), sharedSecret1.getEncoded());
+		SecretKey sharedSecret2 = w.getSharedSecret(keyPair.getPrivate(), e2.encapsulation());
+		assertArrayEquals(e2.key().getEncoded(), sharedSecret2.getEncoded());
 	}
 }

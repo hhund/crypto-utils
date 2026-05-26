@@ -37,7 +37,7 @@ public class AbstractKemWrapperTest
 			}
 
 			@Override
-			protected SecretKey doGetSecretKey(PrivateKey privateKey, byte[] encapsulation, int sharedSecretLength)
+			protected SecretKey doGetSharedSecret(PrivateKey privateKey, byte[] encapsulation, int sharedSecretLength)
 					throws NoSuchAlgorithmException, InvalidKeyException, DecapsulateException
 			{
 				return createKey(testSharedSecretLength);
