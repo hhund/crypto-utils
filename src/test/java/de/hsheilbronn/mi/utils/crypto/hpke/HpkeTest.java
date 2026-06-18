@@ -73,8 +73,7 @@ public class HpkeTest
 	private static Stream<Arguments> forTestEncryptDecryptInputStream() throws KeyNotFoundException
 	{
 		List<Mode> modes = List.of(Mode.base(), Mode.psk(PSK_ID));
-		KemId[] kemIds = EnumSet.of(KemId.RSAKEM_1024_KDF2_SHA256, KemId.RSAKEM_2048_KDF2_SHA256,
-				KemId.RSAKEM_3072_KDF2_SHA512, KemId.RSAKEM_4096_KDF2_SHA512).toArray(KemId[]::new);
+		KemId[] kemIds = KemId.values();
 		KdfId[] kdfIds = KdfId.values();
 		AeadId[] aeadIds = AeadId.values();
 		ChunkLength[] chunkLengths = ChunkLength.values();
@@ -163,16 +162,15 @@ public class HpkeTest
 				fail("Truncated by " + i, e);
 		};
 
-		return Stream.of(AeadId.values()).map(aeadId ->
+		return Stream.of(AeadId.values()).flatMap(aeadId -> Stream.of(KemId.values()).map(kemId ->
 		{
-			KemId kemId = KemId.RSAKEM_1024_KDF2_SHA256;
 			KeyPair keyPair = kemId.getKeyPairGeneratorFactory().initialize().generateKeyPair();
 			ProtocolV1 header = new ProtocolV1(handleException(() -> Mode.psk(PSK_ID)), kemId, KdfId.HKDF_SHA256,
 					aeadId, ChunkLength.KiB_1, RECEIVER_KEY_ID);
 			ProtocolAndKeyPair hkp = new ProtocolAndKeyPair(header, keyPair);
 
 			return Arguments.of(hkp, AeadId.ChaCha20Poly1305.equals(aeadId) ? chaCha20ErrorHandler : aesErrorHandler);
-		});
+		}));
 	}
 
 	public interface SupplierWithException<T>
@@ -230,8 +228,7 @@ public class HpkeTest
 	private static Stream<Arguments> forTestModifiedMessages() throws KeyNotFoundException
 	{
 		List<Mode> modes = List.of(Mode.base(), Mode.psk(PSK_ID));
-		KemId[] kemIds = EnumSet.of(KemId.RSAKEM_1024_KDF2_SHA256, KemId.RSAKEM_2048_KDF2_SHA256,
-				KemId.RSAKEM_3072_KDF2_SHA512, KemId.RSAKEM_4096_KDF2_SHA512).toArray(KemId[]::new);
+		KemId[] kemIds = KemId.values();
 		KdfId[] kdfIds = KdfId.values();
 		AeadId[] aeadIds = AeadId.values();
 		ChunkLength[] chunkLengths = ChunkLength.values();
