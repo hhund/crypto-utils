@@ -256,11 +256,6 @@ public class HpkeTest
 				});
 			});
 		});
-
-		// KeyPair keyPair = kemIds[0].getKeyPairGeneratorFactory().initialize().generateKeyPair();
-		// return Stream.of(new ProtocolAndKeyPair(
-		// new ProtocolV1(modes.get(0), kemIds[0], kdfIds[0], aeadIds[0], chunkLengths[0], RECEIVER_KEY_ID),
-		// keyPair).toArguments());
 	}
 
 	private static final class TestProtocol extends ProtocolV1
@@ -443,6 +438,10 @@ public class HpkeTest
 		byte[] mC0 = encrypted.clone();
 		mC0[index.get()] = (byte) (mC0[index.get()] ^ (byte) 0x01);
 		expectException(hpke, mC0, IOException.class);
+
+		// additional data at end
+		byte[] all = encrypted.clone();
+		expectException(hpke, ByteEncoding.concat(all, new byte[1]), IOException.class);
 	}
 
 	private void expectException(Hpke hpke, byte[] modified, Class<?>... expected)
