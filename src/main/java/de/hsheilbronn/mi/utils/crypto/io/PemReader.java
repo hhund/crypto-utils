@@ -10,6 +10,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
+import java.security.PublicKey;
 import java.security.cert.CRLException;
 import java.security.cert.CertificateException;
 import java.security.cert.X509CRL;
@@ -21,6 +22,7 @@ import java.util.Objects;
 import javax.crypto.EncryptedPrivateKeyInfo;
 
 import org.bouncycastle.asn1.pkcs.PrivateKeyInfo;
+import org.bouncycastle.asn1.x509.SubjectPublicKeyInfo;
 import org.bouncycastle.cert.X509CRLHolder;
 import org.bouncycastle.cert.X509CertificateHolder;
 import org.bouncycastle.cert.jcajce.JcaX509CRLConverter;
@@ -510,6 +512,48 @@ public final class PemReader
 
 			else
 				throw new IOException(o.getClass().getName() + " not supported");
+		}
+	}
+	
+	public static PublicKey readPublicKey(String pem) throws IOException
+	{
+		Objects.requireNonNull(pem, "pem");
+
+		try (InputStream in = new ByteArrayInputStream(pem.getBytes(StandardCharsets.UTF_8)))
+		{
+			return readPublicKey(in);
+		}
+	}
+
+	public static PublicKey readPublicKey(Path pem) throws IOException
+	{
+		Objects.requireNonNull(pem, "pem");
+
+		try (InputStream in = Files.newInputStream(pem))
+		{
+			return readPublicKey(in);
+		}
+	}
+
+	public static PublicKey readPublicKey(InputStream pem) throws IOException
+	{
+		try (Reader reader = new InputStreamReader(pem); PEMParser parser = new PEMParser(reader))
+		{
+			Object o = parser.readObject();
+
+			if (o instanceof SubjectPublicKeyInfo spki)
+			{
+				try
+				{
+					return new JcaPEMKeyConverter().getPublicKey(spki);
+				}
+				catch (PEMException e)
+				{
+					throw new IOException(e);
+				}
+			}
+			else
+				throw new IOException("Read pem object not a public key, but " + o.getClass().getName());
 		}
 	}
 }

@@ -8,11 +8,11 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.PrivateKey;
+import java.security.PublicKey;
 import java.security.cert.CRLException;
 import java.security.cert.CertificateEncodingException;
 import java.security.cert.X509CRL;
 import java.security.cert.X509Certificate;
-import java.security.interfaces.RSAPublicKey;
 import java.util.Base64;
 import java.util.Collection;
 import java.util.List;
@@ -276,17 +276,17 @@ public final class PemWriter
 		}
 	}
 
-	public static String writePublicKey(RSAPublicKey publicKey)
+	public static String writePublicKey(PublicKey publicKey)
 	{
 		return toString(out -> writePublicKey(publicKey, out));
 	}
 
-	public static void writePublicKey(RSAPublicKey publicKey, Path pem) throws IOException
+	public static void writePublicKey(PublicKey publicKey, Path pem) throws IOException
 	{
 		toFile(out -> writePublicKey(publicKey, out), pem);
 	}
 
-	public static void writePublicKey(RSAPublicKey publicKey, OutputStream out) throws IOException
+	public static void writePublicKey(PublicKey publicKey, OutputStream out) throws IOException
 	{
 		byte[] encodedPublicKey = publicKey.getEncoded();
 

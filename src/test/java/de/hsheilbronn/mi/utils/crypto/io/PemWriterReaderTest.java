@@ -1,5 +1,6 @@
 package de.hsheilbronn.mi.utils.crypto.io;
 
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -9,7 +10,10 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.security.KeyPair;
+import java.security.KeyPairGenerator;
 import java.security.PrivateKey;
+import java.security.PublicKey;
 import java.security.cert.X509CRL;
 import java.security.cert.X509Certificate;
 import java.util.Arrays;
@@ -32,6 +36,7 @@ import de.hsheilbronn.mi.utils.crypto.io.PemWriter.PrivateKeyPemWriter;
 import de.hsheilbronn.mi.utils.crypto.io.PemWriter.PrivateKeyPemWriterBuilder;
 import de.hsheilbronn.mi.utils.crypto.io.PemWriter.PrivateKeyPemWriterOpenSslClassicBuilder.OpenSslClassicAlgorithm;
 import de.hsheilbronn.mi.utils.crypto.io.PemWriter.PrivateKeyPemWriterPkcs8Builder.Pkcs8Algorithm;
+import de.hsheilbronn.mi.utils.crypto.keypair.KeyPairGeneratorFactory;
 
 public class PemWriterReaderTest
 {
@@ -314,5 +319,35 @@ public class PemWriterReaderTest
 		assertThrows(NullPointerException.class, () -> PemReader.readCertificationRequest((String) null));
 		assertThrows(NullPointerException.class, () -> PemReader.readCertificationRequest((InputStream) null));
 		assertThrows(NullPointerException.class, () -> PemReader.readCertificationRequest((Path) null));
+	}
+
+	@ParameterizedTest
+	@MethodSource("forWriteReadPublicKey")
+	void writeReadPrivateAndPublicKey(KeyPair keyPair) throws Exception
+	{
+		String pemValuePublicKey = PemWriter.writePublicKey(keyPair.getPublic());
+		assertNotNull(pemValuePublicKey);
+
+		PublicKey readPublicKey = PemReader.readPublicKey(pemValuePublicKey);
+		assertNotNull(readPublicKey);
+		assertArrayEquals(keyPair.getPublic().getEncoded(), readPublicKey.getEncoded());
+
+		String pemValuePrivateKey = PemWriter.writePrivateKey(keyPair.getPrivate()).asPkcs8().encryptedAes128(PASSWORD)
+				.toString();
+		assertNotNull(pemValuePrivateKey);
+
+		PrivateKey readPrivateKey = PemReader.readPrivateKey(pemValuePrivateKey, PASSWORD);
+		assertNotNull(readPrivateKey);
+		assertArrayEquals(keyPair.getPrivate().getEncoded(), readPrivateKey.getEncoded());
+	}
+
+	private static Stream<Arguments> forWriteReadPublicKey()
+	{
+		return Stream.of(KeyPairGeneratorFactory.rsa1024(), KeyPairGeneratorFactory.rsa2048(),
+				KeyPairGeneratorFactory.rsa3072(), KeyPairGeneratorFactory.rsa4096(),
+				KeyPairGeneratorFactory.secp256r1(), KeyPairGeneratorFactory.secp384r1(),
+				KeyPairGeneratorFactory.secp521r1(), KeyPairGeneratorFactory.ed25519(), KeyPairGeneratorFactory.ed448(),
+				KeyPairGeneratorFactory.x25519(), KeyPairGeneratorFactory.x448())
+				.map(KeyPairGeneratorFactory::initialize).map(KeyPairGenerator::generateKeyPair).map(Arguments::of);
 	}
 }
