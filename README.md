@@ -9,6 +9,6 @@ Java 25 utility library for reading and writing X509 certificates as well as rea
 <dependency>
     <groupId>de.hs-heilbronn.mi</groupId>
     <artifactId>crypto-utils</artifactId>
-    <version>6.1.0</version>
+    <version>6.2.0</version>
 </dependency>
 ```
