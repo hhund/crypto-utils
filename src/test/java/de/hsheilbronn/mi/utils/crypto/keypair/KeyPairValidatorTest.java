@@ -2,12 +2,15 @@ package de.hsheilbronn.mi.utils.crypto.keypair;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import java.security.AsymmetricKey;
 import java.security.KeyFactory;
 import java.security.KeyPair;
 import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.security.interfaces.RSAPrivateCrtKey;
 import java.security.spec.RSAPrivateKeySpec;
+import java.util.List;
+import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 import org.junit.jupiter.params.ParameterizedTest;
@@ -55,5 +58,42 @@ public class KeyPairValidatorTest
 	public void testMatches(boolean expected, PublicKey publicKey, PrivateKey privateKey) throws Exception
 	{
 		assertEquals(expected, KeyPairValidator.matches(privateKey, publicKey));
+	}
+
+	private static Stream<Arguments> forTestIsKey() throws Exception
+	{
+		List<KeyPair> keyPairs = Stream.of(KeyPairGeneratorFactory.ed25519(), KeyPairGeneratorFactory.ed448(),
+				KeyPairGeneratorFactory.rsa1024(), KeyPairGeneratorFactory.rsa2048(), KeyPairGeneratorFactory.rsa3072(),
+				KeyPairGeneratorFactory.rsa4096(), KeyPairGeneratorFactory.secp256r1(),
+				KeyPairGeneratorFactory.secp384r1(), KeyPairGeneratorFactory.secp521r1(),
+				KeyPairGeneratorFactory.x25519(), KeyPairGeneratorFactory.x448())
+				.map(f -> f.initialize().generateKeyPair()).toList();
+
+		return IntStream.range(0, keyPairs.size()).boxed().mapMulti((i, consumer) ->
+		{
+			KeyPair keyPair = keyPairs.get(i);
+			boolean[] expected = new boolean[keyPairs.size()];
+			expected[i] = true;
+
+			consumer.accept(Arguments.of(keyPair.getPrivate(), expected));
+			consumer.accept(Arguments.of(keyPair.getPublic(), expected));
+		});
+	}
+
+	@ParameterizedTest
+	@MethodSource("forTestIsKey")
+	void testIsKey(AsymmetricKey key, boolean[] expected) throws Exception
+	{
+		assertEquals(expected[0], KeyPairValidator.isEd25519(key));
+		assertEquals(expected[1], KeyPairValidator.isEd448(key));
+		assertEquals(expected[2], KeyPairValidator.isRsa1024(key));
+		assertEquals(expected[3], KeyPairValidator.isRsa2048(key));
+		assertEquals(expected[4], KeyPairValidator.isRsa3072(key));
+		assertEquals(expected[5], KeyPairValidator.isRsa4096(key));
+		assertEquals(expected[6], KeyPairValidator.isSecp256r1(key));
+		assertEquals(expected[7], KeyPairValidator.isSecp384r1(key));
+		assertEquals(expected[8], KeyPairValidator.isSecp521r1(key));
+		assertEquals(expected[9], KeyPairValidator.isX25519(key));
+		assertEquals(expected[10], KeyPairValidator.isX448(key));
 	}
 }

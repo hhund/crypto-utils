@@ -117,5 +117,7 @@ public class KemIdTest
 		KemWrapper kem = kemId.toKem();
 		assertNotNull(kem);
 		assertEquals(expectedKemWrapperClass, kem.getClass());
+
+		assertNotNull(kemId.getKeyPairGeneratorFactory());
 	}
 }

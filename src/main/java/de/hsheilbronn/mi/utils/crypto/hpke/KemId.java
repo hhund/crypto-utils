@@ -1,37 +1,28 @@
 package de.hsheilbronn.mi.utils.crypto.hpke;
 
-import java.security.AlgorithmParameters;
 import java.security.AsymmetricKey;
-import java.security.NoSuchAlgorithmException;
-import java.security.interfaces.ECKey;
-import java.security.interfaces.RSAKey;
-import java.security.interfaces.XECKey;
-import java.security.spec.ECGenParameterSpec;
-import java.security.spec.ECParameterSpec;
-import java.security.spec.InvalidParameterSpecException;
-import java.security.spec.NamedParameterSpec;
 import java.util.Objects;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
 import de.hsheilbronn.mi.utils.crypto.keypair.KeyPairGeneratorFactory;
+import de.hsheilbronn.mi.utils.crypto.keypair.KeyPairValidator;
 
 public enum KemId
 {
-	DHKEM_P256_HKDF_SHA256(0x0010, 32, 65, DhKemWrapper::new, isEcKey(namedCurve("secp256r1")),
+	DHKEM_P256_HKDF_SHA256(0x0010, 32, 65, DhKemWrapper::new, KeyPairValidator::isSecp256r1,
 			KeyPairGeneratorFactory.secp256r1()),
 
-	DHKEM_P384_HKDF_SHA384(0x0011, 48, 97, DhKemWrapper::new, isEcKey(namedCurve("secp384r1")),
+	DHKEM_P384_HKDF_SHA384(0x0011, 48, 97, DhKemWrapper::new, KeyPairValidator::isSecp384r1,
 			KeyPairGeneratorFactory.secp384r1()),
 
-	DHKEM_P521_HKDF_SHA512(0x0012, 64, 133, DhKemWrapper::new, isEcKey(namedCurve("secp521r1")),
+	DHKEM_P521_HKDF_SHA512(0x0012, 64, 133, DhKemWrapper::new, KeyPairValidator::isSecp521r1,
 			KeyPairGeneratorFactory.secp521r1()),
 
-	DHKEM_X25519_HKDF_SHA256(0x0020, 32, 32, DhKemWrapper::new, isXecKey(NamedParameterSpec.X25519),
+	DHKEM_X25519_HKDF_SHA256(0x0020, 32, 32, DhKemWrapper::new, KeyPairValidator::isX25519,
 			KeyPairGeneratorFactory.x25519()),
 
-	DHKEM_X448_HKDF_SHA512(0x0021, 64, 56, DhKemWrapper::new, isXecKey(NamedParameterSpec.X448),
-			KeyPairGeneratorFactory.x448()),
+	DHKEM_X448_HKDF_SHA512(0x0021, 64, 56, DhKemWrapper::new, KeyPairValidator::isX448, KeyPairGeneratorFactory.x448()),
 
 	/**
 	 * RSA-KEM for 1024 Bit RSA keys. KEM ID <code>0xFF10</code> not defined in RFC 9180 and thus not compatible with
@@ -41,7 +32,8 @@ public enum KemId
 	 * 
 	 * @see RsaKemWrapper
 	 */
-	RSAKEM_1024_KDF2_SHA256(0xFF10, 32, 128, RsaKemWrapper::new, isRsaKey(1024), KeyPairGeneratorFactory.rsa1024()),
+	RSAKEM_1024_KDF2_SHA256(0xFF10, 32, 128, RsaKemWrapper::new, KeyPairValidator::isRsa1024,
+			KeyPairGeneratorFactory.rsa1024()),
 
 	/**
 	 * RSA-KEM for 2048 Bit RSA keys. KEM ID <code>0xFF11</code> not defined in RFC 9180 and thus not compatible with
@@ -51,7 +43,8 @@ public enum KemId
 	 * 
 	 * @see RsaKemWrapper
 	 */
-	RSAKEM_2048_KDF2_SHA256(0xFF11, 32, 256, RsaKemWrapper::new, isRsaKey(2048), KeyPairGeneratorFactory.rsa2048()),
+	RSAKEM_2048_KDF2_SHA256(0xFF11, 32, 256, RsaKemWrapper::new, KeyPairValidator::isRsa2048,
+			KeyPairGeneratorFactory.rsa2048()),
 
 	/**
 	 * RSA-KEM for 3072 Bit RSA keys. KEM ID <code>0xFF12</code> not defined in RFC 9180 and thus not compatible with
@@ -61,7 +54,8 @@ public enum KemId
 	 * 
 	 * @see RsaKemWrapper
 	 */
-	RSAKEM_3072_KDF2_SHA512(0xFF12, 64, 384, RsaKemWrapper::new, isRsaKey(3072), KeyPairGeneratorFactory.rsa3072()),
+	RSAKEM_3072_KDF2_SHA512(0xFF12, 64, 384, RsaKemWrapper::new, KeyPairValidator::isRsa3072,
+			KeyPairGeneratorFactory.rsa3072()),
 
 	/**
 	 * RSA-KEM for 4096 Bit RSA keys. KEM ID <code>0xFF13</code> not defined in RFC 9180 and thus not compatible with
@@ -69,45 +63,8 @@ public enum KemId
 	 * 
 	 * @see RsaKemWrapper
 	 */
-	RSAKEM_4096_KDF2_SHA512(0xFF13, 64, 512, RsaKemWrapper::new, isRsaKey(4096), KeyPairGeneratorFactory.rsa4096());
-
-	private static Predicate<AsymmetricKey> isRsaKey(int length)
-	{
-		// Some external providers emit valid RSA moduli that are one bit below the nominal key size
-		return key -> key instanceof RSAKey rsaKey && rsaKey.getModulus().bitLength() >= length - 1
-				&& rsaKey.getModulus().bitLength() <= length;
-	}
-
-	private static Predicate<AsymmetricKey> isXecKey(NamedParameterSpec curve)
-	{
-		return key -> key instanceof XECKey xecKey && xecKey.getParams() instanceof NamedParameterSpec params
-				&& curve.getName().equals(params.getName());
-	}
-
-	private static Predicate<AsymmetricKey> isEcKey(ECParameterSpec expected)
-	{
-		return key -> key instanceof ECKey ecKey && matchesCurve(ecKey.getParams(), expected);
-	}
-
-	private static boolean matchesCurve(ECParameterSpec actual, ECParameterSpec expected)
-	{
-		return actual.getCurve().equals(expected.getCurve()) && actual.getGenerator().equals(expected.getGenerator())
-				&& actual.getOrder().equals(expected.getOrder()) && actual.getCofactor() == expected.getCofactor();
-	}
-
-	private static ECParameterSpec namedCurve(String name)
-	{
-		try
-		{
-			AlgorithmParameters parameters = AlgorithmParameters.getInstance("EC");
-			parameters.init(new ECGenParameterSpec(name));
-			return parameters.getParameterSpec(ECParameterSpec.class);
-		}
-		catch (NoSuchAlgorithmException | InvalidParameterSpecException e)
-		{
-			throw new RuntimeException(e);
-		}
-	}
+	RSAKEM_4096_KDF2_SHA512(0xFF13, 64, 512, RsaKemWrapper::new, KeyPairValidator::isRsa4096,
+			KeyPairGeneratorFactory.rsa4096());
 
 	private final int id;
 	private final int sharedSecretLength;
